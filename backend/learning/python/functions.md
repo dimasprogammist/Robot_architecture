@@ -2,35 +2,39 @@
 id: python-functions
 title: Функции
 category: python
-order: 2
-description: Описание функций, синтаксис и типичные ошибки.
-tags: [python, functions]
+section: Функции
+order: 17
+description: def, return, документация, чистые функции.
+tags: [python, функции]
 technologies: [Python]
-related: [python-basics]
+related: [python-args, python-typing, python-testing]
 ---
 
 # Функции
 
-Функция инкапсулирует шаг алгоритма компонента.
+Функция — именованный шаг. Чистая функция (нет железа внутри) тестируется. I/O вынесите на края.
 
-## Синтаксис
+## Зачем это в робототехнической системе
 
-```python
-def read_sensor(port: str) -> float:
-    """Читает значение с датчика."""
-    return 0.0
-```
+`def wheel_omega(ticks, dt, cpr)` — чистая. `def set_pwm(channel, duty)` — эффект на драйвер.
 
-## Примеры
+## Синтаксис и контракт
 
 ```python
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
+def clamp(x: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, x))
 ```
 
 ## Типичные ошибки
 
-- побочные эффекты без явного имени;
-- слишком длинные функции вместо модулей сервиса.
+- mutable default `def f(buf=[])`
+- функции на 200 строк «и драйвер, и PID, и HTTP»
 
-Связанные темы: алгоритмы компонента, API бэкенда.
+## В Architecture Canvas
+
+Шаги алгоритма в инспекторе должны совпадать с функциями модуля, а не жить только в чате.
+
+## Связанные разделы
+- python-args
+- python-typing
+- python-testing

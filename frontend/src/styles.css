@@ -473,12 +473,45 @@ html[data-theme='dark'] .btn.primary { color: #12110f; }
 
 .learning-page {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 28px;
+  align-items: stretch;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
 }
-.learning-article { max-width: 72ch; }
+.learning-nav {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 8px;
+}
+.learning-nav h1 { font-size: 22px; }
+.learning-cat { margin-bottom: 8px; }
+.learning-cat-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border: none;
+  background: transparent;
+  padding: 8px 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.learning-sec { margin: 0 0 10px 6px; }
+.learning-sec-title {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 8px 0 4px;
+}
+.learning-article { max-width: 76ch; padding-bottom: 48px; overflow: auto; min-height: 0; }
 .learning-article h1 { font-size: 24px; }
+.learning-article h2 { font-size: 17px; margin-top: 22px; }
 .learning-article pre { background: var(--bg); padding: 12px; border-radius: 8px; overflow: auto; }
+.learning-article code { font-family: var(--mono); font-size: 12.5px; }
+.learning-related { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.learning-related h3 { width: 100%; font-size: 14px; margin: 0 0 4px; }
 .sql-bar {
   position: absolute;
   z-index: 6;

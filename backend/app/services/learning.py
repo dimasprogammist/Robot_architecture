@@ -42,6 +42,7 @@ def list_articles() -> list[dict]:
                 "order": int(meta.get("order") or 0),
                 "related": meta.get("related") or [],
                 "technologies": meta.get("technologies") or [],
+                "section": meta.get("section") or "",
             }
         )
     items.sort(key=lambda a: (a["category"], a["order"], a["title"]))
@@ -60,7 +61,15 @@ def get_article(article_id: str) -> dict | None:
 def categories() -> list[dict]:
     grouped: dict[str, list] = {}
     for a in list_articles():
-        grouped.setdefault(a["category"], []).append({"id": a["id"], "title": a["title"], "description": a["description"]})
+        grouped.setdefault(a["category"], []).append(
+            {
+                "id": a["id"],
+                "title": a["title"],
+                "description": a["description"],
+                "section": a.get("section") or "",
+                "order": a.get("order") or 0,
+            }
+        )
     order = [
         "python",
         "cpp",

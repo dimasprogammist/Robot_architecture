@@ -29,10 +29,18 @@ export interface AiExportBody {
   include_sql?: boolean
 }
 
+export interface LearningArticleSummary {
+  id: string
+  title: string
+  description: string
+  section?: string
+  order?: number
+}
+
 export interface LearningCategory {
   id: string
   name: string
-  articles: { id: string; title: string; description: string }[]
+  articles: LearningArticleSummary[]
 }
 
 export interface LearningArticle {
@@ -40,6 +48,7 @@ export interface LearningArticle {
   title: string
   description: string
   category: string
+  section?: string
   tags: string[]
   content: string
   related: string[]
