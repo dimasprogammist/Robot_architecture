@@ -7,12 +7,15 @@ import { ExportModal } from './components/ExportModal'
 import { Inspector } from './components/Inspector'
 import { LeftSidebar } from './components/layout/LeftSidebar'
 import { TopBar } from './components/layout/TopBar'
+import { SqlToolbar } from './components/SqlToolbar'
 import { useProjectStore } from './store/useProjectStore'
 import { useUiStore } from './store/useUiStore'
 import { AlgorithmsView } from './views/AlgorithmsView'
+import { BomView } from './views/BomView'
 import { ComponentsView } from './views/ComponentsView'
 import { DocumentsView } from './views/DocumentsView'
 import { ExportView } from './views/ExportView'
+import { LearningView } from './views/LearningView'
 import { ProtocolsView } from './views/ProtocolsView'
 import { RequirementsView } from './views/RequirementsView'
 import { SettingsView } from './views/SettingsView'
@@ -31,10 +34,24 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const saveNow = useProjectStore((s) => s.saveNow)
   const setSearchOpen = useUiStore((s) => s.setSearchOpen)
   const setNav = useUiStore((s) => s.setNav)
+  const ensureKindArchitecture = useProjectStore((s) => s.ensureKindArchitecture)
+  const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
+  const architectureId = useProjectStore((s) => s.architectureId)
 
   useEffect(() => {
     if (id) load(id).catch(() => undefined)
   }, [id, load])
+
+  useEffect(() => {
+    if (!project) return
+    if (nav === 'database') ensureKindArchitecture('database', 'База данных')
+    if (nav === 'architecture') {
+      const current = project.architectures.find((a) => a.id === architectureId)
+      if (current?.kind === 'database' && !current.parent_component_id) {
+        goToArchitecture(project.root_architecture_id)
+      }
+    }
+  }, [nav, project?.id, ensureKindArchitecture, goToArchitecture])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -74,15 +91,19 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
     )
   }
 
+  const canvasNav = nav === 'architecture' || nav === 'mechanics' || nav === 'database'
+  const libFilter = nav === 'mechanics' ? 'MECHANICS' : nav === 'database' ? 'table' : undefined
+
   return (
     <div className="app-shell">
       <TopBar />
-      <div className={`workspace ${nav === 'architecture' ? '' : 'no-inspector'}`}>
+      <div className={`workspace ${canvasNav ? '' : 'no-inspector'}`}>
         <LeftSidebar />
-        {nav === 'architecture' ? (
+        {canvasNav ? (
           <>
             <div className="canvas-stage">
-              <LibraryRail presets={presets} />
+              {nav === 'database' ? <SqlToolbar /> : null}
+              <LibraryRail presets={presets} filter={libFilter} />
               <ArchitectureCanvas />
             </div>
             <Inspector />
@@ -103,6 +124,8 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
             {nav === 'algorithms' ? <AlgorithmsView /> : null}
             {nav === 'requirements' ? <RequirementsView /> : null}
             {nav === 'documents' ? <DocumentsView /> : null}
+            {nav === 'learning' ? <LearningView /> : null}
+            {nav === 'bom' ? <BomView /> : null}
             {nav === 'export' ? <ExportView /> : null}
             {nav === 'settings' ? <SettingsView /> : null}
           </div>

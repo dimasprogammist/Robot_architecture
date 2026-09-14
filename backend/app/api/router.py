@@ -4,13 +4,14 @@ import json
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db import ProjectRow, SettingsRow, UserTemplateRow, get_db, init_db, new_id, utcnow
 from app.domain.library import BUILTIN_TYPES, LIBRARY_PRESETS
+from app.domain.colors import PROTOCOL_COLORS
 from app.domain.schema import (
     AiExportRequest,
     ArchitectureVersion,
@@ -22,6 +23,9 @@ from app.domain.schema import (
 from app.services.export import to_ai_prompt, to_markdown, to_semantic_export
 from app.services.importer import import_json
 from app.services.templates import TEMPLATES, create_from_template
+from app.services.learning import categories as learning_categories, get_article
+from app.services.sqlgen import generate_sql
+from app.services.files import resolve_path, save_upload
 
 router = APIRouter()
 
@@ -167,7 +171,7 @@ def export_ai(project_id: str, body: AiExportRequest, db: Session = Depends(get_
     row = db.get(ProjectRow, project_id)
     if not row:
         raise HTTPException(404, "Проект не найден")
-    return to_ai_prompt(_row_to_project(row), body.task, body.rules or None)
+    return to_ai_prompt(_row_to_project(row), body.task, body.rules or None, body)
 
 
 @router.post("/projects/import", response_model=Project)
@@ -234,7 +238,53 @@ def library():
     return {
         "types": [t.model_dump() for t in BUILTIN_TYPES],
         "presets": LIBRARY_PRESETS,
+        "protocol_colors": PROTOCOL_COLORS,
     }
+
+
+@router.get("/learning")
+def learning_index():
+    return learning_categories()
+
+
+@router.get("/learning/{article_id}")
+def learning_article(article_id: str):
+    art = get_article(article_id)
+    if not art:
+        raise HTTPException(404, "Материал не найден")
+    return art
+
+
+@router.get("/projects/{project_id}/export.sql", response_class=PlainTextResponse)
+def export_sql(project_id: str, dialect: str = "postgresql", db: Session = Depends(get_db)):
+    row = db.get(ProjectRow, project_id)
+    if not row:
+        raise HTTPException(404, "Проект не найден")
+    return generate_sql(_row_to_project(row), dialect)
+
+
+@router.post("/projects/{project_id}/files")
+async def upload_file(
+    project_id: str,
+    component_id: str = Form(""),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
+    row = db.get(ProjectRow, project_id)
+    if not row:
+        raise HTTPException(404, "Проект не найден")
+    content = await file.read()
+    meta = save_upload(project_id, file.filename or "file.bin", content)
+    meta["component_id"] = component_id or None
+    return meta
+
+
+@router.get("/projects/{project_id}/files/{file_id}")
+def download_file(project_id: str, file_id: str):
+    path = resolve_path(project_id, file_id)
+    if not path:
+        raise HTTPException(404, "Файл не найден")
+    return FileResponse(path, filename=path.name)
 
 
 @router.get("/settings", response_model=GlobalSettings)

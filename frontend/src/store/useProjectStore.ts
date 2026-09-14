@@ -10,7 +10,7 @@ import type {
   Project,
   Requirement,
 } from '../types'
-import { emptyDocumentation } from '../types'
+import { emptyMechanical, emptyTable, withComponentDefaults } from '../model/defaults'
 
 const MAX_HISTORY = 80
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -63,6 +63,7 @@ export interface ProjectState {
   addRequirement: (text: string) => Requirement
   updateRequirement: (id: string, patch: Partial<Requirement>) => void
   deleteRequirement: (id: string) => void
+  ensureKindArchitecture: (kind: string, name: string) => string
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -178,31 +179,48 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const id = uid()
     get().mutate((p) => {
       const architectureId = get().architectureId || p.root_architecture_id
-      p.components.push({
-        id,
-        architecture_id: architectureId,
-        name: partial.name,
-        type: partial.type || 'Свой компонент',
-        category: partial.category || 'OTHER',
-        description: partial.description || '',
-        icon: partial.icon || 'box',
-        technology: partial.technology || '',
-        version: partial.version || '',
-        status: partial.status || 'planned',
-        tags: partial.tags || [],
-        owner: partial.owner || '',
-        notes: partial.notes || '',
-        position: position || partial.position || { x: 120, y: 120 },
-        nested_architecture_id: null,
-        documentation: emptyDocumentation(),
-        hardware_id: partial.hardware_id || null,
-        protocol_id: partial.protocol_id || null,
-        requirement_ids: [],
-        modules: [],
-        api: '',
-        state: '',
-        technologies: partial.technology ? [partial.technology] : [],
-      })
+      p.components.push(
+        withComponentDefaults({
+          id,
+          architecture_id: architectureId,
+          name: partial.name,
+          type: partial.type,
+          category: partial.category,
+          description: partial.description,
+          icon: partial.icon,
+          technology: partial.technology,
+          version: partial.version,
+          status: partial.status,
+          tags: partial.tags,
+          owner: partial.owner,
+          notes: partial.notes,
+          position: position || partial.position || { x: 120, y: 120 },
+          hardware_id: partial.hardware_id || null,
+          protocol_id: partial.protocol_id || null,
+          technologies: partial.technology ? [partial.technology] : [],
+          entity_kind: partial.entity_kind || (partial.type === 'Таблица' ? 'table' : 'component'),
+          table:
+            partial.entity_kind === 'table' || partial.type === 'Таблица'
+              ? partial.table || {
+                  ...emptyTable(),
+                  columns: [
+                    {
+                      id: uid(),
+                      name: 'id',
+                      type: 'BIGINT',
+                      nullable: false,
+                      default: '',
+                      primary_key: true,
+                      unique: false,
+                      foreign_key: '',
+                      description: '',
+                    },
+                  ],
+                }
+              : partial.table || null,
+          mechanical: partial.mechanical || emptyMechanical(),
+        }),
+      )
     })
     set({ selectedIds: [id], selectedConnectionId: null })
     return id
@@ -218,6 +236,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         technology: preset.technology || '',
         hardware_id: preset.hardware_id || null,
         protocol_id: preset.protocol_id || null,
+        entity_kind: preset.entity_kind,
       },
       position,
     ),
@@ -249,6 +268,29 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   connect: (source, target, kind = 'connection') => {
     const id = uid()
     get().mutate((p) => {
+      const src = p.components.find((c) => c.id === source)
+      const tgt = p.components.find((c) => c.id === target)
+      const isTable = src?.entity_kind === 'table' || tgt?.entity_kind === 'table'
+      let targetColumn = isTable ? 'id' : ''
+      if (isTable && src && tgt) {
+        targetColumn = `${src.name.toLowerCase().replace(/\s+/g, '_')}_id`
+        const table = tgt.table || emptyTable()
+        if (!table.columns.some((c) => c.name === targetColumn)) {
+          table.columns.push({
+            id: uid(),
+            name: targetColumn,
+            type: 'BIGINT',
+            nullable: false,
+            default: '',
+            primary_key: false,
+            unique: false,
+            foreign_key: `${src.name}.id`,
+            description: `FK → ${src.name}`,
+          })
+          tgt.table = table
+          tgt.entity_kind = 'table'
+        }
+      }
       p.connections.push({
         id,
         architecture_id: get().architectureId || p.root_architecture_id,
@@ -265,6 +307,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         latency: '',
         reliability: '',
         notes: '',
+        color: '',
+        cardinality: isTable ? 'one_to_many' : '',
+        source_column: isTable ? 'id' : '',
+        target_column: targetColumn,
       })
     })
     set({ selectedConnectionId: id, selectedIds: [] })
@@ -293,6 +339,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           name: c.name,
           parent_component_id: c.id,
           description: `Внутренняя архитектура: ${c.name}`,
+          kind: c.category === 'MECHANICS' ? 'mechanical' : c.entity_kind === 'table' ? 'database' : 'system',
         })
         c.nested_architecture_id = nestedId!
       })
@@ -399,5 +446,37 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       p.requirements = p.requirements.filter((r) => r.id !== id)
       for (const c of p.components) c.requirement_ids = c.requirement_ids.filter((x) => x !== id)
     })
+  },
+
+  ensureKindArchitecture: (kind, name) => {
+    const project = get().project
+    if (!project) return ''
+    const existing = project.architectures.find((a) => a.kind === kind && !a.parent_component_id)
+    if (existing) {
+      set({ architectureId: existing.id, selectedIds: [], selectedConnectionId: null })
+      return existing.id
+    }
+    const id = uid()
+    get().mutate((p) => {
+      p.architectures.push({
+        id,
+        project_id: p.id,
+        name,
+        parent_component_id: null,
+        description: name,
+        kind,
+      })
+      if (kind === 'database' && !p.databases.length) {
+        p.databases.push({
+          id: uid(),
+          name: 'app',
+          dialect: 'postgresql',
+          description: '',
+          schema_name: 'public',
+        })
+      }
+    })
+    set({ architectureId: id, selectedIds: [], selectedConnectionId: null })
+    return id
   },
 }))

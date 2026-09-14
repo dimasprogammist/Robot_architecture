@@ -1,5 +1,6 @@
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
+import { DocsPanel, FilesPanel, MechPanel, TablePanel } from './InspectorExtras'
 import { MarkdownField } from './MarkdownField'
 import { uid } from '../lib/ids'
 import { CATEGORY_LABELS, STATUS_LABELS, STEP_KIND_LABELS, TAB_LABELS } from '../i18n'
@@ -50,7 +51,18 @@ export function Inspector() {
         {component.type} · {CATEGORY_LABELS[component.category] || component.category}
       </p>
       <div className="tabs">
-        {(['overview', 'docs', 'algorithm', 'nested', 'requirements'] as const).map((t) => (
+        {(
+          [
+            'overview',
+            'docs',
+            'algorithm',
+            'nested',
+            'requirements',
+            ...(component.category === 'MECHANICS' ? (['mechanics'] as const) : []),
+            ...(component.entity_kind === 'table' || component.table ? (['table'] as const) : []),
+            'files',
+          ] as const
+        ).map((t) => (
           <button key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)} type="button">
             {TAB_LABELS[t]}
           </button>
@@ -120,6 +132,7 @@ export function Inspector() {
               }
             />
           ))}
+          <DocsPanel component={component} />
         </>
       )}
 
@@ -140,6 +153,10 @@ export function Inspector() {
           </button>
         </>
       )}
+
+      {tab === 'mechanics' && <MechPanel component={component} />}
+      {tab === 'table' && <TablePanel component={component} />}
+      {tab === 'files' && <FilesPanel component={component} />}
 
       {tab === 'requirements' && (
         <>
@@ -205,6 +222,21 @@ function ConnectionInspector({
       <Field label="Задержка" value={connection.latency} onChange={(v) => onChange({ latency: v })} />
       <Field label="Надёжность" value={connection.reliability} onChange={(v) => onChange({ reliability: v })} />
       <Field label="Заметки" value={connection.notes} onChange={(v) => onChange({ notes: v })} multiline />
+      <div className="field">
+        <label>Цвет линии</label>
+        <input type="color" value={connection.color || '#6e6b63'} onChange={(e) => onChange({ color: e.target.value })} />
+      </div>
+      <div className="field">
+        <label>Кардинальность (ER)</label>
+        <select value={connection.cardinality} onChange={(e) => onChange({ cardinality: e.target.value })}>
+          <option value="">—</option>
+          <option value="one_to_one">1 — 1</option>
+          <option value="one_to_many">1 — N</option>
+          <option value="many_to_many">N — N</option>
+        </select>
+      </div>
+      <Field label="Колонка источника (PK)" value={connection.source_column} onChange={(v) => onChange({ source_column: v })} />
+      <Field label="Колонка цели (FK)" value={connection.target_column} onChange={(v) => onChange({ target_column: v })} />
     </aside>
   )
 }

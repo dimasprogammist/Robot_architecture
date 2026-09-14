@@ -16,7 +16,7 @@ export function CommandPalette() {
     const s = q.toLowerCase()
     const out: { kind: string; title: string; run: () => void }[] = []
     for (const c of project.components) {
-      const blob = [c.name, c.type, c.technology, c.description, c.notes, c.documentation.purpose, c.documentation.notes].join(' ')
+              const blob = [c.name, c.type, c.technology, c.description, c.notes, c.documentation?.purpose, c.documentation?.notes].join(' ')
       if (blob.toLowerCase().includes(s)) {
         out.push({
           kind: 'component',

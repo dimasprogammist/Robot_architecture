@@ -10,6 +10,8 @@ export const CATEGORY_LABELS: Record<string, string> = {
   HARDWARE: 'Железо',
   DATA: 'Данные',
   PROTOCOL: 'Протокол',
+  NETWORK: 'Сеть',
+  MECHANICS: 'Механика',
   OTHER: 'Прочее',
 }
 
@@ -19,6 +21,9 @@ export const TAB_LABELS: Record<string, string> = {
   algorithm: 'Алгоритм',
   nested: 'Вложенность',
   requirements: 'Требования',
+  mechanics: 'Механика',
+  table: 'Таблица',
+  files: 'Файлы',
 }
 
 export const STEP_KIND_LABELS: Record<string, string> = {

@@ -3,13 +3,12 @@ import { TypeIcon } from '../TypeIcon'
 import type { Component } from '../../types'
 
 export type ArchNodeData = { component: Component }
-
 export type ArchRFNode = Node<ArchNodeData, 'arch'>
 
 export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
   const c = data.component
   return (
-    <div className={`arch-node handle-hidden ${selected ? 'selected' : ''}`}>
+    <div className={`arch-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}>
       <Handle type="target" position={Position.Left} />
       <Handle type="target" position={Position.Top} />
       <div className="kicker">

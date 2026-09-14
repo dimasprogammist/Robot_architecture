@@ -14,7 +14,16 @@ export function DocumentsView() {
         type="button"
         onClick={() =>
           mutate((p) => {
-            p.documents.push({ id: uid(), title: 'Без названия', body: '', component_id: null })
+            p.documents.push({
+              id: uid(),
+              title: 'Без названия',
+              body: '',
+              component_id: null,
+              protocol_id: null,
+              kind: 'markdown',
+              url: '',
+              description: '',
+            })
           })
         }
       >

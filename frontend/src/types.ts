@@ -10,6 +10,10 @@ export type NavId =
   | 'algorithms'
   | 'requirements'
   | 'documents'
+  | 'learning'
+  | 'mechanics'
+  | 'database'
+  | 'bom'
   | 'export'
   | 'settings'
 
@@ -55,6 +59,89 @@ export interface Protocol {
   crc: string
   notes: string
   built_in: boolean
+  color: string
+}
+
+export interface PrintSettings {
+  nozzle_size: string
+  layer_height: string
+  material: string
+  infill: string
+  supports: string
+  print_orientation: string
+  printer: string
+  notes: string
+}
+
+export interface MechanicalData {
+  material: string
+  dimensions: string
+  weight: string
+  quantity: number
+  unit: string
+  manufacturer: string
+  part_number: string
+  notes: string
+  extra_fields: Record<string, string>
+  print: PrintSettings
+}
+
+export interface DocumentationItem {
+  id: string
+  title: string
+  kind: string
+  url: string
+  body: string
+  description: string
+  component_id: string | null
+  protocol_id: string | null
+}
+
+export interface AttachedFile {
+  id: string
+  filename: string
+  kind: string
+  mime: string
+  size: number
+  version: string
+  description: string
+  uploaded_at: string
+  component_id: string | null
+}
+
+export interface TableColumn {
+  id: string
+  name: string
+  type: string
+  nullable: boolean
+  default: string
+  primary_key: boolean
+  unique: boolean
+  foreign_key: string
+  description: string
+}
+
+export interface TableIndex {
+  id: string
+  name: string
+  columns: string[]
+  unique: boolean
+}
+
+export interface TableDefinition {
+  schema_name: string
+  description: string
+  columns: TableColumn[]
+  indexes: TableIndex[]
+  constraints: string[]
+}
+
+export interface DatabaseInfo {
+  id: string
+  name: string
+  dialect: string
+  description: string
+  schema_name: string
 }
 
 export interface HardwareComponent {
@@ -138,6 +225,10 @@ export interface Connection {
   latency: string
   reliability: string
   notes: string
+  color: string
+  cardinality: string
+  source_column: string
+  target_column: string
 }
 
 export interface Component {
@@ -164,6 +255,12 @@ export interface Component {
   api: string
   state: string
   technologies: string[]
+  entity_kind: string
+  mechanical: MechanicalData
+  table: TableDefinition | null
+  docs: DocumentationItem[]
+  files: AttachedFile[]
+  extra_fields: Record<string, string>
 }
 
 export interface Architecture {
@@ -172,6 +269,7 @@ export interface Architecture {
   name: string
   parent_component_id: string | null
   description: string
+  kind: string
 }
 
 export interface Requirement {
@@ -189,6 +287,10 @@ export interface Document {
   title: string
   body: string
   component_id: string | null
+  protocol_id: string | null
+  kind: string
+  url: string
+  description: string
 }
 
 export interface ArchitectureVersion {
@@ -226,6 +328,7 @@ export interface Project {
   custom_types: ComponentTypeDef[]
   versions: ArchitectureVersion[]
   settings: UserSettings
+  databases: DatabaseInfo[]
 }
 
 export interface ProjectSummary {
@@ -246,11 +349,13 @@ export interface LibraryPreset {
   technology?: string
   hardware_id?: string
   protocol_id?: string
+  entity_kind?: string
 }
 
 export interface LibraryResponse {
   types: ComponentTypeDef[]
   presets: LibraryPreset[]
+  protocol_colors?: Record<string, string>
 }
 
 export interface TemplateInfo {

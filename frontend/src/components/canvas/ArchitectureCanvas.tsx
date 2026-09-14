@@ -16,12 +16,14 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { ArchNode } from './ArchNode'
+import { TableNode } from './TableNode'
 import { LabeledEdge } from './LabeledEdge'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useUiStore } from '../../store/useUiStore'
+import { protocolColor } from '../../model/defaults'
 import type { LibraryPreset } from '../../types'
 
-const nodeTypes = { arch: ArchNode }
+const nodeTypes = { arch: ArchNode, table: TableNode }
 const edgeTypes = { labeled: LabeledEdge }
 
 export function ArchitectureCanvas() {
@@ -60,7 +62,7 @@ function ArchitectureCanvasInner() {
       .filter((c) => c.architecture_id === architectureId)
       .map((c) => ({
         id: c.id,
-        type: 'arch' as const,
+        type: c.entity_kind === 'table' ? ('table' as const) : ('arch' as const),
         position: c.position,
         selected: selectedIds.includes(c.id),
         data: { component: c },
@@ -80,16 +82,20 @@ function ArchitectureCanvasInner() {
         markerEnd: { type: 'arrowclosed' as const },
         markerStart: c.direction === 'bidirectional' ? { type: 'arrowclosed' as const } : undefined,
         style: {
-          stroke: c.kind === 'data_flow' ? '#355f7a' : 'var(--muted)',
+          stroke: protocolColor(
+            c.protocol_name,
+            c.color || project.protocols.find((p) => p.name === c.protocol_name)?.color,
+            settings.theme,
+          ),
           strokeDasharray: c.kind === 'data_flow' ? '6 4' : undefined,
         },
         data: {
-          label: c.protocol_name || (c.kind === 'data_flow' ? c.data_format || 'данные' : ''),
+          label: c.protocol_name || c.cardinality || (c.kind === 'data_flow' ? c.data_format || 'данные' : ''),
           kind: c.kind,
           bidirectional: c.direction === 'bidirectional',
         },
       }))
-  }, [project, architectureId, selectedConnectionId])
+  }, [project, architectureId, selectedConnectionId, settings.theme])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {

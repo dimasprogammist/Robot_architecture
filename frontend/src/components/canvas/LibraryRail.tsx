@@ -3,14 +3,18 @@ import { useUiStore } from '../../store/useUiStore'
 import { useProjectStore as useP } from '../../store/useProjectStore'
 import type { LibraryPreset } from '../../types'
 
-export function LibraryRail({ presets }: { presets: LibraryPreset[] }) {
+export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; filter?: string }) {
   const collapsed = useUiStore((s) => s.libraryCollapsed)
   const [q, setQ] = useState('')
   const addFromPreset = useP((s) => s.addFromPreset)
-  const filtered = useMemo(
-    () => presets.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()) || p.type.toLowerCase().includes(q.toLowerCase())),
-    [presets, q],
-  )
+  const filtered = useMemo(() => {
+    const byCat = !filter
+      ? presets
+      : filter === 'table'
+        ? presets.filter((p) => p.entity_kind === 'table' || p.type === 'Таблица')
+        : presets.filter((p) => p.category === filter)
+    return byCat.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()) || p.type.toLowerCase().includes(q.toLowerCase()))
+  }, [presets, q, filter])
   if (collapsed) return null
   return (
     <aside className="library-rail">

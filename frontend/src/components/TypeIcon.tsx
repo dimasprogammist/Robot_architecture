@@ -3,6 +3,7 @@ import {
   Camera,
   CircuitBoard,
   Cloud,
+  Cog,
   Cpu,
   Database,
   Factory,
@@ -45,6 +46,8 @@ const map: Record<string, LucideIcon> = {
   cloud: Cloud,
   globe: Globe,
   user: User,
+  gear: Cog,
+  part: Cog,
 }
 
 export function TypeIcon({ name, size = 14 }: { name: string; size?: number }) {

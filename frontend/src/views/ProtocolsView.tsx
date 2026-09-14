@@ -19,6 +19,7 @@ const blank = (): Protocol => ({
   crc: '',
   notes: '',
   built_in: false,
+  color: '',
 })
 
 export function ProtocolsView() {
@@ -58,17 +59,19 @@ export function ProtocolsView() {
                 })
               }
             />
-            <textarea
-              style={{ marginTop: 8, width: '100%', minHeight: 48 }}
-              placeholder="Описание"
-              value={proto.description}
-              onChange={(e) =>
-                mutate((p) => {
-                  const x = p.protocols.find((i) => i.id === proto.id)
-                  if (x) x.description = e.target.value
-                })
-              }
-            />
+            <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              Цвет
+              <input
+                type="color"
+                value={proto.color || '#6e6b63'}
+                onChange={(e) =>
+                  mutate((p) => {
+                    const x = p.protocols.find((i) => i.id === proto.id)
+                    if (x) x.color = e.target.value
+                  })
+                }
+              />
+            </label>
           </article>
         ))}
       </div>

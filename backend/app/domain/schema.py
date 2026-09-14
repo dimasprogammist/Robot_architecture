@@ -55,6 +55,7 @@ class Protocol(BaseModel):
     crc: str = ""
     notes: str = ""
     built_in: bool = False
+    color: str = ""
 
 
 class HardwareComponent(BaseModel):
@@ -122,6 +123,99 @@ class Algorithm(BaseModel):
     canvas_edges: list[AlgorithmEdge] = Field(default_factory=list)
 
 
+class PrintSettings(BaseModel):
+    nozzle_size: str = ""
+    layer_height: str = ""
+    material: str = ""
+    infill: str = ""
+    supports: str = ""
+    print_orientation: str = ""
+    printer: str = ""
+    notes: str = ""
+
+
+class MechanicalData(BaseModel):
+    material: str = ""
+    dimensions: str = ""
+    weight: str = ""
+    quantity: float = 1
+    unit: str = "шт"
+    manufacturer: str = ""
+    part_number: str = ""
+    notes: str = ""
+    extra_fields: dict[str, str] = Field(default_factory=dict)
+    print: PrintSettings = Field(default_factory=PrintSettings)
+
+
+class DocumentationItem(BaseModel):
+    id: str
+    title: str
+    kind: str = "markdown"
+    url: str = ""
+    body: str = ""
+    description: str = ""
+    component_id: str | None = None
+    protocol_id: str | None = None
+
+
+class AttachedFile(BaseModel):
+    id: str
+    filename: str
+    kind: str = "other"
+    mime: str = ""
+    size: int = 0
+    version: str = "1"
+    description: str = ""
+    uploaded_at: str = ""
+    component_id: str | None = None
+
+
+class TableColumn(BaseModel):
+    id: str
+    name: str
+    type: str = "TEXT"
+    nullable: bool = True
+    default: str = ""
+    primary_key: bool = False
+    unique: bool = False
+    foreign_key: str = ""
+    description: str = ""
+
+
+class TableIndex(BaseModel):
+    id: str
+    name: str
+    columns: list[str] = Field(default_factory=list)
+    unique: bool = False
+
+
+class TableDefinition(BaseModel):
+    schema_name: str = "public"
+    description: str = ""
+    columns: list[TableColumn] = Field(default_factory=list)
+    indexes: list[TableIndex] = Field(default_factory=list)
+    constraints: list[str] = Field(default_factory=list)
+
+
+class DatabaseInfo(BaseModel):
+    id: str
+    name: str = "app"
+    dialect: str = "postgresql"
+    description: str = ""
+    schema_name: str = "public"
+
+
+class BomItem(BaseModel):
+    component_id: str
+    name: str
+    category: str
+    manufacturer: str = ""
+    part_number: str = ""
+    quantity: float = 1
+    unit: str = "шт"
+    notes: str = ""
+
+
 class Connection(BaseModel):
     id: str
     architecture_id: str
@@ -138,6 +232,10 @@ class Connection(BaseModel):
     latency: str = ""
     reliability: str = ""
     notes: str = ""
+    color: str = ""
+    cardinality: str = ""
+    source_column: str = ""
+    target_column: str = ""
 
 
 class Component(BaseModel):
@@ -164,6 +262,12 @@ class Component(BaseModel):
     api: str = ""
     state: str = ""
     technologies: list[str] = Field(default_factory=list)
+    entity_kind: str = "component"
+    mechanical: MechanicalData = Field(default_factory=MechanicalData)
+    table: TableDefinition | None = None
+    docs: list[DocumentationItem] = Field(default_factory=list)
+    files: list[AttachedFile] = Field(default_factory=list)
+    extra_fields: dict[str, str] = Field(default_factory=dict)
 
 
 class Architecture(BaseModel):
@@ -172,6 +276,7 @@ class Architecture(BaseModel):
     name: str
     parent_component_id: str | None = None
     description: str = ""
+    kind: str = "system"
 
 
 class Requirement(BaseModel):
@@ -189,6 +294,10 @@ class Document(BaseModel):
     title: str
     body: str = ""
     component_id: str | None = None
+    protocol_id: str | None = None
+    kind: str = "markdown"
+    url: str = ""
+    description: str = ""
 
 
 class ArchitectureVersion(BaseModel):
@@ -226,6 +335,7 @@ class Project(BaseModel):
     custom_types: list[ComponentTypeDef] = Field(default_factory=list)
     versions: list[ArchitectureVersion] = Field(default_factory=list)
     settings: UserSettings = Field(default_factory=UserSettings)
+    databases: list[DatabaseInfo] = Field(default_factory=list)
 
 
 class ExportEnvelope(BaseModel):
@@ -243,12 +353,25 @@ class ExportEnvelope(BaseModel):
     hardware: list[dict[str, Any]] = Field(default_factory=list)
     documents: list[dict[str, Any]] = Field(default_factory=list)
     nested_architectures: list[dict[str, Any]] = Field(default_factory=list)
+    mechanics: list[dict[str, Any]] = Field(default_factory=list)
+    database: dict[str, Any] = Field(default_factory=dict)
+    bom: list[dict[str, Any]] = Field(default_factory=list)
     project: dict[str, Any] = Field(default_factory=dict)
 
 
 class AiExportRequest(BaseModel):
     task: str = ""
     rules: list[str] = Field(default_factory=list)
+    scope: str = "all"
+    component_ids: list[str] = Field(default_factory=list)
+    architecture_id: str | None = None
+    include_descriptions: bool = True
+    include_algorithms: bool = True
+    include_requirements: bool = True
+    include_notes: bool = False
+    include_doc_meta: bool = True
+    include_full_docs: bool = False
+    include_sql: bool = False
 
 
 class ProjectCreate(BaseModel):

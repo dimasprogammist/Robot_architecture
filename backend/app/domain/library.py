@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.domain.colors import color_for_protocol
 from app.domain.schema import ComponentTypeDef, HardwareComponent, Protocol
 
 
@@ -46,7 +47,19 @@ BUILTIN_TYPES: list[ComponentTypeDef] = [
     ComponentTypeDef(id="cloud", category="OTHER", name="Облако", icon="cloud"),
     ComponentTypeDef(id="external-service", category="OTHER", name="Внешний сервис", icon="globe"),
     ComponentTypeDef(id="user", category="OTHER", name="Пользователь", icon="user"),
-    ComponentTypeDef(id="custom-component", category="OTHER", name="Свой компонент", icon="box"),
+    ComponentTypeDef(id="gateway", category="NETWORK", name="Шлюз", icon="network"),
+    ComponentTypeDef(id="router", category="NETWORK", name="Маршрутизатор", icon="network"),
+    ComponentTypeDef(id="switch", category="NETWORK", name="Коммутатор", icon="network"),
+    ComponentTypeDef(id="mech-assembly", category="MECHANICS", name="Механический узел", icon="gear"),
+    ComponentTypeDef(id="mech-part", category="MECHANICS", name="Деталь", icon="part"),
+    ComponentTypeDef(id="mech-motor", category="MECHANICS", name="Двигатель", icon="motor"),
+    ComponentTypeDef(id="mech-gearbox", category="MECHANICS", name="Редуктор", icon="gear"),
+    ComponentTypeDef(id="mech-shaft", category="MECHANICS", name="Вал", icon="part"),
+    ComponentTypeDef(id="mech-bearing", category="MECHANICS", name="Подшипник", icon="part"),
+    ComponentTypeDef(id="mech-wheel", category="MECHANICS", name="Колесо", icon="part"),
+    ComponentTypeDef(id="mech-bracket", category="MECHANICS", name="Кронштейн", icon="part"),
+    ComponentTypeDef(id="mech-housing", category="MECHANICS", name="Корпус", icon="box"),
+    ComponentTypeDef(id="table", category="DATA", name="Таблица", icon="db"),
 ]
 
 
@@ -62,8 +75,18 @@ BUILTIN_PROTOCOLS: list[Protocol] = [
     Protocol(id="proto-can", name="CAN", version="2.0", transport="CAN bus", port="", direction="bidirectional", data_format="Frames", description="Шина Controller Area Network", crc="CRC15", built_in=True),
     Protocol(id="proto-opcua", name="OPC UA", version="1.04", transport="TCP", port="4840", direction="bidirectional", data_format="Nodeset", built_in=True),
     Protocol(id="proto-opcda", name="OPC DA", version="3.0", transport="COM/DCOM", port="", direction="bidirectional", data_format="Items", built_in=True),
-    Protocol(id="proto-serial", name="Serial", version="1.0", transport="UART", port="", direction="bidirectional", data_format="Bytes", encoding="ASCII", built_in=True),
+    Protocol(id="proto-serial", name="Serial", version="1.0", transport="UART", port="", direction="bidirectional", data_format="Bytes", encoding="ASCII", built_in=True, color="#4e6470"),
+    Protocol(id="proto-uart", name="UART", version="1.0", transport="UART", direction="bidirectional", data_format="Bytes", built_in=True, color="#4e6470"),
+    Protocol(id="proto-spi", name="SPI", version="1.0", transport="SPI", direction="bidirectional", data_format="Bytes", built_in=True, color="#5a5e6e"),
+    Protocol(id="proto-i2c", name="I²C", version="1.0", transport="I2C", direction="bidirectional", data_format="Bytes", built_in=True, color="#4f6a66"),
+    Protocol(id="proto-usb", name="USB", version="2.0", transport="USB", direction="bidirectional", built_in=True, color="#5c5870"),
+    Protocol(id="proto-eth", name="Ethernet", version="1.0", transport="Ethernet", direction="bidirectional", built_in=True, color="#4a6270"),
+    Protocol(id="proto-wifi", name="Wi-Fi", version="802.11", transport="Wi-Fi", direction="bidirectional", built_in=True, color="#4e5f78"),
 ]
+
+for _proto in BUILTIN_PROTOCOLS:
+    if not _proto.color:
+        _proto.color = color_for_protocol(_proto.name)
 
 
 BUILTIN_HARDWARE: list[HardwareComponent] = [
@@ -100,4 +123,13 @@ LIBRARY_PRESETS = [
     {"name": "Modbus TCP", "type": "Modbus TCP", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-modbus-tcp"},
     {"name": "CAN", "type": "CAN", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-can"},
     {"name": "ПЛК", "type": "ПЛК", "category": "HARDWARE", "icon": "factory", "hardware_id": "hw-siemens-plc"},
+    {"name": "Шлюз", "type": "Шлюз", "category": "NETWORK", "icon": "network"},
+    {"name": "Механическая система", "type": "Механический узел", "category": "MECHANICS", "icon": "gear"},
+    {"name": "Колесо", "type": "Колесо", "category": "MECHANICS", "icon": "part"},
+    {"name": "Редуктор", "type": "Редуктор", "category": "MECHANICS", "icon": "gear"},
+    {"name": "Вал", "type": "Вал", "category": "MECHANICS", "icon": "part"},
+    {"name": "Подшипник", "type": "Подшипник", "category": "MECHANICS", "icon": "part"},
+    {"name": "Двигатель (мех.)", "type": "Двигатель", "category": "MECHANICS", "icon": "motor"},
+    {"name": "Корпус", "type": "Корпус", "category": "MECHANICS", "icon": "box"},
+    {"name": "Таблица", "type": "Таблица", "category": "DATA", "icon": "db", "entity_kind": "table"},
 ]

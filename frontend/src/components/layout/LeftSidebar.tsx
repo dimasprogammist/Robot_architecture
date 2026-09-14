@@ -1,12 +1,16 @@
 import {
   Box,
+  Database,
   FileText,
   FolderKanban,
+  GraduationCap,
   Layers3,
   Radio,
   ScrollText,
   Settings,
   Share2,
+  Cog,
+  ListTree,
   Workflow,
 } from 'lucide-react'
 import { useUiStore } from '../../store/useUiStore'
@@ -15,11 +19,15 @@ import type { NavId } from '../../types'
 const items: { id: NavId; label: string; icon: typeof Box }[] = [
   { id: 'projects', label: 'Проекты', icon: FolderKanban },
   { id: 'architecture', label: 'Архитектура', icon: Layers3 },
+  { id: 'mechanics', label: 'Механика', icon: Cog },
+  { id: 'database', label: 'База данных', icon: Database },
   { id: 'components', label: 'Компоненты', icon: Box },
   { id: 'protocols', label: 'Протоколы', icon: Radio },
   { id: 'algorithms', label: 'Алгоритмы', icon: Workflow },
   { id: 'requirements', label: 'Требования', icon: ScrollText },
   { id: 'documents', label: 'Документы', icon: FileText },
+  { id: 'bom', label: 'BOM', icon: ListTree },
+  { id: 'learning', label: 'Обучение', icon: GraduationCap },
   { id: 'export', label: 'Экспорт', icon: Share2 },
   { id: 'settings', label: 'Настройки', icon: Settings },
 ]

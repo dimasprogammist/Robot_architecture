@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from app.domain.schema import ExportEnvelope, Project
+from app.domain.schema import AiExportRequest, ExportEnvelope, Project
+from app.services.sqlgen import generate_sql, tables_of
 
 
 def _now() -> str:
@@ -38,6 +39,11 @@ def to_semantic_export(project: Project) -> dict:
                 "requirement_ids": c.requirement_ids,
                 "hardware_id": c.hardware_id,
                 "protocol_id": c.protocol_id,
+                "entity_kind": c.entity_kind,
+                "mechanical": c.mechanical.model_dump(),
+                "table": c.table.model_dump() if c.table else None,
+                "docs": [d.model_dump() for d in c.docs],
+                "files": [f.model_dump() for f in c.files],
             }
         )
 
@@ -61,6 +67,10 @@ def to_semantic_export(project: Project) -> dict:
             "reliability": e.reliability,
             "notes": e.notes,
             "architecture_id": e.architecture_id,
+            "color": e.color,
+            "cardinality": e.cardinality,
+            "source_column": e.source_column,
+            "target_column": e.target_column,
         }
         if e.kind == "data_flow":
             data_flows.append(payload)
@@ -107,12 +117,58 @@ def to_semantic_export(project: Project) -> dict:
                 "name": a.name,
                 "parent_component_id": a.parent_component_id,
                 "description": a.description,
+                "kind": a.kind,
             }
             for a in project.architectures
         ],
+        mechanics=[
+            {"id": c.id, "name": c.name, "type": c.type, **c.mechanical.model_dump()}
+            for c in project.components
+            if c.category == "MECHANICS"
+        ],
+        database={
+            "tables": [
+                {"name": c.name, **(c.table.model_dump() if c.table else {})}
+                for c in tables_of(project)
+            ],
+            "relations": [
+                {
+                    "from": _name(project, e.source),
+                    "to": _name(project, e.target),
+                    "cardinality": e.cardinality,
+                    "source_column": e.source_column,
+                    "target_column": e.target_column,
+                }
+                for e in project.connections
+                if e.cardinality or e.source_column
+            ],
+        },
+        bom=[b.model_dump() for b in bom_items(project)],
         project=project.model_dump(),
     )
     return envelope.model_dump()
+
+
+def bom_items(project: Project):
+    from app.domain.schema import BomItem
+
+    items = []
+    for c in project.components:
+        if c.category not in ("HARDWARE", "MECHANICS"):
+            continue
+        items.append(
+            BomItem(
+                component_id=c.id,
+                name=c.name,
+                category=c.category,
+                manufacturer=c.mechanical.manufacturer,
+                part_number=c.mechanical.part_number,
+                quantity=c.mechanical.quantity or 1,
+                unit=c.mechanical.unit or "шт",
+                notes=c.mechanical.notes or c.notes,
+            )
+        )
+    return items
 
 
 def _name(project: Project, component_id: str) -> str:
@@ -261,6 +317,38 @@ def to_markdown(project: Project) -> str:
                         lines.append(f"- {label}: {val}")
                 lines.append("")
 
+    tables = tables_of(project)
+    if tables:
+        lines += ["## База данных", ""]
+        for t in tables:
+            lines += [f"### {t.name}", ""]
+            if t.table:
+                for col in t.table.columns:
+                    flags = []
+                    if col.primary_key:
+                        flags.append("PK")
+                    if col.unique:
+                        flags.append("UNIQUE")
+                    if not col.nullable:
+                        flags.append("NOT NULL")
+                    extra = f" ({', '.join(flags)})" if flags else ""
+                    lines.append(f"- {col.name} {col.type}{extra}")
+                lines.append("")
+
+    mech = [c for c in project.components if c.category == "MECHANICS"]
+    if mech:
+        lines += ["## Механика", ""]
+        for c in mech:
+            m = c.mechanical
+            lines += [f"### {c.name}", "", f"- Тип: {c.type}"]
+            if m.material:
+                lines.append(f"- Материал: {m.material}")
+            if m.dimensions:
+                lines.append(f"- Размеры: {m.dimensions}")
+            if m.quantity:
+                lines.append(f"- Количество: {m.quantity} {m.unit}")
+            lines.append("")
+
     return "\n".join(lines).strip() + "\n"
 
 
@@ -273,36 +361,95 @@ DEFAULT_RULES = [
 ]
 
 
-def to_ai_prompt(project: Project, task: str = "", extra_rules: list[str] | None = None) -> str:
+def scoped_project(project: Project, req: AiExportRequest | None) -> Project:
+    if not req or req.scope in ("", "all"):
+        return project
+    data = project.model_dump()
+    scoped = Project.model_validate(data)
+    ids: set[str] = set(req.component_ids)
+    if req.scope == "selection" and ids:
+        scoped.components = [c for c in scoped.components if c.id in ids]
+    elif req.scope == "architecture" and req.architecture_id:
+        scoped.components = [c for c in scoped.components if c.architecture_id == req.architecture_id]
+        scoped.connections = [c for c in scoped.connections if c.architecture_id == req.architecture_id]
+    elif req.scope == "database":
+        table_ids = {c.id for c in tables_of(scoped)}
+        scoped.components = [c for c in scoped.components if c.id in table_ids]
+        scoped.connections = [c for c in scoped.connections if c.source in table_ids and c.target in table_ids]
+        scoped.algorithms = []
+    elif req.scope == "mechanics":
+        mech_ids = {c.id for c in scoped.components if c.category == "MECHANICS"}
+        scoped.components = [c for c in scoped.components if c.id in mech_ids]
+        scoped.connections = [c for c in scoped.connections if c.source in mech_ids and c.target in mech_ids]
+        scoped.algorithms = []
+    elif req.scope == "algorithms":
+        alg_ids = {a.component_id for a in scoped.algorithms}
+        scoped.components = [c for c in scoped.components if c.id in alg_ids]
+        scoped.connections = []
+    keep = {c.id for c in scoped.components}
+    scoped.connections = [c for c in scoped.connections if c.source in keep and c.target in keep]
+    scoped.algorithms = [a for a in scoped.algorithms if a.component_id in keep]
+    scoped.requirements = [r for r in scoped.requirements if not r.component_ids or any(i in keep for i in r.component_ids)]
+    if req and not req.include_algorithms:
+        scoped.algorithms = []
+    if req and not req.include_requirements:
+        scoped.requirements = []
+    if req and not req.include_notes:
+        for c in scoped.components:
+            c.notes = ""
+            c.documentation.notes = ""
+    if req and not req.include_descriptions:
+        for c in scoped.components:
+            c.description = ""
+            c.documentation = c.documentation.model_copy(update={"description": "", "purpose": ""})
+    if req and not req.include_full_docs:
+        for c in scoped.components:
+            if not req.include_doc_meta:
+                c.docs = []
+            else:
+                c.docs = [d.model_copy(update={"body": ""}) for d in c.docs]
+    return scoped
+
+
+def to_ai_prompt(project: Project, task: str = "", extra_rules: list[str] | None = None, req: AiExportRequest | None = None) -> str:
+    if req:
+        project = scoped_project(project, req)
+        task = req.task or task
+        extra_rules = req.rules or extra_rules
     semantic = to_semantic_export(project)
     md = to_markdown(project)
     rules = extra_rules or DEFAULT_RULES
     task_block = task.strip() or "[Опишите задачу реализации]"
-    return "\n".join(
-        [
-            "Вы работаете со следующей архитектурой системы.",
-            "",
-            "Считайте её источником истины для ПО, железа, протоколов, потоков данных и алгоритмов.",
-            "",
-            "СИСТЕМА:",
-            f"{project.name} ({project.current_version_label})",
-            project.description,
-            "",
-            md,
-            "",
-            "СТРУКТУРНАЯ МОДЕЛЬ (JSON):",
-            "```json",
-            _compact_json(semantic),
-            "```",
-            "",
-            "ЗАДАЧА:",
-            task_block,
-            "",
-            "Правила:",
-            *[f"- {r}" for r in rules],
-            "",
-        ]
-    )
+    want_sql = bool(req and (req.include_sql or req.scope == "database"))
+    sql = generate_sql(project) if want_sql and tables_of(project) else ""
+    parts = [
+        "Вы работаете со следующей инженерной моделью системы.",
+        "",
+        "Считайте её источником истины для ПО, железа, протоколов, данных, механики и алгоритмов.",
+        "",
+        "СИСТЕМА:",
+        f"{project.name} ({project.current_version_label})",
+        project.description,
+        "",
+        md,
+    ]
+    if sql:
+        parts += ["", "SQL (PostgreSQL):", "```sql", sql, "```"]
+    parts += [
+        "",
+        "СТРУКТУРНАЯ МОДЕЛЬ (JSON):",
+        "```json",
+        _compact_json(semantic),
+        "```",
+        "",
+        "ЗАДАЧА:",
+        task_block,
+        "",
+        "Правила:",
+        *[f"- {r}" for r in rules],
+        "",
+    ]
+    return "\n".join(parts)
 
 
 def _compact_json(data: dict) -> str:

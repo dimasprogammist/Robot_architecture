@@ -30,6 +30,13 @@ export function ExportView() {
         <button className="btn" type="button" onClick={async () => download(`${project.name}.md`, await api.exportMd(project.id), 'text/markdown')}>
           Скачать Markdown
         </button>
+        <button
+          className="btn"
+          type="button"
+          onClick={async () => download(`${project.name}.sql`, await api.exportSql(project.id, 'postgresql'), 'application/sql')}
+        >
+          Скачать SQL
+        </button>
         <button className="btn" type="button" onClick={() => fileRef.current?.click()}>
           Импорт JSON
         </button>

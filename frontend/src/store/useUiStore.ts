@@ -8,7 +8,7 @@ interface UiState {
   searchOpen: boolean
   exportOpen: boolean
   libraryCollapsed: boolean
-  inspectorTab: 'overview' | 'docs' | 'algorithm' | 'nested' | 'requirements'
+  inspectorTab: 'overview' | 'docs' | 'algorithm' | 'nested' | 'requirements' | 'mechanics' | 'table' | 'files'
   setNav: (nav: NavId) => void
   setTheme: (theme: 'light' | 'dark') => void
   setSettings: (s: GlobalSettings) => void
