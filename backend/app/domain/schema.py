@@ -204,7 +204,7 @@ class UserSettings(BaseModel):
     show_grid: bool = True
     grid_size: int = 20
     autosave: bool = True
-    language: str = "en"
+    language: str = "ru"
 
 
 class Project(BaseModel):
@@ -273,5 +273,5 @@ class GlobalSettings(BaseModel):
     show_grid: bool = True
     grid_size: int = 20
     autosave: bool = True
-    language: str = "en"
-    display_name: str = "Architect"
+    language: str = "ru"
+    display_name: str = "Архитектор"

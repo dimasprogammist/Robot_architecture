@@ -16,17 +16,17 @@ export function MarkdownField({
       <label>{label}</label>
       <div className="tabs">
         <button className={`tab ${tab === 'write' ? 'active' : ''}`} onClick={() => setTab('write')} type="button">
-          Write
+          Писать
         </button>
         <button className={`tab ${tab === 'preview' ? 'active' : ''}`} onClick={() => setTab('preview')} type="button">
-          Preview
+          Просмотр
         </button>
       </div>
       {tab === 'write' ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (
         <div className="md-preview">
-          <Markdown>{value || '_Empty_'}</Markdown>
+          <Markdown>{value || '_Пусто_'}</Markdown>
         </div>
       )}
     </div>

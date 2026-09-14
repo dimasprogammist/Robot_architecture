@@ -157,7 +157,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         lastSavedAt: saved.updated_at,
       })
     } catch (e) {
-      set({ saving: false, error: e instanceof Error ? e.message : 'Save failed' })
+      set({ saving: false, error: e instanceof Error ? e.message : 'Не удалось сохранить' })
     }
   },
 
@@ -182,7 +182,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         id,
         architecture_id: architectureId,
         name: partial.name,
-        type: partial.type || 'Custom Component',
+        type: partial.type || 'Свой компонент',
         category: partial.category || 'OTHER',
         description: partial.description || '',
         icon: partial.icon || 'box',
@@ -256,7 +256,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         target,
         kind,
         protocol_id: null,
-        protocol_name: kind === 'data_flow' ? 'Data' : '',
+        protocol_name: kind === 'data_flow' ? 'Данные' : '',
         direction: 'unidirectional',
         description: '',
         data_format: '',
@@ -292,7 +292,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           project_id: p.id,
           name: c.name,
           parent_component_id: c.id,
-          description: `Internal architecture of ${c.name}`,
+          description: `Внутренняя архитектура: ${c.name}`,
         })
         c.nested_architecture_id = nestedId!
       })
@@ -337,7 +337,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const created: Algorithm = {
       id: uid(),
       component_id: componentId,
-      name: `${component?.name || 'Component'} algorithm`,
+      name: `${component?.name || 'Компонент'}: алгоритм`,
       description: '',
       steps: [],
       inputs: [],
@@ -348,9 +348,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       states: ['IDLE', 'RUNNING', 'ERROR'],
       transitions: [],
       canvas_nodes: [
-        { id: uid(), kind: 'start', label: 'START', position: { x: 80, y: 40 } },
-        { id: uid(), kind: 'action', label: 'Process', position: { x: 80, y: 160 } },
-        { id: uid(), kind: 'end', label: 'END', position: { x: 80, y: 280 } },
+        { id: uid(), kind: 'start', label: 'СТАРТ', position: { x: 80, y: 40 } },
+        { id: uid(), kind: 'action', label: 'Обработка', position: { x: 80, y: 160 } },
+        { id: uid(), kind: 'end', label: 'КОНЕЦ', position: { x: 80, y: 280 } },
       ],
       canvas_edges: [],
     }

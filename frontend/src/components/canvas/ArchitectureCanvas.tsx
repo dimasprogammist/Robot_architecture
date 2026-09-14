@@ -84,7 +84,7 @@ function ArchitectureCanvasInner() {
           strokeDasharray: c.kind === 'data_flow' ? '6 4' : undefined,
         },
         data: {
-          label: c.protocol_name || (c.kind === 'data_flow' ? c.data_format || 'data' : ''),
+          label: c.protocol_name || (c.kind === 'data_flow' ? c.data_format || 'данные' : ''),
           kind: c.kind,
           bidirectional: c.direction === 'bidirectional',
         },

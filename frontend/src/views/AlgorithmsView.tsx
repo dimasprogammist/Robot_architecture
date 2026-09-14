@@ -16,8 +16,8 @@ export function AlgorithmsView() {
 
   return (
     <div className="page" style={{ display: 'grid', gridTemplateRows: 'auto auto 1fr', height: '100%', paddingBottom: 16 }}>
-      <h1>Algorithms</h1>
-      <p className="lede">Behavior, steps, and state machines attached to architectural blocks.</p>
+      <h1>Алгоритмы</h1>
+      <p className="lede">Поведение, шаги и конечные автоматы, привязанные к архитектурным блокам.</p>
       <div className="row" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
         {project.algorithms.map((a) => {
           const owner = project.components.find((c) => c.id === a.component_id)
@@ -44,7 +44,7 @@ export function AlgorithmsView() {
             setInspectorTab('algorithm')
           }}
         >
-          New algorithm
+          Новый алгоритм
         </button>
       </div>
       {alg ? (
@@ -57,12 +57,12 @@ export function AlgorithmsView() {
                 updateAlgorithm(alg.id, {
                   canvas_nodes: [
                     ...alg.canvas_nodes,
-                    { id: uid(), kind: 'action', label: 'Step', position: { x: 80 + alg.canvas_nodes.length * 20, y: 80 } },
+                    { id: uid(), kind: 'action', label: 'Шаг', position: { x: 80 + alg.canvas_nodes.length * 20, y: 80 } },
                   ],
                 })
               }
             >
-              Add canvas node
+              Добавить узел
             </button>
             <button
               className="btn ghost"
@@ -72,13 +72,13 @@ export function AlgorithmsView() {
                 setInspectorTab('algorithm')
               }}
             >
-              Edit details
+              Редактировать детали
             </button>
           </div>
           <AlgorithmCanvas algorithmId={alg.id} />
         </>
       ) : (
-        <p className="hint">Select a component, then create an algorithm.</p>
+        <p className="hint">Выберите компонент и создайте алгоритм.</p>
       )}
     </div>
   )

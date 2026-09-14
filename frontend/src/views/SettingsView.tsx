@@ -17,14 +17,14 @@ export function SettingsView() {
 
   return (
     <div className="page">
-      <h1>Settings</h1>
-      <p className="lede">Workspace preferences. Theme and grid apply immediately.</p>
+      <h1>Настройки</h1>
+      <p className="lede">Параметры рабочей области. Тема и сетка применяются сразу.</p>
       <div className="field" style={{ maxWidth: 360 }}>
-        <label>Display name</label>
+        <label>Отображаемое имя</label>
         <input value={settings.display_name} onChange={(e) => setSettings({ ...settings, display_name: e.target.value })} />
       </div>
       <div className="field" style={{ maxWidth: 360 }}>
-        <label>Theme</label>
+        <label>Тема</label>
         <select
           value={settings.theme}
           onChange={(e) => {
@@ -33,8 +33,8 @@ export function SettingsView() {
             setSettings({ ...settings, theme })
           }}
         >
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
+          <option value="light">Светлая</option>
+          <option value="dark">Тёмная</option>
         </select>
       </div>
       <label className="row" style={{ marginBottom: 10 }}>
@@ -43,7 +43,7 @@ export function SettingsView() {
           checked={settings.show_grid}
           onChange={(e) => setSettings({ ...settings, show_grid: e.target.checked })}
         />
-        Show grid
+        Показывать сетку
       </label>
       <label className="row" style={{ marginBottom: 10 }}>
         <input
@@ -51,7 +51,7 @@ export function SettingsView() {
           checked={settings.snap_to_grid}
           onChange={(e) => setSettings({ ...settings, snap_to_grid: e.target.checked })}
         />
-        Snap to grid
+        Привязка к сетке
       </label>
       <label className="row" style={{ marginBottom: 10 }}>
         <input
@@ -62,10 +62,10 @@ export function SettingsView() {
             if (project) mutate((p) => { p.settings.autosave = e.target.checked })
           }}
         />
-        Autosave
+        Автосохранение
       </label>
       <div className="field" style={{ maxWidth: 200 }}>
-        <label>Grid size</label>
+        <label>Шаг сетки</label>
         <input
           type="number"
           value={settings.grid_size}
@@ -73,7 +73,7 @@ export function SettingsView() {
         />
       </div>
       <button className="btn" type="button" onClick={toggleLibrary}>
-        Toggle component library
+        Скрыть или показать библиотеку
       </button>
     </div>
   )

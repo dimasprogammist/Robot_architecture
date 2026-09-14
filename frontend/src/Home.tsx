@@ -8,7 +8,7 @@ export function Home() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [templates, setTemplates] = useState<TemplateInfo[]>([])
-  const [name, setName] = useState('Robot')
+  const [name, setName] = useState('Робот')
   const [templateId, setTemplateId] = useState('robot')
   const [error, setError] = useState('')
   const theme = useUiStore((s) => s.theme)
@@ -40,21 +40,21 @@ export function Home() {
             setSettings({ ...settings, theme: next })
           }}
         >
-          {theme === 'light' ? 'Dark' : 'Light'}
+          {theme === 'light' ? 'Тёмная' : 'Светлая'}
         </button>
       </header>
       <div className="page" style={{ maxWidth: 980, margin: '0 auto' }}>
         <p className="hint" style={{ letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Visual architecture for AI-native engineering
+          Визуальная архитектура для разработки с нейросетями
         </p>
-        <h1>Design the system. Then hand it to the model.</h1>
+        <h1>Соберите систему. Затем отдайте её модели.</h1>
         <p className="lede">
-          Assemble hardware, software, and protocols on an infinite canvas. Open any block to describe internals,
-          algorithms, and requirements — then export a structured prompt for Cursor, Claude, or ChatGPT.
+          Соберите железо, ПО и протоколы на бесконечном холсте. Откройте любой блок и опишите внутренности,
+          алгоритмы и требования — затем экспортируйте структурированный промпт для Cursor, Claude или ChatGPT.
         </p>
         {error ? <p style={{ color: 'var(--danger)' }}>{error}</p> : null}
         <div className="create-bar">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Project name" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Название проекта" />
           <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
             {templates.map((t) => (
               <option key={t.id} value={t.id}>
@@ -66,15 +66,15 @@ export function Home() {
             className="btn primary"
             type="button"
             onClick={async () => {
-              const p = await api.createProject({ name: name || 'Untitled', template_id: templateId })
+              const p = await api.createProject({ name: name || 'Без названия', template_id: templateId })
               navigate(`/p/${p.id}`)
             }}
           >
-            Create project
+            Создать проект
           </button>
         </div>
         <h2 style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faint)' }}>
-          Templates
+          Шаблоны
         </h2>
         <div className="grid-cards" style={{ margin: '12px 0 32px' }}>
           {templates.map((t) => (
@@ -91,18 +91,18 @@ export function Home() {
           ))}
         </div>
         <h2 style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faint)' }}>
-          Projects
+          Проекты
         </h2>
         <div className="grid-cards" style={{ marginTop: 12 }}>
           {projects.map((p) => (
             <div key={p.id} className="card">
               <h3>{p.name}</h3>
-              <p>{p.description || `${p.component_count} components`}</p>
+              <p>{p.description || `${p.component_count} компонентов`}</p>
               <div className="foot">
                 <span>{p.current_version_label}</span>
                 <span>
                   <button className="btn ghost" type="button" onClick={() => navigate(`/p/${p.id}`)}>
-                    Open
+                    Открыть
                   </button>
                   <button
                     className="btn ghost danger"
@@ -112,7 +112,7 @@ export function Home() {
                       refresh()
                     }}
                   >
-                    Delete
+                    Удалить
                   </button>
                 </span>
               </div>
@@ -121,7 +121,7 @@ export function Home() {
         </div>
         <div style={{ marginTop: 28 }}>
           <label className="btn">
-            Import JSON
+            Импорт JSON
             <input
               type="file"
               accept="application/json"

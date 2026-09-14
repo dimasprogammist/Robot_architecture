@@ -14,24 +14,24 @@ export function ExportView() {
 
   return (
     <div className="page">
-      <h1>Export & import</h1>
-      <p className="lede">Semantic JSON, technical markdown, and an AI-ready prompt. JSON import recreates a full project.</p>
+      <h1>Экспорт и импорт</h1>
+      <p className="lede">Семантический JSON, технический Markdown и готовый промпт для нейросети. Импорт JSON восстанавливает проект целиком.</p>
       <div className="row" style={{ flexWrap: 'wrap', marginBottom: 24 }}>
         <button className="btn primary" type="button" onClick={() => setExportOpen(true)}>
-          Export for AI
+          Экспорт для AI
         </button>
         <button
           className="btn"
           type="button"
           onClick={async () => download(`${project.name}.json`, JSON.stringify(await api.exportJson(project.id), null, 2), 'application/json')}
         >
-          Download JSON
+          Скачать JSON
         </button>
         <button className="btn" type="button" onClick={async () => download(`${project.name}.md`, await api.exportMd(project.id), 'text/markdown')}>
-          Download Markdown
+          Скачать Markdown
         </button>
         <button className="btn" type="button" onClick={() => fileRef.current?.click()}>
-          Import JSON
+          Импорт JSON
         </button>
         <input
           ref={fileRef}
@@ -47,8 +47,8 @@ export function ExportView() {
           }}
         />
       </div>
-      <h2 style={{ fontSize: 18 }}>Versions</h2>
-      <p className="hint">Snapshots of the whole architecture. Future diffs can compare these labels.</p>
+      <h2 style={{ fontSize: 18 }}>Версии</h2>
+      <p className="hint">Снимки всей архитектуры. Позже по этим меткам можно сравнивать изменения.</p>
       <div className="row" style={{ margin: '12px 0 20px' }}>
         <button
           className="btn"
@@ -58,28 +58,28 @@ export function ExportView() {
             setProject(next, false)
           }}
         >
-          Save version snapshot
+          Сохранить снимок версии
         </button>
       </div>
       <ul>
         {project.versions.map((v) => (
           <li key={v.id}>
-            {v.label} · {new Date(v.created_at).toLocaleString()}
+            {v.label} · {new Date(v.created_at).toLocaleString('ru-RU')}
           </li>
         ))}
       </ul>
-      <h2 style={{ fontSize: 18 }}>Save as template</h2>
+      <h2 style={{ fontSize: 18 }}>Сохранить как шаблон</h2>
       <button
         className="btn"
         type="button"
         onClick={async () => {
-          const name = window.prompt('Template name', project.name)
+          const name = window.prompt('Название шаблона', project.name)
           if (!name) return
           await api.saveTemplate(project.id, name, project.description)
-          alert('Template saved')
+          alert('Шаблон сохранён')
         }}
       >
-        Save current project as template
+        Сохранить текущий проект как шаблон
       </button>
     </div>
   )

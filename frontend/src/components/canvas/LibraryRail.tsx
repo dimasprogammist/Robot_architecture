@@ -14,8 +14,8 @@ export function LibraryRail({ presets }: { presets: LibraryPreset[] }) {
   if (collapsed) return null
   return (
     <aside className="library-rail">
-      <h3>Library</h3>
-      <input className="lib-search" placeholder="Search components" value={q} onChange={(e) => setQ(e.target.value)} />
+      <h3>Библиотека</h3>
+      <input className="lib-search" placeholder="Поиск компонентов" value={q} onChange={(e) => setQ(e.target.value)} />
       {filtered.map((p) => (
         <div
           key={p.name + p.type}
@@ -27,7 +27,7 @@ export function LibraryRail({ presets }: { presets: LibraryPreset[] }) {
           {p.name}
         </div>
       ))}
-      <p className="hint">Drag onto canvas or double-click to add.</p>
+      <p className="hint">Перетащите на холст или дважды кликните, чтобы добавить.</p>
     </aside>
   )
 }

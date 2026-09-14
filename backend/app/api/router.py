@@ -84,7 +84,7 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db)):
 def get_project(project_id: str, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     return _row_to_project(row)
 
 
@@ -92,7 +92,7 @@ def get_project(project_id: str, db: Session = Depends(get_db)):
 def update_project(project_id: str, body: Project, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     body.id = project_id
     return _save(db, body, row)
 
@@ -101,7 +101,7 @@ def update_project(project_id: str, body: Project, db: Session = Depends(get_db)
 def delete_project(project_id: str, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     db.delete(row)
     db.commit()
     return {"ok": True}
@@ -111,10 +111,10 @@ def delete_project(project_id: str, db: Session = Depends(get_db)):
 def duplicate_project(project_id: str, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     project = _row_to_project(row)
     project.id = new_id()
-    project.name = f"{project.name} copy"
+    project.name = f"{project.name} (копия)"
     project.created_at = datetime.now(timezone.utc).isoformat()
     # keep internal ids; it's a snapshot copy which is fine for MVP
     return _save(db, project)
@@ -128,7 +128,7 @@ class VersionCreate(BaseModel):
 def save_version(project_id: str, body: VersionCreate, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     project = _row_to_project(row)
     n = len(project.versions) + 2
     label = body.label or f"v{n}"
@@ -150,7 +150,7 @@ def save_version(project_id: str, body: VersionCreate, db: Session = Depends(get
 def export_json(project_id: str, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     return to_semantic_export(_row_to_project(row))
 
 
@@ -158,7 +158,7 @@ def export_json(project_id: str, db: Session = Depends(get_db)):
 def export_md(project_id: str, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     return to_markdown(_row_to_project(row))
 
 
@@ -166,7 +166,7 @@ def export_md(project_id: str, db: Session = Depends(get_db)):
 def export_ai(project_id: str, body: AiExportRequest, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     return to_ai_prompt(_row_to_project(row), body.task, body.rules or None)
 
 
@@ -175,7 +175,7 @@ def import_project(payload: dict, db: Session = Depends(get_db)):
     try:
         project = import_json(payload)
     except Exception as exc:
-        raise HTTPException(400, f"Invalid architecture JSON: {exc}") from exc
+        raise HTTPException(400, f"Некорректный JSON архитектуры: {exc}") from exc
     project.id = new_id()
     project.created_at = datetime.now(timezone.utc).isoformat()
     return _save(db, project)
@@ -200,7 +200,7 @@ class SaveTemplateBody(BaseModel):
 def save_template(project_id: str, body: SaveTemplateBody, db: Session = Depends(get_db)):
     row = db.get(ProjectRow, project_id)
     if not row:
-        raise HTTPException(404, "Project not found")
+        raise HTTPException(404, "Проект не найден")
     tpl = UserTemplateRow(
         id=new_id(),
         name=body.name,

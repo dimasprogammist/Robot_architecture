@@ -7,18 +7,18 @@ export function DocumentsView() {
   const mutate = useProjectStore((s) => s.mutate)
   return (
     <div className="page">
-      <h1>Documents</h1>
-      <p className="lede">Markdown notes at project scope. Component-level docs live in the inspector.</p>
+      <h1>Документы</h1>
+      <p className="lede">Markdown-заметки проекта. Документация компонента живёт в инспекторе.</p>
       <button
         className="btn primary"
         type="button"
         onClick={() =>
           mutate((p) => {
-            p.documents.push({ id: uid(), title: 'Untitled', body: '', component_id: null })
+            p.documents.push({ id: uid(), title: 'Без названия', body: '', component_id: null })
           })
         }
       >
-        New document
+        Новый документ
       </button>
       <div style={{ marginTop: 20, display: 'grid', gap: 18, maxWidth: 720 }}>
         {project.documents.map((d) => (
@@ -34,7 +34,7 @@ export function DocumentsView() {
               style={{ fontWeight: 600, fontSize: 16, border: 'none', background: 'transparent', width: '100%' }}
             />
             <MarkdownField
-              label="Body"
+              label="Текст"
               value={d.body}
               onChange={(v) =>
                 mutate((p) => {

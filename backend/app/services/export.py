@@ -122,140 +122,140 @@ def _name(project: Project, component_id: str) -> str:
 
 def to_markdown(project: Project) -> str:
     lines: list[str] = [
-        f"# System Architecture: {project.name}",
+        f"# Архитектура системы: {project.name}",
         "",
-        f"Version: {project.current_version_label}",
+        f"Версия: {project.current_version_label}",
         "",
     ]
     if project.description:
         lines += [project.description, ""]
 
-    lines += ["## Components", ""]
+    lines += ["## Компоненты", ""]
     for c in project.components:
         lines += [f"### {c.name}", ""]
-        lines.append(f"- Type: {c.type}")
+        lines.append(f"- Тип: {c.type}")
         if c.technology:
-            lines.append(f"- Technology: {c.technology}")
+            lines.append(f"- Технология: {c.technology}")
         if c.version:
-            lines.append(f"- Version: {c.version}")
+            lines.append(f"- Версия: {c.version}")
         if c.status:
-            lines.append(f"- Status: {c.status}")
+            lines.append(f"- Статус: {c.status}")
         doc = c.documentation
         purpose = doc.purpose or c.description
         if purpose:
-            lines += ["", "Purpose:", "", purpose]
+            lines += ["", "Назначение:", "", purpose]
         if doc.responsibilities:
-            lines += ["", "Responsibilities:", "", doc.responsibilities]
+            lines += ["", "Ответственность:", "", doc.responsibilities]
         if doc.inputs:
-            lines += ["", "Inputs:", "", doc.inputs]
+            lines += ["", "Входы:", "", doc.inputs]
         if doc.outputs:
-            lines += ["", "Outputs:", "", doc.outputs]
+            lines += ["", "Выходы:", "", doc.outputs]
         if doc.dependencies:
-            lines += ["", "Dependencies:", "", doc.dependencies]
+            lines += ["", "Зависимости:", "", doc.dependencies]
         if doc.interfaces:
-            lines += ["", "Interfaces:", "", doc.interfaces]
+            lines += ["", "Интерфейсы:", "", doc.interfaces]
         if c.api:
             lines += ["", "API:", "", c.api]
         if c.modules:
-            lines += ["", "Modules:", ""] + [f"- {m}" for m in c.modules]
+            lines += ["", "Модули:", ""] + [f"- {m}" for m in c.modules]
         if doc.failure_modes:
-            lines += ["", "Failure modes:", "", doc.failure_modes]
+            lines += ["", "Отказы:", "", doc.failure_modes]
         if c.notes or doc.notes:
-            lines += ["", "Notes:", "", c.notes or doc.notes]
+            lines += ["", "Заметки:", "", c.notes or doc.notes]
         lines.append("")
 
-    lines += ["## Connections", ""]
+    lines += ["## Связи", ""]
     for e in project.connections:
         arrow = "↔" if e.direction == "bidirectional" else "→"
         src = _name(project, e.source)
         tgt = _name(project, e.target)
         proto = e.protocol_name or e.kind
-        lines += [f"### {src} {arrow} {tgt}", "", f"Protocol: {proto}"]
+        lines += [f"### {src} {arrow} {tgt}", "", f"Протокол: {proto}"]
         if e.data_format:
-            lines.append(f"Data: {e.data_format}")
+            lines.append(f"Данные: {e.data_format}")
         if e.data_example:
-            lines += ["", "Payload example:", "", "```", e.data_example, "```"]
+            lines += ["", "Пример полезной нагрузки:", "", "```", e.data_example, "```"]
         if e.frequency:
-            lines.append(f"Frequency: {e.frequency}")
+            lines.append(f"Частота: {e.frequency}")
         if e.latency:
-            lines.append(f"Latency: {e.latency}")
+            lines.append(f"Задержка: {e.latency}")
         if e.reliability:
-            lines.append(f"Reliability: {e.reliability}")
+            lines.append(f"Надёжность: {e.reliability}")
         if e.description:
             lines += ["", e.description]
         lines.append("")
 
     if project.algorithms:
-        lines += ["## Algorithms", ""]
+        lines += ["## Алгоритмы", ""]
         for alg in project.algorithms:
             owner = _name(project, alg.component_id)
             lines += [f"### {alg.name} ({owner})", ""]
             if alg.description:
                 lines += [alg.description, ""]
             if alg.inputs:
-                lines += ["Inputs:"] + [f"- {i}" for i in alg.inputs] + [""]
+                lines += ["Входы:"] + [f"- {i}" for i in alg.inputs] + [""]
             if alg.outputs:
-                lines += ["Outputs:"] + [f"- {o}" for o in alg.outputs] + [""]
+                lines += ["Выходы:"] + [f"- {o}" for o in alg.outputs] + [""]
             if alg.steps:
-                lines.append("Steps:")
+                lines.append("Шаги:")
                 for i, step in enumerate(alg.steps, 1):
                     extra = ""
                     if step.kind == "condition":
-                        extra = f" (if {step.condition}: {step.on_true} else {step.on_false})"
+                        extra = f" (если {step.condition}: {step.on_true} иначе {step.on_false})"
                     lines.append(f"{i}. {step.text}{extra}")
                 lines.append("")
             if alg.states:
-                lines += ["States:"] + [f"- {s}" for s in alg.states] + [""]
+                lines += ["Состояния:"] + [f"- {s}" for s in alg.states] + [""]
             if alg.transitions:
-                lines.append("Transitions:")
+                lines.append("Переходы:")
                 for t in alg.transitions:
                     lines.append(f"- {t.source} → {t.target} ({t.trigger})")
                 lines.append("")
             if alg.errors:
-                lines += ["Errors:"] + [f"- {e}" for e in alg.errors] + [""]
+                lines += ["Ошибки:"] + [f"- {e}" for e in alg.errors] + [""]
 
     if project.protocols:
-        lines += ["## Protocols", ""]
+        lines += ["## Протоколы", ""]
         for proto in project.protocols:
             lines += [f"### {proto.name}", ""]
             for label, val in [
-                ("Version", proto.version),
-                ("Transport", proto.transport),
-                ("Port", proto.port),
-                ("Data format", proto.data_format),
-                ("Encoding", proto.encoding),
+                ("Версия", proto.version),
+                ("Транспорт", proto.transport),
+                ("Порт", proto.port),
+                ("Формат данных", proto.data_format),
+                ("Кодировка", proto.encoding),
             ]:
                 if val:
                     lines.append(f"- {label}: {val}")
             if proto.description:
                 lines += ["", proto.description]
             if proto.message_structure:
-                lines += ["", "Message structure:", "", proto.message_structure]
+                lines += ["", "Структура сообщения:", "", proto.message_structure]
             lines.append("")
 
     if project.requirements:
-        lines += ["## Requirements", ""]
+        lines += ["## Требования", ""]
         for r in project.requirements:
             linked = ", ".join(_name(project, cid) for cid in r.component_ids) or "—"
-            lines += [f"### {r.code}", "", r.text, "", f"Linked components: {linked}", ""]
+            lines += [f"### {r.code}", "", r.text, "", f"Связанные компоненты: {linked}", ""]
 
     if project.hardware:
         custom_hw = [h for h in project.hardware if not h.built_in] or project.hardware[:0]
         used_ids = {c.hardware_id for c in project.components if c.hardware_id}
         used = [h for h in project.hardware if h.id in used_ids or not h.built_in]
         if used:
-            lines += ["## Hardware", ""]
+            lines += ["## Железо", ""]
             for h in used:
                 lines += [f"### {h.name}", ""]
                 for label, val in [
-                    ("Manufacturer", h.manufacturer),
-                    ("Model", h.model),
+                    ("Производитель", h.manufacturer),
+                    ("Модель", h.model),
                     ("CPU", h.cpu),
                     ("RAM", h.ram),
-                    ("Interfaces", h.interfaces),
-                    ("Voltage", h.voltage),
-                    ("Protocols", h.protocols),
-                    ("OS", h.os),
+                    ("Интерфейсы", h.interfaces),
+                    ("Напряжение", h.voltage),
+                    ("Протоколы", h.protocols),
+                    ("ОС", h.os),
                 ]:
                     if val:
                         lines.append(f"- {label}: {val}")
@@ -265,11 +265,11 @@ def to_markdown(project: Project) -> str:
 
 
 DEFAULT_RULES = [
-    "Do not violate existing architecture.",
-    "Do not change interfaces without explanation.",
-    "Prefer extending existing components over inventing parallel ones.",
-    "Preserve protocol, data format, and dependency constraints.",
-    "If a requirement conflicts with a proposed change, call it out explicitly.",
+    "Не нарушайте существующую архитектуру.",
+    "Не меняйте интерфейсы без объяснения.",
+    "Предпочитайте расширение существующих компонентов, а не параллельные аналоги.",
+    "Сохраняйте ограничения протоколов, форматов данных и зависимостей.",
+    "Если требование конфликтует с предложенным изменением, явно укажите это.",
 ]
 
 
@@ -277,28 +277,28 @@ def to_ai_prompt(project: Project, task: str = "", extra_rules: list[str] | None
     semantic = to_semantic_export(project)
     md = to_markdown(project)
     rules = extra_rules or DEFAULT_RULES
-    task_block = task.strip() or "[Describe the implementation task here]"
+    task_block = task.strip() or "[Опишите задачу реализации]"
     return "\n".join(
         [
-            "You are working with the following system architecture.",
+            "Вы работаете со следующей архитектурой системы.",
             "",
-            "Use it as the source of truth for software, hardware, protocols, data flow, and algorithms.",
+            "Считайте её источником истины для ПО, железа, протоколов, потоков данных и алгоритмов.",
             "",
-            "SYSTEM:",
+            "СИСТЕМА:",
             f"{project.name} ({project.current_version_label})",
             project.description,
             "",
             md,
             "",
-            "STRUCTURED MODEL (JSON):",
+            "СТРУКТУРНАЯ МОДЕЛЬ (JSON):",
             "```json",
             _compact_json(semantic),
             "```",
             "",
-            "TASK:",
+            "ЗАДАЧА:",
             task_block,
             "",
-            "Rules:",
+            "Правила:",
             *[f"- {r}" for r in rules],
             "",
         ]

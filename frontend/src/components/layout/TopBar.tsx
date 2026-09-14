@@ -54,15 +54,15 @@ export function TopBar() {
         ))}
       </div>
       <div className="top-actions">
-        <span className="save-meta">{saving ? 'Saving…' : dirty ? 'Unsaved' : 'Saved'}</span>
+        <span className="save-meta">{saving ? 'Сохранение…' : dirty ? 'Не сохранено' : 'Сохранено'}</span>
         <button className="btn ghost" type="button" onClick={() => undo()}>
-          Undo
+          Отменить
         </button>
         <button className="btn ghost" type="button" onClick={() => redo()}>
-          Redo
+          Повторить
         </button>
         <button className="btn ghost" type="button" onClick={() => setSearchOpen(true)}>
-          Search
+          Поиск
         </button>
         <button
           className="btn ghost"
@@ -73,16 +73,16 @@ export function TopBar() {
             setSettings({ ...settings, theme: next })
           }}
         >
-          {theme === 'light' ? 'Dark' : 'Light'}
+          {theme === 'light' ? 'Тёмная' : 'Светлая'}
         </button>
         <button className="btn" type="button" onClick={() => saveNow()}>
-          Save
+          Сохранить
         </button>
         <button className="btn primary" type="button" onClick={() => setExportOpen(true)}>
-          Export for AI
+          Экспорт для AI
         </button>
         <button className="btn ghost" type="button" onClick={() => navigate('/')}>
-          Projects
+          Проекты
         </button>
       </div>
     </header>

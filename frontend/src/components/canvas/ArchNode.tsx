@@ -19,7 +19,7 @@ export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
       <h4>{c.name}</h4>
       <div className="meta">
         <TypeIcon name={c.icon} /> {c.technology || c.category.toLowerCase()}
-        {c.nested_architecture_id ? ' · nested' : ''}
+        {c.nested_architecture_id ? ' · вложенный' : ''}
       </div>
       <Handle type="source" position={Position.Right} />
       <Handle type="source" position={Position.Bottom} />

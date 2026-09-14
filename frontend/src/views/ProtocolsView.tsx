@@ -4,7 +4,7 @@ import type { Protocol } from '../types'
 
 const blank = (): Protocol => ({
   id: uid(),
-  name: 'Custom Protocol',
+  name: 'Свой протокол',
   version: '1.0',
   transport: 'TCP',
   port: '',
@@ -26,10 +26,10 @@ export function ProtocolsView() {
   const mutate = useProjectStore((s) => s.mutate)
   return (
     <div className="page">
-      <h1>Protocols</h1>
-      <p className="lede">Catalog of transports used by connections. Custom message structures belong here.</p>
+      <h1>Протоколы</h1>
+      <p className="lede">Каталог транспортов для связей. Сюда же кладите структуру своих сообщений.</p>
       <button className="btn primary" type="button" onClick={() => mutate((p) => p.protocols.push(blank()))}>
-        New protocol
+        Новый протокол
       </button>
       <div className="grid-cards" style={{ marginTop: 18 }}>
         {project.protocols.map((proto) => (
@@ -45,11 +45,11 @@ export function ProtocolsView() {
               style={{ fontWeight: 600, fontSize: 15, border: 'none', background: 'transparent', padding: 0 }}
             />
             <p>
-              {proto.transport || '—'} {proto.port ? `:${proto.port}` : ''} · {proto.data_format || 'payload'}
+              {proto.transport || '—'} {proto.port ? `:${proto.port}` : ''} · {proto.data_format || 'полезная нагрузка'}
             </p>
             <textarea
               style={{ marginTop: 10, width: '100%', minHeight: 64 }}
-              placeholder="Message structure"
+              placeholder="Структура сообщения"
               value={proto.message_structure}
               onChange={(e) =>
                 mutate((p) => {
@@ -60,7 +60,7 @@ export function ProtocolsView() {
             />
             <textarea
               style={{ marginTop: 8, width: '100%', minHeight: 48 }}
-              placeholder="Description"
+              placeholder="Описание"
               value={proto.description}
               onChange={(e) =>
                 mutate((p) => {

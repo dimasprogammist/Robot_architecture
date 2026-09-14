@@ -8,7 +8,7 @@ export function ExportModal() {
   const open = useUiStore((s) => s.exportOpen)
   const setOpen = useUiStore((s) => s.setExportOpen)
   const project = useProjectStore((s) => s.project)
-  const [task, setTask] = useState('Implement the system according to this architecture.')
+  const [task, setTask] = useState('Реализуйте систему согласно этой архитектуре.')
   const [tab, setTab] = useState<'prompt' | 'md' | 'json'>('prompt')
   const [prompt, setPrompt] = useState('')
   const [md, setMd] = useState('')
@@ -40,18 +40,18 @@ export function ExportModal() {
     <div className="modal-backdrop" onClick={() => setOpen(false)}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
-          <h2 style={{ margin: 0 }}>Export for AI</h2>
+          <h2 style={{ margin: 0 }}>Экспорт для AI</h2>
           <button className="btn ghost" type="button" onClick={() => setOpen(false)}>
-            Close
+            Закрыть
           </button>
         </div>
         <div className="field">
-          <label>Task</label>
+          <label>Задача</label>
           <textarea value={task} onChange={(e) => setTask(e.target.value)} />
         </div>
         <div className="tabs">
           <button className={`tab ${tab === 'prompt' ? 'active' : ''}`} type="button" onClick={() => setTab('prompt')}>
-            Prompt
+            Промпт
           </button>
           <button className={`tab ${tab === 'md' ? 'active' : ''}`} type="button" onClick={() => setTab('md')}>
             Markdown
@@ -60,27 +60,27 @@ export function ExportModal() {
             JSON
           </button>
         </div>
-        <pre className="export-box">{busy ? 'Generating…' : body}</pre>
+        <pre className="export-box">{busy ? 'Готовим…' : body}</pre>
         <div className="row" style={{ marginTop: 12 }}>
           <button
             className="btn primary"
             type="button"
             onClick={() => navigator.clipboard.writeText(body)}
           >
-            Copy
+            Копировать
           </button>
           <button className="btn" type="button" onClick={() => download(`${project.name}-prompt.md`, prompt, 'text/markdown')}>
-            Download prompt
+            Скачать промпт
           </button>
           <button className="btn" type="button" onClick={() => download(`${project.name}.md`, md, 'text/markdown')}>
-            Download .md
+            Скачать .md
           </button>
           <button
             className="btn"
             type="button"
             onClick={() => download(`${project.name}.json`, jsonText, 'application/json')}
           >
-            Download .json
+            Скачать .json
           </button>
         </div>
       </div>

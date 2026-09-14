@@ -13,15 +13,15 @@ import { useUiStore } from '../../store/useUiStore'
 import type { NavId } from '../../types'
 
 const items: { id: NavId; label: string; icon: typeof Box }[] = [
-  { id: 'projects', label: 'Projects', icon: FolderKanban },
-  { id: 'architecture', label: 'Architecture', icon: Layers3 },
-  { id: 'components', label: 'Components', icon: Box },
-  { id: 'protocols', label: 'Protocols', icon: Radio },
-  { id: 'algorithms', label: 'Algorithms', icon: Workflow },
-  { id: 'requirements', label: 'Requirements', icon: ScrollText },
-  { id: 'documents', label: 'Documents', icon: FileText },
-  { id: 'export', label: 'Export', icon: Share2 },
-  { id: 'settings', label: 'Settings', icon: Settings },
+  { id: 'projects', label: 'Проекты', icon: FolderKanban },
+  { id: 'architecture', label: 'Архитектура', icon: Layers3 },
+  { id: 'components', label: 'Компоненты', icon: Box },
+  { id: 'protocols', label: 'Протоколы', icon: Radio },
+  { id: 'algorithms', label: 'Алгоритмы', icon: Workflow },
+  { id: 'requirements', label: 'Требования', icon: ScrollText },
+  { id: 'documents', label: 'Документы', icon: FileText },
+  { id: 'export', label: 'Экспорт', icon: Share2 },
+  { id: 'settings', label: 'Настройки', icon: Settings },
 ]
 
 export function LeftSidebar() {
@@ -30,7 +30,7 @@ export function LeftSidebar() {
   return (
     <nav className="left-nav">
       <div className="nav-section">
-        <div className="nav-label">Workspace</div>
+        <div className="nav-label">Рабочая область</div>
         {items.map((item) => {
           const Icon = item.icon
           return (

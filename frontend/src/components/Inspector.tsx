@@ -2,6 +2,7 @@ import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
 import { MarkdownField } from './MarkdownField'
 import { uid } from '../lib/ids'
+import { CATEGORY_LABELS, STATUS_LABELS, STEP_KIND_LABELS, TAB_LABELS } from '../i18n'
 import type { AlgorithmStepKind, Component, Connection } from '../types'
 
 const STATUSES = ['planned', 'in-progress', 'ready', 'deprecated']
@@ -31,9 +32,9 @@ export function Inspector() {
   if (!component) {
     return (
       <aside className="inspector">
-        <h2>Inspector</h2>
-        <p className="sub">Select a block or connection to edit its semantics.</p>
-        <p className="hint">Double-click a block to open internal architecture.</p>
+        <h2>Инспектор</h2>
+        <p className="sub">Выберите блок или связь, чтобы описать семантику.</p>
+        <p className="hint">Двойной клик по блоку открывает внутреннюю архитектуру.</p>
       </aside>
     )
   }
@@ -46,21 +47,21 @@ export function Inspector() {
     <aside className="inspector">
       <h2>{component.name}</h2>
       <p className="sub">
-        {component.type} · {component.category}
+        {component.type} · {CATEGORY_LABELS[component.category] || component.category}
       </p>
       <div className="tabs">
         {(['overview', 'docs', 'algorithm', 'nested', 'requirements'] as const).map((t) => (
           <button key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)} type="button">
-            {t}
+            {TAB_LABELS[t]}
           </button>
         ))}
       </div>
 
       {tab === 'overview' && (
         <>
-          <Field label="Name" value={component.name} onChange={(v) => updateComponent(component.id, { name: v })} />
+          <Field label="Название" value={component.name} onChange={(v) => updateComponent(component.id, { name: v })} />
           <div className="field">
-            <label>Type</label>
+            <label>Тип</label>
             <input
               value={component.type}
               onChange={(e) => updateComponent(component.id, { type: e.target.value })}
@@ -72,23 +73,25 @@ export function Inspector() {
               ))}
             </datalist>
           </div>
-          <Field label="Technology" value={component.technology} onChange={(v) => updateComponent(component.id, { technology: v })} />
-          <Field label="Version" value={component.version} onChange={(v) => updateComponent(component.id, { version: v })} />
+          <Field label="Технология" value={component.technology} onChange={(v) => updateComponent(component.id, { technology: v })} />
+          <Field label="Версия" value={component.version} onChange={(v) => updateComponent(component.id, { version: v })} />
           <div className="field">
-            <label>Status</label>
+            <label>Статус</label>
             <select value={component.status} onChange={(e) => updateComponent(component.id, { status: e.target.value })}>
               {STATUSES.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>
+                  {STATUS_LABELS[s]}
+                </option>
               ))}
             </select>
           </div>
-          <Field label="Owner" value={component.owner} onChange={(v) => updateComponent(component.id, { owner: v })} />
-          <Field label="Tags" value={component.tags.join(', ')} onChange={(v) => updateComponent(component.id, { tags: v.split(',').map((x) => x.trim()).filter(Boolean) })} />
-          <Field label="Description" value={component.description} onChange={(v) => updateComponent(component.id, { description: v })} multiline />
-          <Field label="Modules" value={component.modules.join('\n')} onChange={(v) => updateComponent(component.id, { modules: v.split('\n').map((x) => x.trim()).filter(Boolean) })} multiline />
+          <Field label="Владелец" value={component.owner} onChange={(v) => updateComponent(component.id, { owner: v })} />
+          <Field label="Теги" value={component.tags.join(', ')} onChange={(v) => updateComponent(component.id, { tags: v.split(',').map((x) => x.trim()).filter(Boolean) })} />
+          <Field label="Описание" value={component.description} onChange={(v) => updateComponent(component.id, { description: v })} multiline />
+          <Field label="Модули" value={component.modules.join('\n')} onChange={(v) => updateComponent(component.id, { modules: v.split('\n').map((x) => x.trim()).filter(Boolean) })} multiline />
           <Field label="API" value={component.api} onChange={(v) => updateComponent(component.id, { api: v })} multiline />
-          <Field label="State" value={component.state} onChange={(v) => updateComponent(component.id, { state: v })} />
-          <Field label="Notes" value={component.notes} onChange={(v) => updateComponent(component.id, { notes: v })} multiline />
+          <Field label="Состояние" value={component.state} onChange={(v) => updateComponent(component.id, { state: v })} />
+          <Field label="Заметки" value={component.notes} onChange={(v) => updateComponent(component.id, { notes: v })} multiline />
         </>
       )}
 
@@ -96,14 +99,14 @@ export function Inspector() {
         <>
           {(
             [
-              ['purpose', 'Purpose'],
-              ['responsibilities', 'Responsibilities'],
-              ['inputs', 'Inputs'],
-              ['outputs', 'Outputs'],
-              ['dependencies', 'Dependencies'],
-              ['interfaces', 'Interfaces'],
-              ['failure_modes', 'Failure modes'],
-              ['notes', 'Notes'],
+              ['purpose', 'Назначение'],
+              ['responsibilities', 'Ответственность'],
+              ['inputs', 'Входы'],
+              ['outputs', 'Выходы'],
+              ['dependencies', 'Зависимости'],
+              ['interfaces', 'Интерфейсы'],
+              ['failure_modes', 'Отказы'],
+              ['notes', 'Заметки'],
             ] as const
           ).map(([key, label]) => (
             <MarkdownField
@@ -131,9 +134,9 @@ export function Inspector() {
 
       {tab === 'nested' && (
         <>
-          <p className="hint">Open a nested canvas for subsystems, modules, and functions.</p>
+          <p className="hint">Откройте вложенный холст для подсистем, модулей и функций.</p>
           <button className="btn primary" type="button" onClick={() => enterComponent(component.id)}>
-            Open internal architecture
+            Открыть внутреннюю архитектуру
           </button>
         </>
       )}
@@ -141,7 +144,7 @@ export function Inspector() {
       {tab === 'requirements' && (
         <>
           <button className="btn" type="button" onClick={() => addRequirement('')}>
-            Link new requirement
+            Связать новое требование
           </button>
           {linkedReqs.map((r) => (
             <div key={r.id} className="field" style={{ marginTop: 12 }}>
@@ -166,17 +169,17 @@ function ConnectionInspector({
 }) {
   return (
     <aside className="inspector">
-      <h2>Connection</h2>
-      <p className="sub">{connection.kind === 'data_flow' ? 'Data flow' : 'Link'}</p>
+      <h2>Связь</h2>
+      <p className="sub">{connection.kind === 'data_flow' ? 'Поток данных' : 'Соединение'}</p>
       <div className="field">
-        <label>Kind</label>
+        <label>Вид</label>
         <select value={connection.kind} onChange={(e) => onChange({ kind: e.target.value as Connection['kind'] })}>
-          <option value="connection">Connection</option>
-          <option value="data_flow">Data flow</option>
+          <option value="connection">Соединение</option>
+          <option value="data_flow">Поток данных</option>
         </select>
       </div>
       <div className="field">
-        <label>Protocol</label>
+        <label>Протокол</label>
         <input
           value={connection.protocol_name}
           list="proto-list"
@@ -189,19 +192,19 @@ function ConnectionInspector({
         </datalist>
       </div>
       <div className="field">
-        <label>Direction</label>
+        <label>Направление</label>
         <select value={connection.direction} onChange={(e) => onChange({ direction: e.target.value as Connection['direction'] })}>
-          <option value="unidirectional">Unidirectional</option>
-          <option value="bidirectional">Bidirectional</option>
+          <option value="unidirectional">Одностороннее</option>
+          <option value="bidirectional">Двустороннее</option>
         </select>
       </div>
-      <Field label="Description" value={connection.description} onChange={(v) => onChange({ description: v })} multiline />
-      <Field label="Data format" value={connection.data_format} onChange={(v) => onChange({ data_format: v })} />
-      <Field label="Payload example" value={connection.data_example} onChange={(v) => onChange({ data_example: v })} multiline />
-      <Field label="Frequency" value={connection.frequency} onChange={(v) => onChange({ frequency: v })} />
-      <Field label="Latency" value={connection.latency} onChange={(v) => onChange({ latency: v })} />
-      <Field label="Reliability" value={connection.reliability} onChange={(v) => onChange({ reliability: v })} />
-      <Field label="Notes" value={connection.notes} onChange={(v) => onChange({ notes: v })} multiline />
+      <Field label="Описание" value={connection.description} onChange={(v) => onChange({ description: v })} multiline />
+      <Field label="Формат данных" value={connection.data_format} onChange={(v) => onChange({ data_format: v })} />
+      <Field label="Пример данных" value={connection.data_example} onChange={(v) => onChange({ data_example: v })} multiline />
+      <Field label="Частота" value={connection.frequency} onChange={(v) => onChange({ frequency: v })} />
+      <Field label="Задержка" value={connection.latency} onChange={(v) => onChange({ latency: v })} />
+      <Field label="Надёжность" value={connection.reliability} onChange={(v) => onChange({ reliability: v })} />
+      <Field label="Заметки" value={connection.notes} onChange={(v) => onChange({ notes: v })} multiline />
     </aside>
   )
 }
@@ -240,9 +243,9 @@ function AlgorithmEditor({
   if (!algorithm) {
     return (
       <div>
-        <p className="hint">No algorithm yet for {component.name}.</p>
+        <p className="hint">Для «{component.name}» алгоритм ещё не задан.</p>
         <button className="btn primary" type="button" onClick={onOpen}>
-          Create algorithm
+          Создать алгоритм
         </button>
       </div>
     )
@@ -253,10 +256,10 @@ function AlgorithmEditor({
 
   return (
     <div>
-      <Field label="Name" value={algorithm.name} onChange={(v) => onChange(algorithm.id, { name: v })} />
-      <Field label="Description" value={algorithm.description} onChange={(v) => onChange(algorithm.id, { description: v })} multiline />
+      <Field label="Название" value={algorithm.name} onChange={(v) => onChange(algorithm.id, { name: v })} />
+      <Field label="Описание" value={algorithm.description} onChange={(v) => onChange(algorithm.id, { description: v })} multiline />
       <div className="field">
-        <label>Steps</label>
+        <label>Шаги</label>
         {algorithm.steps.map((step, i) => (
           <div className="step-row" key={step.id}>
             <select
@@ -266,16 +269,16 @@ function AlgorithmEditor({
                 onChange(algorithm.id, { steps })
               }}
             >
-              <option>action</option>
-              <option>condition</option>
-              <option>loop</option>
-              <option>input</option>
-              <option>output</option>
-              <option>error</option>
+              <option value="action">{STEP_KIND_LABELS.action}</option>
+              <option value="condition">{STEP_KIND_LABELS.condition}</option>
+              <option value="loop">{STEP_KIND_LABELS.loop}</option>
+              <option value="input">{STEP_KIND_LABELS.input}</option>
+              <option value="output">{STEP_KIND_LABELS.output}</option>
+              <option value="error">{STEP_KIND_LABELS.error}</option>
             </select>
             <input
               value={step.text}
-              placeholder={step.kind === 'condition' ? 'Value > threshold?' : 'Read sensor'}
+              placeholder={step.kind === 'condition' ? 'Значение > порога?' : 'Прочитать датчик'}
               onChange={(e) => {
                 const steps = algorithm.steps.map((s) => (s.id === step.id ? { ...s, text: e.target.value } : s))
                 onChange(algorithm.id, { steps })
@@ -291,7 +294,7 @@ function AlgorithmEditor({
             {step.kind === 'condition' && (
               <input
                 style={{ gridColumn: '1 / -1' }}
-                placeholder="YES path / NO path"
+                placeholder="ДА / НЕТ"
                 value={`${step.on_true}${step.on_false ? ' / ' + step.on_false : ''}`}
                 onChange={(e) => {
                   const [yes, no] = e.target.value.split('/').map((x) => x.trim())
@@ -319,17 +322,17 @@ function AlgorithmEditor({
             })
           }
         >
-          Add step
+          Добавить шаг
         </button>
       </div>
-      <Field label="Inputs" value={algorithm.inputs.join('\n')} onChange={(v) => setList('inputs', v)} multiline />
-      <Field label="Outputs" value={algorithm.outputs.join('\n')} onChange={(v) => setList('outputs', v)} multiline />
-      <Field label="Errors" value={algorithm.errors.join('\n')} onChange={(v) => setList('errors', v)} multiline />
-      <Field label="Conditions" value={algorithm.conditions.join('\n')} onChange={(v) => setList('conditions', v)} multiline />
-      <Field label="Loops" value={algorithm.loops.join('\n')} onChange={(v) => setList('loops', v)} multiline />
-      <Field label="States" value={algorithm.states.join('\n')} onChange={(v) => setList('states', v)} multiline />
+      <Field label="Входы" value={algorithm.inputs.join('\n')} onChange={(v) => setList('inputs', v)} multiline />
+      <Field label="Выходы" value={algorithm.outputs.join('\n')} onChange={(v) => setList('outputs', v)} multiline />
+      <Field label="Ошибки" value={algorithm.errors.join('\n')} onChange={(v) => setList('errors', v)} multiline />
+      <Field label="Условия" value={algorithm.conditions.join('\n')} onChange={(v) => setList('conditions', v)} multiline />
+      <Field label="Циклы" value={algorithm.loops.join('\n')} onChange={(v) => setList('loops', v)} multiline />
+      <Field label="Состояния" value={algorithm.states.join('\n')} onChange={(v) => setList('states', v)} multiline />
       <div className="field">
-        <label>State transitions</label>
+        <label>Переходы состояний</label>
         {algorithm.transitions.map((t) => (
           <input
             key={t.id}
@@ -357,7 +360,7 @@ function AlgorithmEditor({
             })
           }
         >
-          Add transition
+          Добавить переход
         </button>
       </div>
     </div>

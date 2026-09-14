@@ -20,4 +20,4 @@ def import_json(payload: dict) -> Project:
 def _from_semantic(payload: dict) -> dict:
     if payload.get("project"):
         return payload["project"]
-    raise ValueError("JSON must contain a full project snapshot under 'project' or be a Project object")
+    raise ValueError("JSON должен содержать полный снимок проекта в поле 'project' или быть объектом Project")

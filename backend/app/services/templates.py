@@ -77,11 +77,11 @@ def empty_project(name: str, description: str = "") -> Project:
 
 
 def web_application(name: str, description: str = "") -> Project:
-    p = empty_project(name or "Web Application", description)
+    p = empty_project(name or "Веб-приложение", description)
     aid = p.root_architecture_id
-    fe = _comp(aid, "Frontend", "Frontend", "SOFTWARE", 80, 180, technology="React", icon="layout")
-    be = _comp(aid, "Backend", "Backend", "SOFTWARE", 420, 180, technology="Python", icon="server")
-    db = _comp(aid, "Database", "PostgreSQL", "DATA", 760, 80, technology="PostgreSQL", icon="db")
+    fe = _comp(aid, "Фронтенд", "Фронтенд", "SOFTWARE", 80, 180, technology="React", icon="layout")
+    be = _comp(aid, "Бэкенд", "Бэкенд", "SOFTWARE", 420, 180, technology="Python", icon="server")
+    db = _comp(aid, "База данных", "PostgreSQL", "DATA", 760, 80, technology="PostgreSQL", icon="db")
     redis = _comp(aid, "Redis", "Redis", "DATA", 760, 280, technology="Redis", icon="cache")
     p.components = [fe, be, db, redis]
     p.connections = [
@@ -93,13 +93,13 @@ def web_application(name: str, description: str = "") -> Project:
 
 
 def robot(name: str, description: str = "") -> Project:
-    p = empty_project(name or "Robot", description)
+    p = empty_project(name or "Робот", description)
     aid = p.root_architecture_id
-    ctrl = _comp(aid, "Controller", "SBC", "HARDWARE", 420, 40, technology="Raspberry Pi", icon="board", hardware_id="hw-rpi")
-    sensors = _comp(aid, "Sensors", "Sensor", "HARDWARE", 80, 220, icon="sensor")
-    actuators = _comp(aid, "Actuators", "Actuator", "HARDWARE", 760, 220, icon="motor")
-    comm = _comp(aid, "Communication", "MQTT", "PROTOCOL", 420, 220, icon="protocol", protocol_id="proto-mqtt")
-    backend = _comp(aid, "Backend", "Backend", "SOFTWARE", 420, 400, technology="Python", icon="server")
+    ctrl = _comp(aid, "Контроллер", "SBC", "HARDWARE", 420, 40, technology="Raspberry Pi", icon="board", hardware_id="hw-rpi")
+    sensors = _comp(aid, "Датчики", "Датчик", "HARDWARE", 80, 220, icon="sensor")
+    actuators = _comp(aid, "Исполнители", "Исполнитель", "HARDWARE", 760, 220, icon="motor")
+    comm = _comp(aid, "Связь", "MQTT", "PROTOCOL", 420, 220, icon="protocol", protocol_id="proto-mqtt")
+    backend = _comp(aid, "Бэкенд", "Бэкенд", "SOFTWARE", 420, 400, technology="Python", icon="server")
     p.components = [ctrl, sensors, actuators, comm, backend]
     p.connections = [
         _conn(aid, sensors.id, ctrl.id, "UART", data_format="Float32"),
@@ -111,13 +111,13 @@ def robot(name: str, description: str = "") -> Project:
 
 
 def iot(name: str, description: str = "") -> Project:
-    p = empty_project(name or "IoT System", description)
+    p = empty_project(name or "IoT-система", description)
     aid = p.root_architecture_id
-    device = _comp(aid, "Device", "MCU", "HARDWARE", 80, 180, technology="ESP32", icon="chip", hardware_id="hw-esp32")
-    mqtt = _comp(aid, "MQTT Broker", "MQTT", "PROTOCOL", 400, 180, icon="protocol", protocol_id="proto-mqtt")
-    backend = _comp(aid, "Backend", "Backend", "SOFTWARE", 700, 80, technology="Python", icon="server")
-    db = _comp(aid, "Database", "PostgreSQL", "DATA", 980, 80, icon="db")
-    dash = _comp(aid, "Dashboard", "Frontend", "SOFTWARE", 700, 280, technology="React", icon="layout")
+    device = _comp(aid, "Устройство", "MCU", "HARDWARE", 80, 180, technology="ESP32", icon="chip", hardware_id="hw-esp32")
+    mqtt = _comp(aid, "MQTT-брокер", "MQTT", "PROTOCOL", 400, 180, icon="protocol", protocol_id="proto-mqtt")
+    backend = _comp(aid, "Бэкенд", "Бэкенд", "SOFTWARE", 700, 80, technology="Python", icon="server")
+    db = _comp(aid, "База данных", "PostgreSQL", "DATA", 980, 80, icon="db")
+    dash = _comp(aid, "Панель", "Фронтенд", "SOFTWARE", 700, 280, technology="React", icon="layout")
     p.components = [device, mqtt, backend, db, dash]
     p.connections = [
         _conn(aid, device.id, mqtt.id, "MQTT", data_format="JSON"),
@@ -129,13 +129,13 @@ def iot(name: str, description: str = "") -> Project:
 
 
 def industrial(name: str, description: str = "") -> Project:
-    p = empty_project(name or "Industrial Automation", description)
+    p = empty_project(name or "Промышленная автоматизация", description)
     aid = p.root_architecture_id
-    plc = _comp(aid, "PLC", "PLC", "HARDWARE", 80, 180, icon="factory", hardware_id="hw-siemens-plc")
-    hmi = _comp(aid, "HMI", "Application", "SOFTWARE", 400, 60, icon="layout")
-    scada = _comp(aid, "SCADA", "Application", "SOFTWARE", 400, 220, icon="app")
+    plc = _comp(aid, "ПЛК", "ПЛК", "HARDWARE", 80, 180, icon="factory", hardware_id="hw-siemens-plc")
+    hmi = _comp(aid, "HMI", "Приложение", "SOFTWARE", 400, 60, icon="layout")
+    scada = _comp(aid, "SCADA", "Приложение", "SOFTWARE", 400, 220, icon="app")
     opc = _comp(aid, "OPC UA", "OPC UA", "PROTOCOL", 700, 180, icon="protocol", protocol_id="proto-opcua")
-    db = _comp(aid, "Database", "PostgreSQL", "DATA", 980, 180, icon="db")
+    db = _comp(aid, "База данных", "PostgreSQL", "DATA", 980, 180, icon="db")
     p.components = [plc, hmi, scada, opc, db]
     p.connections = [
         _conn(aid, plc.id, hmi.id, "Modbus TCP"),
@@ -149,32 +149,32 @@ def industrial(name: str, description: str = "") -> Project:
 TEMPLATES = [
     {
         "id": "blank",
-        "name": "Blank",
-        "description": "Empty architecture canvas",
+        "name": "Пустой",
+        "description": "Чистый холст архитектуры",
         "factory": empty_project,
     },
     {
         "id": "web",
-        "name": "Web Application",
-        "description": "Frontend, backend, database, Redis",
+        "name": "Веб-приложение",
+        "description": "Фронтенд, бэкенд, база данных, Redis",
         "factory": web_application,
     },
     {
         "id": "robot",
-        "name": "Robot",
-        "description": "Controller, sensors, actuators, communication, backend",
+        "name": "Робот",
+        "description": "Контроллер, датчики, исполнители, связь, бэкенд",
         "factory": robot,
     },
     {
         "id": "iot",
         "name": "IoT",
-        "description": "Device, MQTT, backend, database, dashboard",
+        "description": "Устройство, MQTT, бэкенд, база данных, панель",
         "factory": iot,
     },
     {
         "id": "industrial",
-        "name": "Industrial Automation",
-        "description": "PLC, HMI, SCADA, OPC UA, database",
+        "name": "Промышленная автоматизация",
+        "description": "ПЛК, HMI, SCADA, OPC UA, база данных",
         "factory": industrial,
     },
 ]

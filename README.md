@@ -1,22 +1,24 @@
 # Architecture Canvas
 
-Visual architecture studio for software, hardware, and robotic systems. Nested canvases, protocols, algorithms, requirements, and AI-ready export.
+Визуальная студия архитектуры для программных, аппаратных и робототехнических систем. Вложенные холсты, протоколы, алгоритмы, требования и экспорт под нейросети.
 
-## Stack
+Интерфейс на русском языке.
 
-- Frontend: React, TypeScript, Vite, React Flow (`@xyflow/react`), Zustand
-- Backend: FastAPI, SQLAlchemy, SQLite (modular monolith)
+## Стек
 
-## Run locally
+- Фронтенд: React, TypeScript, Vite, React Flow (`@xyflow/react`), Zustand
+- Бэкенд: FastAPI, SQLAlchemy, SQLite (модульный монолит)
 
-Terminal 1 — API:
+## Запуск
+
+Терминал 1 — API:
 
 ```bash
 cd backend
 PYTHONPATH=. python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Terminal 2 — UI:
+Терминал 2 — интерфейс:
 
 ```bash
 cd frontend
@@ -24,21 +26,21 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+Откройте http://localhost:5173
 
-The Vite dev server proxies `/api` to the backend.
+Vite проксирует `/api` на бэкенд.
 
-## Typical flow
+## Типичный сценарий
 
-1. Create a project (Robot template is a good start).
-2. Drag Raspberry Pi, STM32, Camera, Motor Controller, MQTT from the library.
-3. Connect blocks; set protocol on each edge.
-4. Double-click STM32 to design internal architecture.
-5. Describe the algorithm and add requirements.
-6. **Export for AI** → copy the prompt into Cursor / Claude / ChatGPT.
+1. Создайте проект (шаблон «Робот» — хороший старт).
+2. Перетащите Raspberry Pi, STM32, камеру, контроллер двигателя, MQTT из библиотеки.
+3. Соедините блоки и укажите протокол на связи.
+4. Двойной клик по STM32 открывает внутреннюю архитектуру.
+5. Опишите алгоритм и добавьте требования.
+6. **Экспорт для AI** — скопируйте промпт в Cursor / Claude / ChatGPT.
 
-## Data
+## Данные
 
-Projects are stored in `backend/data/architecture_canvas.db`. Export JSON is semantic (components, connections, protocols, algorithms, requirements), not just canvas coordinates.
+Проекты хранятся в `backend/data/architecture_canvas.db`. JSON-экспорт семантический: компоненты, связи, протоколы, алгоритмы, требования, а не только координаты.
 
-JSON import/export round-trips the full project snapshot under `project` in the envelope.
+Импорт и экспорт JSON передают полный снимок проекта в поле `project`.

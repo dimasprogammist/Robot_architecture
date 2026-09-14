@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
+import { SEARCH_KIND_LABELS } from '../i18n'
 
 export function CommandPalette() {
   const open = useUiStore((s) => s.searchOpen)
@@ -81,18 +82,18 @@ export function CommandPalette() {
         <input
           autoFocus
           className="search-input"
-          placeholder="Search components, protocols, algorithms, notes…"
+          placeholder="Поиск по компонентам, протоколам, алгоритмам, заметкам…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
         {hits.map((h, i) => (
           <button key={h.kind + h.title + i} className="hit" type="button" onClick={h.run}>
             <span>{h.title}</span>
-            <span className="kind">{h.kind}</span>
+            <span className="kind">{SEARCH_KIND_LABELS[h.kind] || h.kind}</span>
           </button>
         ))}
-        {!q ? <p className="hint" style={{ padding: 16 }}>Type to search the current project.</p> : null}
-        {q && !hits.length ? <p className="hint" style={{ padding: 16 }}>No matches.</p> : null}
+        {!q ? <p className="hint" style={{ padding: 16 }}>Начните вводить запрос по текущему проекту.</p> : null}
+        {q && !hits.length ? <p className="hint" style={{ padding: 16 }}>Ничего не найдено.</p> : null}
       </div>
     </div>
   )

@@ -69,7 +69,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   if (!project || project.id !== id) {
     return (
       <div className="empty">
-        <h2>Loading project…</h2>
+        <h2>Загрузка проекта…</h2>
       </div>
     )
   }
@@ -91,10 +91,10 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
           <div style={{ minWidth: 0, minHeight: 0 }}>
             {nav === 'projects' ? (
               <div className="page">
-                <h1>Projects</h1>
-                <p className="lede">Use the top-right control to return to the project list.</p>
+                <h1>Проекты</h1>
+                <p className="lede">Кнопка справа вверху возвращает к списку проектов.</p>
                 <button className="btn" type="button" onClick={() => setNav('architecture')}>
-                  Back to canvas
+                  К холсту
                 </button>
               </div>
             ) : null}

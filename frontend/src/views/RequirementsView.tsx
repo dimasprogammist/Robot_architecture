@@ -10,16 +10,16 @@ export function RequirementsView() {
   const select = useProjectStore((s) => s.select)
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const setNav = useUiStore((s) => s.setNav)
-  const [text, setText] = useState('Robot must operate offline.')
+  const [text, setText] = useState('Робот должен работать офлайн.')
 
   return (
     <div className="page">
-      <h1>Requirements</h1>
-      <p className="lede">Traceable constraints linked to components and connections.</p>
+      <h1>Требования</h1>
+      <p className="lede">Ограничения, которые можно связать с компонентами и соединениями.</p>
       <div className="create-bar">
         <input
           value={text}
-          placeholder="Robot must operate offline."
+          placeholder="Робот должен работать офлайн."
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -39,16 +39,16 @@ export function RequirementsView() {
             setText('')
           }}
         >
-          Add
+          Добавить
         </button>
       </div>
       <table className="table">
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Text</th>
-            <th>Priority</th>
-            <th>Linked</th>
+            <th>Код</th>
+            <th>Текст</th>
+            <th>Приоритет</th>
+            <th>Связи</th>
             <th></th>
           </tr>
         </thead>
@@ -61,9 +61,9 @@ export function RequirementsView() {
               </td>
               <td>
                 <select value={r.priority} onChange={(e) => updateRequirement(r.id, { priority: e.target.value })}>
-                  <option>must</option>
-                  <option>should</option>
-                  <option>could</option>
+                  <option value="must">обязательно</option>
+                  <option value="should">желательно</option>
+                  <option value="could">можно</option>
                 </select>
               </td>
               <td>
@@ -93,7 +93,7 @@ export function RequirementsView() {
                     updateRequirement(r.id, { component_ids: Array.from(new Set([...r.component_ids, id])) })
                   }}
                 >
-                  <option value="">Link component…</option>
+                  <option value="">Связать компонент…</option>
                   {project.components.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -103,7 +103,7 @@ export function RequirementsView() {
               </td>
               <td>
                 <button className="btn ghost danger" type="button" onClick={() => deleteRequirement(r.id)}>
-                  Delete
+                  Удалить
                 </button>
               </td>
             </tr>
