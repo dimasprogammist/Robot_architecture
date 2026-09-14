@@ -57,16 +57,17 @@ body {
   background: var(--bg);
   color: var(--ink);
   letter-spacing: -0.01em;
+  overflow: hidden;
 }
-
 button, input, textarea, select { font-family: inherit; color: inherit; }
 button { cursor: pointer; }
 a { color: var(--accent); }
 
 .app-shell {
   display: grid;
-  grid-template-rows: 52px 1fr;
+  grid-template-rows: 52px minmax(0, 1fr);
   height: 100%;
+  min-height: 0;
 }
 
 .topbar {
@@ -119,10 +120,16 @@ a { color: var(--accent); }
 
 .workspace {
   display: grid;
-  grid-template-columns: var(--sidebar) 1fr var(--inspector);
+  grid-template-columns: var(--sidebar) minmax(0, 1fr) var(--inspector);
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
-.workspace.no-inspector { grid-template-columns: var(--sidebar) 1fr; }
+.workspace > div {
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+}
 
 .left-nav, .inspector {
   background: var(--surface);
@@ -157,8 +164,17 @@ a { color: var(--accent); }
 .nav-item.active { background: var(--accent-soft); color: var(--accent-ink); font-weight: 550; }
 .nav-item svg { width: 16px; height: 16px; opacity: 0.85; }
 
+.canvas-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
 .canvas-wrap {
   position: relative;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
   background: var(--bg);
@@ -311,7 +327,8 @@ html[data-theme='dark'] .btn.primary { color: #12110f; }
 .card .foot { margin-top: 12px; display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; }
 
 .home {
-  min-height: 100%;
+  height: 100%;
+  overflow: auto;
   background: radial-gradient(1200px 500px at 10% -10%, var(--accent-soft), transparent 55%), var(--bg);
 }
 

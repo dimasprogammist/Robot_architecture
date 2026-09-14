@@ -81,7 +81,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
         <LeftSidebar />
         {nav === 'architecture' ? (
           <>
-            <div style={{ position: 'relative', minWidth: 0, minHeight: 0 }}>
+            <div className="canvas-stage">
               <LibraryRail presets={presets} />
               <ArchitectureCanvas />
             </div>

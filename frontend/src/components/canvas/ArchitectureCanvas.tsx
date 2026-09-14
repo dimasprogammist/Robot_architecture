@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -30,6 +30,15 @@ export function ArchitectureCanvas() {
       <ArchitectureCanvasInner />
     </ReactFlowProvider>
   )
+}
+
+function FitViewOnData({ count }: { count: number }) {
+  const { fitView } = useReactFlow()
+  useEffect(() => {
+    const t = window.setTimeout(() => fitView({ padding: 0.18, duration: 200 }), 40)
+    return () => window.clearTimeout(t)
+  }, [fitView, count])
+  return null
 }
 
 function ArchitectureCanvasInner() {
@@ -161,12 +170,14 @@ function ArchitectureCanvasInner() {
         snapToGrid={settings.snap_to_grid}
         snapGrid={[settings.grid_size, settings.grid_size]}
         fitView
+        style={{ width: '100%', height: '100%' }}
         deleteKeyCode={null}
         multiSelectionKeyCode="Shift"
         panOnScroll
         selectionOnDrag
         panOnDrag={[1, 2]}
       >
+        <FitViewOnData count={nodes.length} />
         {settings.show_grid ? (
           <Background
             variant={BackgroundVariant.Dots}

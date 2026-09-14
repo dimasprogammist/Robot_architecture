@@ -10,14 +10,26 @@ export function RequirementsView() {
   const select = useProjectStore((s) => s.select)
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const setNav = useUiStore((s) => s.setNav)
-  const [text, setText] = useState('')
+  const [text, setText] = useState('Robot must operate offline.')
 
   return (
     <div className="page">
       <h1>Requirements</h1>
       <p className="lede">Traceable constraints linked to components and connections.</p>
       <div className="create-bar">
-        <input value={text} placeholder="Robot must operate offline." onChange={(e) => setText(e.target.value)} />
+        <input
+          value={text}
+          placeholder="Robot must operate offline."
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              if (!text.trim()) return
+              addRequirement(text.trim())
+              setText('')
+            }
+          }}
+        />
         <button
           className="btn primary"
           type="button"
