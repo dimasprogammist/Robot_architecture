@@ -1,0 +1,80 @@
+import { useProjectStore } from '../store/useProjectStore'
+import { uid } from '../lib/ids'
+import type { Protocol } from '../types'
+
+const blank = (): Protocol => ({
+  id: uid(),
+  name: 'Свой протокол',
+  version: '1.0',
+  transport: 'TCP',
+  port: '',
+  direction: 'bidirectional',
+  data_format: '',
+  encoding: '',
+  description: '',
+  message_structure: '',
+  timing: '',
+  timeout: '',
+  retry: '',
+  crc: '',
+  notes: '',
+  built_in: false,
+  color: '',
+})
+
+export function ProtocolsView() {
+  const project = useProjectStore((s) => s.project)!
+  const mutate = useProjectStore((s) => s.mutate)
+  return (
+    <div className="page">
+      <h1>Протоколы</h1>
+      <p className="lede">Каталог транспортов для связей. Сюда же кладите структуру своих сообщений.</p>
+      <button className="btn primary" type="button" onClick={() => mutate((p) => p.protocols.push(blank()))}>
+        Новый протокол
+      </button>
+      <div className="grid-cards" style={{ marginTop: 18 }}>
+        {project.protocols.map((proto) => (
+          <article className="card" key={proto.id}>
+            <input
+              value={proto.name}
+              onChange={(e) =>
+                mutate((p) => {
+                  const x = p.protocols.find((i) => i.id === proto.id)
+                  if (x) x.name = e.target.value
+                })
+              }
+              style={{ fontWeight: 600, fontSize: 15, border: 'none', background: 'transparent', padding: 0 }}
+            />
+            <p>
+              {proto.transport || '—'} {proto.port ? `:${proto.port}` : ''} · {proto.data_format || 'полезная нагрузка'}
+            </p>
+            <textarea
+              style={{ marginTop: 10, width: '100%', minHeight: 64 }}
+              placeholder="Структура сообщения"
+              value={proto.message_structure}
+              onChange={(e) =>
+                mutate((p) => {
+                  const x = p.protocols.find((i) => i.id === proto.id)
+                  if (x) x.message_structure = e.target.value
+                })
+              }
+            />
+            <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              Цвет
+              <input
+                type="color"
+                value={proto.color || '#6e6b63'}
+                onChange={(e) =>
+                  mutate((p) => {
+                    const x = p.protocols.find((i) => i.id === proto.id)
+                    if (x) x.color = e.target.value
+                  })
+                }
+              />
+            </label>
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
