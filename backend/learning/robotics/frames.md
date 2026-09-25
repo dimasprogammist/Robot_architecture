@@ -29,10 +29,6 @@ T_base_lidar
 - два «вперёд» у камеры и базы
 - калибровка в голове
 
-## В Architecture Canvas
-
-Имена блоков механики = имена кадров.
-
 ## Связанные разделы
 - robotics-kinematics
 - python-numpy

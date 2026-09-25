@@ -29,10 +29,6 @@ PRAGMA journal_mode=WAL;
 - сеть NFS и SQLite
 - многопроцессная запись без очереди
 
-## В Architecture Canvas
-
-Файл БД — path в docs SBC. ER та же, диалект sqlite в экспорте.
-
 ## Связанные разделы
 - sql-tx
 - linux-disks

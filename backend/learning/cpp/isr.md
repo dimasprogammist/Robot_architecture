@@ -32,10 +32,6 @@ extern "C" void USART1_IRQHandler() {
 - лог/printf в ISR
 - долгое float в EXTI
 
-## В Architecture Canvas
-
-Алгоритм MCU: ветка ISR vs task. Требование латентности ESTOP — отдельное.
-
 ## Связанные разделы
 - cpp-atomics
 - cpp-dma

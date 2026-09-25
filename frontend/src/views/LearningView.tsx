@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import Markdown from 'react-markdown'
+import { RichMarkdown } from '../components/RichMarkdown'
 import { api, type LearningArticle, type LearningCategory } from '../lib/api'
 
 export function LearningView() {
@@ -7,7 +7,7 @@ export function LearningView() {
   const [article, setArticle] = useState<LearningArticle | null>(null)
   const [active, setActive] = useState<string | null>(null)
   const [q, setQ] = useState('')
-  const [openCat, setOpenCat] = useState<string | null>('python')
+  const [openCat, setOpenCat] = useState<string | null>('devices')
   const [index, setIndex] = useState<Record<string, { title: string; category: string }>>({})
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function LearningView() {
     <div className="page learning-page">
       <aside className="learning-nav">
         <h1>Справочник</h1>
-        <p className="lede">Инженерный учебник: языки, Linux, протоколы, электроника и робототехника — рядом с проектированием системы.</p>
+        <p className="lede">Сначала устройство компьютера и сети, затем языки программирования и остальные темы. Уроки написаны так, чтобы их можно было читать с нуля.</p>
         <input
           className="lib-search"
           placeholder="Поиск по разделам"
@@ -96,7 +96,7 @@ export function LearningView() {
               {index[article.id]?.category || article.category}
               {article.section ? ` · ${article.section}` : ''}
             </p>
-            <Markdown>{article.content}</Markdown>
+            <RichMarkdown>{article.content}</RichMarkdown>
             {(article.related || []).length ? (
               <div className="learning-related">
                 <h3>Связанные разделы</h3>

@@ -29,10 +29,6 @@ OT vs IT DMZ
 - дать MES писать PWM
 - разные имена статусов
 
-## В Architecture Canvas
-
-Блок External Service. Протокол OPC UA/HTTP.
-
 ## Связанные разделы
 - protocols-opcua
 - linux-firewall

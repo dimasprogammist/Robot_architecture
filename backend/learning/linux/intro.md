@@ -30,10 +30,6 @@ cat /etc/os-release
 - ждать от Pi PREEMT_RT без настройки и измерения
 - root для всего сервиса
 
-## В Architecture Canvas
-
-Блок SBC: ОС в Hardware Data. Алгоритмы Linux-сервисов — отдельные software-блоки.
-
 ## Связанные разделы
 - linux-fs
 - linux-systemd

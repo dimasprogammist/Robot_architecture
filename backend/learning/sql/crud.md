@@ -29,10 +29,6 @@ INSERT INTO maps(id, body) VALUES ($1,$2) ON CONFLICT (id) DO UPDATE SET body=EX
 - DELETE FROM без WHERE
 - update статуса без where id
 
-## В Architecture Canvas
-
-API компонента Data = эти операторы. ER показывает таблицы.
-
 ## Связанные разделы
 - sql-keys
 - sql-tx

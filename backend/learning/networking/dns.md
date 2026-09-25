@@ -29,10 +29,6 @@ getent hosts mqtt.ot.local
 - таймаут DNS 5 с в control
 - публичный DNS для имени камеры
 
-## В Architecture Canvas
-
-Зависимости компонента: DNS нужен/не нужен в RUN.
-
 ## Связанные разделы
 - networking-ip
 - linux-net-tools

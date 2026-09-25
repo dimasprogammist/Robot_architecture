@@ -29,10 +29,6 @@ hz = {s.name: s.rate for s in sensors if s.ok}
 - вложенные comp на 4 уровня
 - исключения внутри comp без контекста
 
-## В Architecture Canvas
-
-Фильтрация данных — шаг алгоритма «preprocess».
-
 ## Связанные разделы
 - python-lists
 - python-generators

@@ -29,10 +29,6 @@ FROM python:3.11-slim
 - контейнеризовать всё включая hard realtime без измерения
 - привилегии всем подряд
 
-## В Architecture Canvas
-
-Блок Docker как модуль ПО или notes runtime у Backend.
-
 ## Связанные разделы
 - docker-file
 - docker-devices

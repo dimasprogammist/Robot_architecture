@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Home } from './Home'
 import { Workspace } from './Workspace'
+import { AuthGate } from './AuthGate'
 import { api } from './lib/api'
 import { useUiStore } from './store/useUiStore'
 import type { LibraryPreset } from './types'
@@ -28,8 +29,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/p/:id" element={<Workspace presets={presets} />} />
+        <Route path="/" element={<AuthGate><Home /></AuthGate>} />
+        <Route path="/p/:id" element={<AuthGate><Workspace presets={presets} /></AuthGate>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

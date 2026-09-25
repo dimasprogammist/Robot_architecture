@@ -6,12 +6,55 @@ import type {
   TemplateInfo,
 } from '../types'
 
+const TOKEN_KEY = 'arch_token'
+
+export function setAuthToken(token: string | null) {
+  if (token) localStorage.setItem(TOKEN_KEY, token)
+  else localStorage.removeItem(TOKEN_KEY)
+}
+
+function apiFetch(url: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers)
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  return fetch(url, { ...init, headers })
+}
+
 const json = async <T>(res: Response): Promise<T> => {
   if (!res.ok) {
     const text = await res.text()
     throw new Error(text || res.statusText)
   }
   return res.json() as Promise<T>
+}
+
+export interface CourseLessonSummary {
+  id: string
+  order: number
+  title: string
+}
+
+export interface CourseModule {
+  id: string
+  order: number
+  title: string
+  lessons: CourseLessonSummary[]
+}
+
+export interface CourseOverview {
+  total_lessons: number
+  modules: CourseModule[]
+}
+
+export interface CourseLesson {
+  id: string
+  title: string
+  module_id: string
+  module_title: string
+  order: number
+  content: string
+  prev_lesson_id: string | null
+  next_lesson_id: string | null
 }
 
 export interface AiExportBody {
@@ -135,33 +178,56 @@ export interface AttachedFileMeta {
   component_id: string | null
 }
 
+export interface AuthUser {
+  id: string
+  email: string
+  display_name: string
+  role: string
+}
+
 export const api = {
-  health: () => fetch('/api/health').then(json),
-  projects: () => fetch('/api/projects').then((r) => json<ProjectSummary[]>(r)),
-  project: (id: string) => fetch(`/api/projects/${id}`).then((r) => json<Project>(r)),
+  health: () => apiFetch('/api/health').then(json),
+  register: (body: { email: string; password: string; display_name?: string }) =>
+    apiFetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then((r) => json<{ token: string; user: AuthUser }>(r)),
+  login: (body: { email: string; password: string }) =>
+    apiFetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then((r) => json<{ token: string; user: AuthUser }>(r)),
+  logout: () => apiFetch('/api/auth/logout', { method: 'POST' }).then(json),
+  me: () => apiFetch('/api/auth/me').then((r) => json<AuthUser>(r)),
+  course: () => apiFetch('/api/course').then((r) => json<CourseOverview>(r)),
+  courseLesson: (id: string) => apiFetch(`/api/course/${id}`).then((r) => json<CourseLesson>(r)),
+  projects: () => apiFetch('/api/projects').then((r) => json<ProjectSummary[]>(r)),
+  project: (id: string) => apiFetch(`/api/projects/${id}`).then((r) => json<Project>(r)),
   createProject: (body: { name: string; description?: string; template_id?: string | null }) =>
-    fetch('/api/projects', {
+    apiFetch('/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }).then((r) => json<Project>(r)),
   saveProject: (project: Project) =>
-    fetch(`/api/projects/${project.id}`, {
+    apiFetch(`/api/projects/${project.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(project),
     }).then((r) => json<Project>(r)),
-  deleteProject: (id: string) => fetch(`/api/projects/${id}`, { method: 'DELETE' }).then(json),
+  deleteProject: (id: string) => apiFetch(`/api/projects/${id}`, { method: 'DELETE' }).then(json),
   saveVersion: (id: string, label?: string) =>
-    fetch(`/api/projects/${id}/versions`, {
+    apiFetch(`/api/projects/${id}/versions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ label }),
     }).then((r) => json<Project>(r)),
-  exportJson: (id: string) => fetch(`/api/projects/${id}/export.json`).then(json<Record<string, unknown>>),
-  exportMd: (id: string) => fetch(`/api/projects/${id}/export.md`).then((r) => r.text()),
+  exportJson: (id: string) => apiFetch(`/api/projects/${id}/export.json`).then(json<Record<string, unknown>>),
+  exportMd: (id: string) => apiFetch(`/api/projects/${id}/export.md`).then((r) => r.text()),
   exportAi: (id: string, body: AiExportBody = {}) =>
-    fetch(`/api/projects/${id}/export/ai`, {
+    apiFetch(`/api/projects/${id}/export/ai`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -180,41 +246,41 @@ export const api = {
       }),
     }).then((r) => r.text()),
   exportSql: (id: string, dialect: string) =>
-    fetch(`/api/projects/${id}/export.sql?dialect=${encodeURIComponent(dialect)}`).then((r) => {
+    apiFetch(`/api/projects/${id}/export.sql?dialect=${encodeURIComponent(dialect)}`).then((r) => {
       if (!r.ok) throw new Error(r.statusText)
       return r.text()
     }),
   importJson: (payload: unknown) =>
-    fetch('/api/projects/import', {
+    apiFetch('/api/projects/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).then((r) => json<Project>(r)),
-  templates: () => fetch('/api/templates').then((r) => json<TemplateInfo[]>(r)),
+  templates: () => apiFetch('/api/templates').then((r) => json<TemplateInfo[]>(r)),
   saveTemplate: (projectId: string, name: string, description = '') =>
-    fetch(`/api/projects/${projectId}/save-template`, {
+    apiFetch(`/api/projects/${projectId}/save-template`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, description }),
     }).then(json),
-  library: () => fetch('/api/library').then((r) => json<LibraryResponse>(r)),
-  learning: () => fetch('/api/learning').then((r) => json<LearningCategory[]>(r)),
-  learningArticle: (id: string) => fetch(`/api/learning/${id}`).then((r) => json<LearningArticle>(r)),
-  curriculum: () => fetch('/api/curriculum').then((r) => json<CurriculumOverview>(r)),
+  library: () => apiFetch('/api/library').then((r) => json<LibraryResponse>(r)),
+  learning: () => apiFetch('/api/learning').then((r) => json<LearningCategory[]>(r)),
+  learningArticle: (id: string) => apiFetch(`/api/learning/${id}`).then((r) => json<LearningArticle>(r)),
+  curriculum: () => apiFetch('/api/curriculum').then((r) => json<CurriculumOverview>(r)),
   curriculumLesson: (lessonId: string) =>
-    fetch(`/api/curriculum/${lessonId}`).then((r) => json<CurriculumLessonDetail>(r)),
+    apiFetch(`/api/curriculum/${lessonId}`).then((r) => json<CurriculumLessonDetail>(r)),
   curriculumTheoryDone: (lessonId: string) =>
-    fetch(`/api/curriculum/${lessonId}/theory-done`, { method: 'POST' }).then((r) =>
+    apiFetch(`/api/curriculum/${lessonId}/theory-done`, { method: 'POST' }).then((r) =>
       json<CurriculumLessonDetail>(r)
     ),
   curriculumCheckQuiz: (lessonId: string, taskId: string, optionId: string) =>
-    fetch(`/api/curriculum/${lessonId}/tasks/${taskId}/check-quiz`, {
+    apiFetch(`/api/curriculum/${lessonId}/tasks/${taskId}/check-quiz`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ option_id: optionId }),
     }).then((r) => json<CurriculumTaskCheckResult>(r)),
   curriculumCheckCode: (lessonId: string, taskId: string, code: string) =>
-    fetch(`/api/curriculum/${lessonId}/tasks/${taskId}/check-code`, {
+    apiFetch(`/api/curriculum/${lessonId}/tasks/${taskId}/check-code`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
@@ -223,14 +289,14 @@ export const api = {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('component_id', componentId)
-    const res = await fetch(`/api/projects/${projectId}/files`, { method: 'POST', body: fd })
+    const res = await apiFetch(`/api/projects/${projectId}/files`, { method: 'POST', body: fd })
     if (!res.ok) throw new Error(await res.text())
     const meta = (await res.json()) as AttachedFileMeta & { component_id?: string | null }
     return { ...meta, component_id: meta.component_id ?? componentId }
   },
-  settings: () => fetch('/api/settings').then((r) => json<GlobalSettings>(r)),
+  settings: () => apiFetch('/api/settings').then((r) => json<GlobalSettings>(r)),
   saveSettings: (s: GlobalSettings) =>
-    fetch('/api/settings', {
+    apiFetch('/api/settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(s),

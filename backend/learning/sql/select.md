@@ -29,10 +29,6 @@ SELECT id, code, created_at FROM events WHERE severity = 'FAULT';
 - SELECT * в API
 - отсутствие LIMIT на бесконечном журнале
 
-## В Architecture Canvas
-
-Колонки таблицы в ER = контракт API list-эндпоинта.
-
 ## Связанные разделы
 - sql-where
 - sql-index

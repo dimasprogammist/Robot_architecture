@@ -29,10 +29,6 @@ A/B, termination 120
 - USB-UART висящий без земли к плате
 - RS-485 без GND/reference
 
-## В Architecture Canvas
-
-Протокол UART/Modbus RTU + физика в electronics notes.
-
 ## Связанные разделы
 - protocols-uart
 - protocols-modbus

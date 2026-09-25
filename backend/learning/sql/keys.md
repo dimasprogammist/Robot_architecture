@@ -29,10 +29,6 @@ ALTER TABLE projects ADD CONSTRAINT fk_projects_user FOREIGN KEY (user_id) REFER
 - нет FK «потому что ORM»
 - каскад, стирающий audit
 
-## В Architecture Canvas
-
-ER-связи Canvas генерируют FK. Проверьте cardinality.
-
 ## Связанные разделы
 - sql-join
 - sql-er

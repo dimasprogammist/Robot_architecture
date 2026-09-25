@@ -29,10 +29,6 @@ related: [app-docs, sql-er]
 - include full markdown всех datasheet
 - координаты как истина
 
-## В Architecture Canvas
-
-Промпт строится из семантической модели.
-
 ## Связанные разделы
 - app-docs
 - sql-er

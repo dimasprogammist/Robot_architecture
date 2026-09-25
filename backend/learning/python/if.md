@@ -34,10 +34,6 @@ else:
 - цепочка elif на 20 протоколов вместо таблицы стратегий
 - забытый else в fail-safe
 
-## В Architecture Canvas
-
-Состояния перенесите в алгоритм компонента и в state machine, не держите только в if.
-
 ## Связанные разделы
 - python-state-machine
 - python-enums

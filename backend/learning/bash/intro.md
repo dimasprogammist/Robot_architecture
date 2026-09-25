@@ -30,10 +30,6 @@ set -euo pipefail
 - bash на 500 строк с логикой навигации
 - нет set -euo
 
-## В Architecture Canvas
-
-Скрипты — блок Tooling.
-
 ## Связанные разделы
 - bash-strict
 - bash-args

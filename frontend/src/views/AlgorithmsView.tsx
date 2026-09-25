@@ -1,7 +1,26 @@
+import { useMemo } from 'react'
 import { useProjectStore } from '../store/useProjectStore'
-import { useUiStore } from '../store/useUiStore'
 import { AlgorithmCanvas } from '../components/canvas/AlgorithmCanvas'
-import { uid } from '../lib/ids'
+import type { Component, Project } from '../types'
+
+function softwareTree(project: Project) {
+  const software = project.components.filter((c) => c.category === 'SOFTWARE')
+  const byId = new Map(software.map((c) => [c.id, c]))
+  const parentOf = new Map<string, string | null>()
+  for (const c of software) {
+    const arch = project.architectures.find((a) => a.id === c.architecture_id)
+    const parentId = arch?.parent_component_id || null
+    parentOf.set(c.id, parentId && byId.has(parentId) ? parentId : null)
+  }
+  const children = new Map<string | null, Component[]>()
+  for (const c of software) {
+    const parent = parentOf.get(c.id) ?? null
+    const list = children.get(parent) || []
+    list.push(c)
+    children.set(parent, list)
+  }
+  return children
+}
 
 export function AlgorithmsView() {
   const project = useProjectStore((s) => s.project)!
@@ -9,77 +28,51 @@ export function AlgorithmsView() {
   const ensureAlgorithm = useProjectStore((s) => s.ensureAlgorithm)
   const select = useProjectStore((s) => s.select)
   const updateAlgorithm = useProjectStore((s) => s.updateAlgorithm)
-  const setInspectorTab = useUiStore((s) => s.setInspectorTab)
-  const setNav = useUiStore((s) => s.setNav)
-  const alg =
-    project.algorithms.find((a) => selectedIds.includes(a.component_id)) || project.algorithms[0]
+  const children = useMemo(() => softwareTree(project), [project])
+  const selected = project.components.find((c) => c.category === 'SOFTWARE' && selectedIds.includes(c.id))
+  const alg = selected ? project.algorithms.find((a) => a.component_id === selected.id) : undefined
+
+  const renderLevel = (parent: string | null, depth: number) =>
+    (children.get(parent) || [])
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+      .map((c) => (
+        <div key={c.id}>
+          <button
+            className={`algo-tree-item ${selected?.id === c.id ? 'active' : ''}`}
+            style={{ paddingLeft: 8 + depth * 14 }}
+            type="button"
+            onClick={() => {
+              select([c.id])
+              ensureAlgorithm(c.id)
+            }}
+          >
+            {c.name}
+          </button>
+          {renderLevel(c.id, depth + 1)}
+        </div>
+      ))
 
   return (
-    <div className="page" style={{ display: 'grid', gridTemplateRows: 'auto auto 1fr', height: '100%', paddingBottom: 16 }}>
-      <h1>Алгоритмы</h1>
-      <p className="lede">Поведение, шаги и конечные автоматы, привязанные к архитектурным блокам.</p>
-      <div className="row" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
-        {project.algorithms.map((a) => {
-          const owner = project.components.find((c) => c.id === a.component_id)
-          return (
-            <button
-              key={a.id}
-              className={`btn ${alg?.id === a.id ? 'primary' : ''}`}
-              type="button"
-              onClick={() => select([a.component_id])}
-            >
-              {a.name}
-              <span className="hint"> · {owner?.name}</span>
-            </button>
-          )
-        })}
-        <button
-          className="btn"
-          type="button"
-          onClick={() => {
-            const c = project.components.find((x) => selectedIds.includes(x.id)) || project.components[0]
-            if (!c) return
-            ensureAlgorithm(c.id)
-            select([c.id])
-            setInspectorTab('algorithm')
-          }}
-        >
-          Новый алгоритм
-        </button>
+    <div className="page algo-layout">
+      <aside className="algo-tree">
+        <h1>Алгоритмы</h1>
+        <p className="lede">Программные компоненты проекта. Механика сюда не входит.</p>
+        {children.get(null)?.length ? renderLevel(null, 0) : <p className="hint">На холсте архитектуры пока нет программных блоков.</p>}
+      </aside>
+      <div className="algo-canvas">
+        {selected && alg ? (
+          <>
+            <div className="field" style={{ maxWidth: 420 }}>
+              <label>Алгоритм · {selected.name}</label>
+              <input value={alg.name} onChange={(e) => updateAlgorithm(alg.id, { name: e.target.value })} />
+            </div>
+            <AlgorithmCanvas algorithmId={alg.id} />
+          </>
+        ) : (
+          <p className="lede">Выберите программный компонент слева — справа откроется его блок-схема.</p>
+        )}
       </div>
-      {alg ? (
-        <>
-          <div className="row" style={{ marginBottom: 8 }}>
-            <button
-              className="btn"
-              type="button"
-              onClick={() =>
-                updateAlgorithm(alg.id, {
-                  canvas_nodes: [
-                    ...alg.canvas_nodes,
-                    { id: uid(), kind: 'action', label: 'Шаг', position: { x: 80 + alg.canvas_nodes.length * 20, y: 80 } },
-                  ],
-                })
-              }
-            >
-              Добавить узел
-            </button>
-            <button
-              className="btn ghost"
-              type="button"
-              onClick={() => {
-                setNav('architecture')
-                setInspectorTab('algorithm')
-              }}
-            >
-              Редактировать детали
-            </button>
-          </div>
-          <AlgorithmCanvas algorithmId={alg.id} />
-        </>
-      ) : (
-        <p className="hint">Выберите компонент и создайте алгоритм.</p>
-      )}
     </div>
   )
 }

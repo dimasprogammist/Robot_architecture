@@ -7,6 +7,7 @@ export function CommandPalette() {
   const open = useUiStore((s) => s.searchOpen)
   const setOpen = useUiStore((s) => s.setSearchOpen)
   const setNav = useUiStore((s) => s.setNav)
+  const setDocTab = useUiStore((s) => s.setDocTab)
   const project = useProjectStore((s) => s.project)
   const select = useProjectStore((s) => s.select)
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
@@ -32,7 +33,7 @@ export function CommandPalette() {
     }
     for (const p of project.protocols) {
       if (`${p.name} ${p.description} ${p.transport}`.toLowerCase().includes(s)) {
-        out.push({ kind: 'protocol', title: p.name, run: () => { setNav('protocols'); setOpen(false) } })
+        out.push({ kind: 'protocol', title: p.name, run: () => { setNav('settings'); setOpen(false) } })
       }
     }
     for (const a of project.algorithms) {
@@ -64,12 +65,12 @@ export function CommandPalette() {
     }
     for (const r of project.requirements) {
       if (`${r.code} ${r.text}`.toLowerCase().includes(s)) {
-        out.push({ kind: 'requirement', title: `${r.code} ${r.text}`, run: () => { setNav('requirements'); setOpen(false) } })
+        out.push({ kind: 'requirement', title: `${r.code} ${r.text}`, run: () => { setDocTab('requirements'); setNav('documents'); setOpen(false) } })
       }
     }
     for (const d of project.documents) {
       if (`${d.title} ${d.body}`.toLowerCase().includes(s)) {
-        out.push({ kind: 'document', title: d.title, run: () => { setNav('documents'); setOpen(false) } })
+        out.push({ kind: 'document', title: d.title, run: () => { setDocTab('notes'); setNav('documents'); setOpen(false) } })
       }
     }
     return out.slice(0, 20)

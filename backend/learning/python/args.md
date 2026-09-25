@@ -30,10 +30,6 @@ def move(*, speed_mps: float, duration_s: float) -> None:
 - *args в публичном API без схемы
 - перегрузка смыслом позиционных аргументов
 
-## В Architecture Canvas
-
-В поле API компонента перечислите именованные параметры команд.
-
 ## Связанные разделы
 - python-functions
 - python-dataclasses

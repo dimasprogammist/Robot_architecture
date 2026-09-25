@@ -29,10 +29,6 @@ Must для ESTOP. Привязка к компонентам. Тесты име
 - требования в слайдах, не в модели
 - все should
 
-## В Architecture Canvas
-
-Экспорт включает requirements по флажку.
-
 ## Связанные разделы
 - robotics-safety
 - python-testing

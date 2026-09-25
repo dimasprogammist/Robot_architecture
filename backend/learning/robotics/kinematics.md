@@ -29,10 +29,6 @@ omega_l = (vx - wz*L/2)/r
 - перепутать радиус и диаметр
 - frame без имени
 
-## В Architecture Canvas
-
-Mechanical nested canvas = цепь преобразований.
-
 ## Связанные разделы
 - cpp-eigen
 - python-math

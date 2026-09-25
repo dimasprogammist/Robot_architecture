@@ -29,10 +29,6 @@ users/projects учебный пример.
 - ER в draw.io отдельно
 - N–N без понимания junction
 
-## В Architecture Canvas
-
-Инспектор таблицы. Экспорт SQL.
-
 ## Связанные разделы
 - sql-er
 - sql-keys

@@ -29,10 +29,6 @@ if [[ ! -e /dev/robot-mcu ]]; then exit 1; fi
 - -e vs -L на symlink udev
 - проверка ping как «MCU жив» без протокола
 
-## В Architecture Canvas
-
-Precondition компонента шлюза.
-
 ## Связанные разделы
 - linux-udev
 - linux-systemd

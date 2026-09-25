@@ -29,10 +29,6 @@ timedatectl status
 - wall clock в PID
 - разъехавшиеся часы двух SBC
 
-## В Architecture Canvas
-
-Штампы в ER events — timestamptz. В PID — monotonic.
-
 ## Связанные разделы
 - python-datetime
 - cpp-chrono

@@ -30,10 +30,6 @@ related: [databases-sqlite, databases-postgres, databases-redis]
 - Mongo «потому что JSON» без модели
 - Redis как единственное хранилище миссий
 
-## В Architecture Canvas
-
-Поле dialect у DatabaseInfo и тип блока DATA.
-
 ## Связанные разделы
 - databases-sqlite
 - databases-postgres

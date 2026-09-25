@@ -32,10 +32,6 @@ if not waypoints:
 - `if not data` когда 0.0 — валидная скорость
 - sentinel -1 вместо Optional
 
-## В Architecture Canvas
-
-В алгоритме компонента явно разведите ветки «нет данных» и «нулевая скорость».
-
 ## Связанные разделы
 - python-exceptions
 - python-typing

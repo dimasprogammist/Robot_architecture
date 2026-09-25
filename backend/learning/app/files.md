@@ -29,10 +29,6 @@ related: [app-stl, app-bom, electronics-proto]
 - печать без материала в BOM
 - версия файла не совпадает с version детали
 
-## В Architecture Canvas
-
-PrintSettings в MechanicalData.
-
 ## Связанные разделы
 - app-stl
 - app-bom

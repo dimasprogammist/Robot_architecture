@@ -29,10 +29,6 @@ VMOT, nFAULT, nSLEEP
 - общий предохранитель логики и силы
 - рекуперация без куда деть энергию
 
-## В Architecture Canvas
-
-BOM: драйвер, предохранитель, конденсаторы. Связь MCU PWM/CAN.
-
 ## Связанные разделы
 - electronics-psu
 - robotics-actuators

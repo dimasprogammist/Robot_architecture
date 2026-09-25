@@ -29,10 +29,6 @@ related: [app-canvas, app-templates, robotics-overview]
 - пустой холст и забыть протоколы
 - английский UI — интерфейс русский, имена протоколов технические
 
-## В Architecture Canvas
-
-Это стартовая точка справочника приложения.
-
 ## Связанные разделы
 - app-canvas
 - app-templates

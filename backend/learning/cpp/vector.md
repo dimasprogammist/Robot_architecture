@@ -30,10 +30,6 @@ ranges.reserve(2048);
 - растёт каждый кадр без reserve
 - передача vector по значению в горячем пути
 
-## В Architecture Canvas
-
-Поток Lidar → Perception: формат массива ranges + stamp.
-
 ## Связанные разделы
 - cpp-span
 - cpp-alloc

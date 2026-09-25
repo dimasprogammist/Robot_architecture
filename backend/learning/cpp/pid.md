@@ -30,10 +30,6 @@ u = clamp(u, -UMAX, UMAX);
 - разный dt «примерно 1 мс»
 - коэффициенты только в голове инженера
 
-## В Architecture Canvas
-
-Алгоритм PID в инспекторе MCU. Коэффициенты — конфиг + notes. Сравните с python-pid симом.
-
 ## Связанные разделы
 - python-pid
 - cpp-timers

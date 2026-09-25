@@ -29,10 +29,6 @@ EXPLAIN ANALYZE SELECT * FROM events WHERE robot_id=1;
 - игнор seq scan потому что «данных мало» на стенде
 - оптимизация без измерения
 
-## В Architecture Canvas
-
-Notes таблицы: ожидаемый объём и запросы UI.
-
 ## Связанные разделы
 - sql-index
 - sql-where

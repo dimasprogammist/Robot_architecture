@@ -29,10 +29,6 @@ function 3, 4, 6, 16
 - off-by-one карты
 - два мастера RTU
 
-## В Architecture Canvas
-
-Протокол Modbus цвет. Карта — Documentation ПЛК.
-
 ## Связанные разделы
 - cpp-modbus
 - sql-er

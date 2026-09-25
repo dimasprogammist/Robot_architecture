@@ -31,10 +31,6 @@ python -m robot_app
 - python vs python3 на Linux
 - запуск файлов из чужого cwd, из-за чего не находятся конфиги
 
-## В Architecture Canvas
-
-В компоненте бэкенда поле «версия» = 3.11. Документируйте команду запуска в README блока.
-
 ## Связанные разделы
 - python-intro
 - python-venv

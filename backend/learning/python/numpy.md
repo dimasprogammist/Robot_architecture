@@ -31,10 +31,6 @@ r[r < 0.05] = np.nan
 - смешать dtype float64/float32 без нужды на Pi
 - немые оси без комментария frame
 
-## В Architecture Canvas
-
-Perception — отдельный блок. Связь Lidar → Perception: UDP/USB + формат облака.
-
 ## Связанные разделы
 - python-opencv
 - python-generators

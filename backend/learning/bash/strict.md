@@ -30,10 +30,6 @@ trap 'echo fail' ERR
 - set -e и пайп без pipefail
 - маскировка $? в if без причины
 
-## В Architecture Canvas
-
-failure_modes tooling: ненулевой код = стоп процедуры.
-
 ## Связанные разделы
 - bash-intro
 - bash-pipes

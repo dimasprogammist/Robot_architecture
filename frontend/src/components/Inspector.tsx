@@ -1,3 +1,4 @@
+import { ColorSwatches } from './ColorSwatches'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
 import { DocsPanel, FilesPanel, MechPanel, TablePanel } from './InspectorExtras'
@@ -34,8 +35,17 @@ export function Inspector() {
     return (
       <aside className="inspector">
         <h2>Инспектор</h2>
-        <p className="sub">Выберите блок или связь, чтобы описать семантику.</p>
-        <p className="hint">Двойной клик по блоку открывает внутреннюю архитектуру.</p>
+        <p className="sub">Выберите блок или связь.</p>
+        <p className="hint">Внутренний холст открывается двойным щелчком только у механической системы.</p>
+      </aside>
+    )
+  }
+
+  if (component.entity_kind === 'table' || component.table) {
+    return (
+      <aside className="inspector">
+        <h2>Таблица</h2>
+        <TablePanel component={component} />
       </aside>
     )
   }
@@ -71,39 +81,48 @@ export function Inspector() {
 
       {tab === 'overview' && (
         <>
-          <Field label="Название" value={component.name} onChange={(v) => updateComponent(component.id, { name: v })} />
-          <div className="field">
-            <label>Тип</label>
-            <input
-              value={component.type}
-              onChange={(e) => updateComponent(component.id, { type: e.target.value })}
-              list="type-list"
-            />
-            <datalist id="type-list">
-              {types.map((t) => (
-                <option key={t} value={t} />
-              ))}
-            </datalist>
-          </div>
-          <Field label="Технология" value={component.technology} onChange={(v) => updateComponent(component.id, { technology: v })} />
-          <Field label="Версия" value={component.version} onChange={(v) => updateComponent(component.id, { version: v })} />
-          <div className="field">
-            <label>Статус</label>
-            <select value={component.status} onChange={(e) => updateComponent(component.id, { status: e.target.value })}>
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Field label="Владелец" value={component.owner} onChange={(v) => updateComponent(component.id, { owner: v })} />
-          <Field label="Теги" value={component.tags.join(', ')} onChange={(v) => updateComponent(component.id, { tags: v.split(',').map((x) => x.trim()).filter(Boolean) })} />
-          <Field label="Описание" value={component.description} onChange={(v) => updateComponent(component.id, { description: v })} multiline />
-          <Field label="Модули" value={component.modules.join('\n')} onChange={(v) => updateComponent(component.id, { modules: v.split('\n').map((x) => x.trim()).filter(Boolean) })} multiline />
-          <Field label="API" value={component.api} onChange={(v) => updateComponent(component.id, { api: v })} multiline />
-          <Field label="Состояние" value={component.state} onChange={(v) => updateComponent(component.id, { state: v })} />
-          <Field label="Заметки" value={component.notes} onChange={(v) => updateComponent(component.id, { notes: v })} multiline />
+          <details className="prop-extra" open>
+            <summary>Общие</summary>
+            <Field label="Название" value={component.name} onChange={(v) => updateComponent(component.id, { name: v })} />
+            <div className="field">
+              <label>Тип</label>
+              <select value={types.includes(component.type) ? component.type : ''} onChange={(e) => updateComponent(component.id, { type: e.target.value })}>
+                {!types.includes(component.type) ? <option value="">{component.type || 'Свой тип'}</option> : null}
+                {types.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Готовность</label>
+              <select value={component.status} onChange={(e) => updateComponent(component.id, { status: e.target.value })}>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                ))}
+              </select>
+            </div>
+          </details>
+          <details className="prop-extra">
+            <summary>Подключение</summary>
+            <Field label="Технология" value={component.technology} onChange={(v) => updateComponent(component.id, { technology: v })} />
+            <Field label="Как обращаться" value={component.api} onChange={(v) => updateComponent(component.id, { api: v })} />
+            <Field label="Состояние" value={component.state} onChange={(v) => updateComponent(component.id, { state: v })} />
+          </details>
+          {component.category === 'MECHANICS' ? (
+            <p className="hint">Размеры, материал и артикул — на вкладке «Механика».</p>
+          ) : null}
+          <details className="prop-extra">
+            <summary>Описание</summary>
+            <Field label="Что делает" value={component.description} onChange={(v) => updateComponent(component.id, { description: v })} multiline />
+            <Field label="Заметки" value={component.notes} onChange={(v) => updateComponent(component.id, { notes: v })} multiline />
+          </details>
+          <details className="prop-extra">
+            <summary>Дополнительно</summary>
+            <Field label="Версия" value={component.version} onChange={(v) => updateComponent(component.id, { version: v })} />
+            <Field label="Ответственный" value={component.owner} onChange={(v) => updateComponent(component.id, { owner: v })} />
+            <Field label="Теги" value={component.tags.join(', ')} onChange={(v) => updateComponent(component.id, { tags: v.split(',').map((x) => x.trim()).filter(Boolean) })} />
+            <Field label="Состав" value={component.modules.join(', ')} onChange={(v) => updateComponent(component.id, { modules: v.split(',').map((x) => x.trim()).filter(Boolean) })} />
+          </details>
         </>
       )}
 
@@ -215,28 +234,31 @@ function ConnectionInspector({
           <option value="bidirectional">Двустороннее</option>
         </select>
       </div>
-      <Field label="Описание" value={connection.description} onChange={(v) => onChange({ description: v })} multiline />
-      <Field label="Формат данных" value={connection.data_format} onChange={(v) => onChange({ data_format: v })} />
-      <Field label="Пример данных" value={connection.data_example} onChange={(v) => onChange({ data_example: v })} multiline />
-      <Field label="Частота" value={connection.frequency} onChange={(v) => onChange({ frequency: v })} />
-      <Field label="Задержка" value={connection.latency} onChange={(v) => onChange({ latency: v })} />
-      <Field label="Надёжность" value={connection.reliability} onChange={(v) => onChange({ reliability: v })} />
-      <Field label="Заметки" value={connection.notes} onChange={(v) => onChange({ notes: v })} multiline />
       <div className="field">
         <label>Цвет линии</label>
-        <input type="color" value={connection.color || '#6e6b63'} onChange={(e) => onChange({ color: e.target.value })} />
+        <ColorSwatches value={connection.color} onChange={(color) => onChange({ color })} />
       </div>
-      <div className="field">
-        <label>Кардинальность (ER)</label>
-        <select value={connection.cardinality} onChange={(e) => onChange({ cardinality: e.target.value })}>
-          <option value="">—</option>
-          <option value="one_to_one">1 — 1</option>
-          <option value="one_to_many">1 — N</option>
-          <option value="many_to_many">N — N</option>
-        </select>
-      </div>
-      <Field label="Колонка источника (PK)" value={connection.source_column} onChange={(v) => onChange({ source_column: v })} />
-      <Field label="Колонка цели (FK)" value={connection.target_column} onChange={(v) => onChange({ target_column: v })} />
+      <Field label="Что передаётся" value={connection.description} onChange={(v) => onChange({ description: v })} multiline />
+      <details className="prop-extra">
+        <summary>Дополнительно</summary>
+        <Field label="Формат данных" value={connection.data_format} onChange={(v) => onChange({ data_format: v })} />
+        <Field label="Пример" value={connection.data_example} onChange={(v) => onChange({ data_example: v })} multiline />
+        <Field label="Как часто" value={connection.frequency} onChange={(v) => onChange({ frequency: v })} />
+        <Field label="Допустимая задержка" value={connection.latency} onChange={(v) => onChange({ latency: v })} />
+        <Field label="Надёжность" value={connection.reliability} onChange={(v) => onChange({ reliability: v })} />
+        <Field label="Заметки" value={connection.notes} onChange={(v) => onChange({ notes: v })} multiline />
+        <div className="field">
+          <label>Связь таблиц</label>
+          <select value={connection.cardinality} onChange={(e) => onChange({ cardinality: e.target.value })}>
+            <option value="">Не таблица</option>
+            <option value="one_to_one">Один к одному</option>
+            <option value="one_to_many">Один ко многим</option>
+            <option value="many_to_many">Многие ко многим</option>
+          </select>
+        </div>
+        <Field label="Колонка источника" value={connection.source_column} onChange={(v) => onChange({ source_column: v })} />
+        <Field label="Колонка цели" value={connection.target_column} onChange={(v) => onChange({ target_column: v })} />
+      </details>
     </aside>
   )
 }

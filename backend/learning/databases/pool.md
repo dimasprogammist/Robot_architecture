@@ -29,10 +29,6 @@ HTTP API держит pool. Фоновый consumer — свой бюджет к
 - утечка коннектов при исключении
 - pool больше чем max_connections
 
-## В Architecture Canvas
-
-Notes Backend: кто ходит в БД. MCU — никто.
-
 ## Связанные разделы
 - python-fastapi
 - databases-postgres

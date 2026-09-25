@@ -30,10 +30,6 @@ yaw = (yaw + math.pi) % (2*math.pi) - math.pi
 - градусы/радианы без суффикса
 - random в control loop «для шума» на изделии
 
-## В Architecture Canvas
-
-Единицы углов укажите в документации компонента Localization.
-
 ## Связанные разделы
 - python-types-numbers
 - python-pid

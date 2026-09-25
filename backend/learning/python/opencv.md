@@ -30,10 +30,6 @@ gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 - обработка в GUI-потоке
 - игнор калибровки camera_matrix
 
-## В Architecture Canvas
-
-Блок Camera + вложенный алгоритм «undistort → detect → pose». Файл калибровки — attached note/file.
-
 ## Связанные разделы
 - python-numpy
 - python-threading

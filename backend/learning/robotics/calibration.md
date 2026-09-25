@@ -29,10 +29,6 @@ calib.yaml version
 - калибровка в коде константой
 - файл без robot serial
 
-## В Architecture Canvas
-
-Attached notes + runtime path. Requirement после обслуживания.
-
 ## Связанные разделы
 - python-config
 - git-lfs

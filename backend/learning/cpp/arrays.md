@@ -30,10 +30,6 @@ volatile std::uint16_t head;
 - возврат указателя на стековый массив
 - vector.reserve в ISR «чтобы быстрее»
 
-## В Architecture Canvas
-
-Размер кадра — в протоколе. Буфер — в алгоритме шлюза.
-
 ## Связанные разделы
 - cpp-span
 - cpp-dma

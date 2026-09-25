@@ -29,10 +29,6 @@ CANH/CANL, 120Ω
 - терминатор на каждом серво
 - питание трансивера откуда попало
 
-## В Architecture Canvas
-
-Протокол CAN + notes шины.
-
 ## Связанные разделы
 - cpp-can
 - protocols-can

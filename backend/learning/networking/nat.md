@@ -29,10 +29,6 @@ ip route
 - проброс 1883 на 0.0.0.0 мира
 - два VPN с overlapping 10.0.0.0/8
 
-## В Architecture Canvas
-
-Блок External Access. Требования безопасности.
-
 ## Связанные разделы
 - linux-ssh
 - linux-firewall

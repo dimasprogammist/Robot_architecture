@@ -29,10 +29,6 @@ tim->CCR1 = duty;
 - слишком низкий PWM — свист и нагрев
 - менять PSC на лету без глушения
 
-## В Architecture Canvas
-
-Motor driver блок + MCU PWM связь. Частота PWM — в документации обоих.
-
 ## Связанные разделы
 - cpp-pid
 - electronics-motor

@@ -29,10 +29,6 @@ ws://gateway/stream/pose
 - без ping/pong и тихие мертвецы
 - очередь без drop-old
 
-## В Architecture Canvas
-
-Связь Frontend—Backend WebSocket.
-
 ## Связанные разделы
 - python-asyncio
 - python-queues

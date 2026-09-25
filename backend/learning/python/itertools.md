@@ -30,10 +30,6 @@ omega = [(b-a)/dt for a, b in pairwise(ticks)]
 - cycle бесконечный без break в проде
 - tee и неожиданное потребление памяти
 
-## В Architecture Canvas
-
-Формулы одометрии — в алгоритме компонента Drive.
-
 ## Связанные разделы
 - python-generators
 - python-math

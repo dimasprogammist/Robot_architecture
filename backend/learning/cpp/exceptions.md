@@ -31,10 +31,6 @@ throw std::runtime_error("cfg");
 - throw из ISR
 - catch(...) и продолжить ехать
 
-## В Architecture Canvas
-
-failure_modes: что неловим. Требование: «исключение конфигурации не стартует RUN».
-
 ## Связанные разделы
 - cpp-expected
 - cpp-isr

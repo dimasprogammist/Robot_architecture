@@ -29,10 +29,6 @@ git rebase main
 - rebase уже запушенной release
 - force push в shared ветку прошивки цеха
 
-## В Architecture Canvas
-
-Правило команды — в docs репозитория, не в Canvas, но влияет на версию компонента.
-
 ## Связанные разделы
 - git-merge
 - git-commit

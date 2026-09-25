@@ -29,10 +29,6 @@ CI гоняет sim профиль. Это ваши FakeBus из Python Protocol
 - один образ, который сам угадывает есть ли железо, без явного профиля
 - сим и hw одновременно на одни топики
 
-## В Architecture Canvas
-
-Вложенный холст Test/Sim vs Hardware.
-
 ## Связанные разделы
 - python-protocols-abc
 - docker-compose

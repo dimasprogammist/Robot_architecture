@@ -29,9 +29,5 @@ PGND vs AGND
 - земля через Ethernet shield и силовую одновременно без плана
 - разорванная земля трансивера
 
-## В Architecture Canvas
-
-Notes стойки/корпуса. Housing mechanical + electronics.
-
 ## Связанные разделы
 - networking-l2

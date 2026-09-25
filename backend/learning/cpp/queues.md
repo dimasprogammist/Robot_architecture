@@ -29,10 +29,6 @@ xQueueSendFromISR(q, &b, &woken);
 - очередь «на 1 элемент» для потока кадров камеры
 - слать из ISR в очередь, которая ждёт malloc
 
-## В Architecture Canvas
-
-Политика очереди — в связи data_flow (frequency, reliability).
-
 ## Связанные разделы
 - cpp-freertos
 - cpp-isr

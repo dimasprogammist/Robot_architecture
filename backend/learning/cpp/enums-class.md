@@ -29,10 +29,6 @@ enum class Mode : uint8_t { Idle=0, Run=1, Fault=2 };
 - неявное приведение к int в протоколе без таблицы
 - разные порядки enumerator
 
-## В Architecture Canvas
-
-States в алгоритме MCU = enum class. Экспорт AI должен увидеть те же имена.
-
 ## Связанные разделы
 - cpp-state-machine
 - python-enums

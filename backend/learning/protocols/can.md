@@ -30,10 +30,6 @@ id 0x101 DLC 8
 - смешать 250k и 500k
 - игнор error counters
 
-## В Architecture Canvas
-
-Протокол CAN. Физика в electronics. Прикладной кадр в message_structure.
-
 ## Связанные разделы
 - cpp-can
 - python-struct

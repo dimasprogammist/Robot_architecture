@@ -29,10 +29,6 @@ layers: mech, power, mcu, sbc, cloud
 - один блок Robot без внутренностей
 - зрение внутри PID MCU
 
-## В Architecture Canvas
-
-Создайте проект из шаблона Робот и провалитесь в контроллер.
-
 ## Связанные разделы
 - robotics-control-split
 - app-nested

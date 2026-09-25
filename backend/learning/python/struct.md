@@ -30,10 +30,6 @@ struct.pack('<2h', int(left), int(right))
 - забыть endianness
 - pack float туда, где прошивка ждёт Q8.8
 
-## В Architecture Canvas
-
-Протокол Custom: message_structure = таблица полей. Связь MCU↔Python ссылается на него.
-
 ## Связанные разделы
 - python-bytes
 - python-serial

@@ -29,10 +29,6 @@ SELECT p.name, u.login FROM projects p JOIN users u ON u.id = p.user_id;
 - JOIN без ключей, декартово
 - N–N без промежуточной таблицы
 
-## В Architecture Canvas
-
-Связь таблиц на ER = JOIN. SQL export это проверяет.
-
 ## Связанные разделы
 - sql-er
 - sql-keys

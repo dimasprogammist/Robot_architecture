@@ -29,10 +29,6 @@ ARR, PSC, CCRx
 - слишком низкий PWM
 - нет dead-time на полумосте
 
-## В Architecture Canvas
-
-Связь MCU—Motor Controller: PWM/CAN. Частота в docs.
-
 ## Связанные разделы
 - cpp-timers
 - electronics-motor

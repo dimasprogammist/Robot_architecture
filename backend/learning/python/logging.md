@@ -30,10 +30,6 @@ log.info('mode=%s', mode)
 - логировать каждые 5 мс IMU в INFO
 - конкатенация f-string до проверки уровня в горячем цикле — терпимо, но не гигантские дампы
 
-## В Architecture Canvas
-
-Наблюдаемость — часть архитектуры. Документ «логи» у сервиса: куда journald/файл/MQTT.
-
 ## Связанные разделы
 - python-exceptions
 - linux-journalctl

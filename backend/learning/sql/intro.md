@@ -29,10 +29,6 @@ SELECT now();
 - писать каждый сэмпл IMU в Postgres на SD
 - один JSON-столбец «на всё» без нужды
 
-## В Architecture Canvas
-
-Режим База данных в Canvas — семантическая ER, затем Export SQL.
-
 ## Связанные разделы
 - sql-select
 - databases-choose

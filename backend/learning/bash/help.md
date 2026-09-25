@@ -29,10 +29,6 @@ bash -x ./flash.sh --dry-run
 - -x в проде с паролями
 - отладка на живых моторах
 
-## В Architecture Canvas
-
-Стенд tooling отдельно от RUN.
-
 ## Связанные разделы
 - bash-args
 - linux-ssh

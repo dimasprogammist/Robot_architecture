@@ -30,10 +30,6 @@ dt = time.monotonic() - t0
 - datetime.now() naive
 - сравнение aware и naive
 
-## В Architecture Canvas
-
-В таблице events колонка timestamptz. В алгоритме PID — monotonic dt.
-
 ## Связанные разделы
 - python-pid
 - python-logging

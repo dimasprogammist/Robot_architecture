@@ -1,14 +1,36 @@
 import { MarkdownField } from '../components/MarkdownField'
 import { useProjectStore } from '../store/useProjectStore'
+import { useUiStore } from '../store/useUiStore'
 import { uid } from '../lib/ids'
+import { BomView } from './BomView'
+import { RequirementsView } from './RequirementsView'
 
 export function DocumentsView() {
   const project = useProjectStore((s) => s.project)!
   const mutate = useProjectStore((s) => s.mutate)
+  const tab = useUiStore((s) => s.docTab)
+  const setTab = useUiStore((s) => s.setDocTab)
   return (
     <div className="page">
       <h1>Документы</h1>
-      <p className="lede">Markdown-заметки проекта. Документация компонента живёт в инспекторе.</p>
+      <p className="lede">Требования, заметки и спецификация компонентов в одном разделе.</p>
+      <div className="tabs" style={{ marginBottom: 18 }}>
+        {(
+          [
+            ['requirements', 'Требования'],
+            ['notes', 'Заметки'],
+            ['bom', 'BOM'],
+          ] as const
+        ).map(([id, label]) => (
+          <button key={id} className={`tab ${tab === id ? 'active' : ''}`} type="button" onClick={() => setTab(id)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {tab === 'requirements' ? <RequirementsView embedded /> : null}
+      {tab === 'bom' ? <BomView embedded /> : null}
+      {tab === 'notes' ? (
+        <>
       <button
         className="btn primary"
         type="button"
@@ -55,6 +77,8 @@ export function DocumentsView() {
           </article>
         ))}
       </div>
+        </>
+      ) : null}
     </div>
   )
 }

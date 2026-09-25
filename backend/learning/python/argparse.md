@@ -30,10 +30,6 @@ p.add_argument('--port', default='/dev/ttyACM0')
 - обязательный CLI-флаг без default на изделии
 - парсинг argv в середине библиотеки
 
-## В Architecture Canvas
-
-Утилиты — отдельные блоки OTHER или вложенный холст «Tooling».
-
 ## Связанные разделы
 - python-repl
 - python-config

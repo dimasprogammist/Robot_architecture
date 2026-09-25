@@ -29,10 +29,6 @@ inline uint16_t rd_be(const uint8_t* p){ return (uint16_t(p[0])<<8)|p[1]; }
 - смешать BE/LE в одном кадре без таблицы
 - кастить struct на сеть
 
-## В Architecture Canvas
-
-В протоколе поле encoding/endian. Связи Modbus и UART — разные цвета и разные правила.
-
 ## Связанные разделы
 - cpp-struct
 - cpp-modbus

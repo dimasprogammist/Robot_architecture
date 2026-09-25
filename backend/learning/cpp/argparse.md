@@ -29,10 +29,6 @@ if (arg == "--can") iface = argv[++i];
 - обязательный дебаг-флаг, который забыли в systemd unit
 - парсинг без проверки argc
 
-## В Architecture Canvas
-
-Команда запуска — в README компонента gateway.
-
 ## Связанные разделы
 - cpp-cmake
 - linux-systemd

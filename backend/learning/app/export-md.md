@@ -29,10 +29,6 @@ related: [app-export-json, app-docs, app-export-ai]
 - ждать красивый PDF-бренд
 - пусто, если не заполняли инспектор
 
-## В Architecture Canvas
-
-Раздел Экспорт.
-
 ## Связанные разделы
 - app-export-json
 - app-docs

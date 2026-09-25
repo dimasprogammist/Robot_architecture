@@ -29,10 +29,6 @@ for i in {1..20}; do [[ -e /dev/video0 ]] && break; sleep 0.5; done
 - while true без timeout
 - sleep 30 «на всякий» в unit
 
-## В Architecture Canvas
-
-Таймаут ожидания — requirement на старт системы.
-
 ## Связанные разделы
 - bash-if
 - linux-udev

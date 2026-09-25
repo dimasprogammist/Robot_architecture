@@ -29,10 +29,6 @@ FK манипулятора — Eigen на IPC. На маленьком MCU — 
 - аллокации Eigen в realtime без noalloc
 - смешать frame без TF-дисциплины
 
-## В Architecture Canvas
-
-Mechanical chain на холсте должна совпасть с порядком преобразований в коде.
-
 ## Связанные разделы
 - robotics-kinematics
 - cpp-alloc

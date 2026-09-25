@@ -30,10 +30,6 @@ can_send(0x101, data, 8);
 - разный bitrate концов
 - игнор error warning
 
-## В Architecture Canvas
-
-Протокол CAN цвет линии. Прикладной кадр — message_structure. Физика — в electronics/notes.
-
 ## Связанные разделы
 - cpp-endian
 - protocols-can

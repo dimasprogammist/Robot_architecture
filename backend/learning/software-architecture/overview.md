@@ -29,10 +29,6 @@ components + connections = architecture
 - shared util, который импортируют все
 - бог-процесс
 
-## В Architecture Canvas
-
-Системный холст + вложенные. Правило: импорт = ребро.
-
 ## Связанные разделы
 - python-architecture
 - app-canvas

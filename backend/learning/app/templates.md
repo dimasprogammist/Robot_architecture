@@ -29,10 +29,6 @@ related: [app-create, app-export-json, app-versions]
 - шаблон без вложенных холстов, если они были нужны
 - секреты в шаблоне
 
-## В Architecture Canvas
-
-Шаблоны на главной.
-
 ## Связанные разделы
 - app-create
 - app-export-json

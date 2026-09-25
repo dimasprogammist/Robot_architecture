@@ -29,10 +29,6 @@ mode 3, 8 MHz
 - не тот mode
 - CS общим без транзакций
 
-## В Architecture Canvas
-
-Протокол SPI. Datasheet IMU в docs.
-
 ## Связанные разделы
 - cpp-spi
 - electronics-datasheet

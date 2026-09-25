@@ -31,10 +31,6 @@ cs_high();
 - неверный SPI mode 0/3
 - слишком длинные провода без проверки timing
 
-## В Architecture Canvas
-
-Протокол SPI на связи. В notes — mode и частота. Datasheet в docs компонента IMU.
-
 ## Связанные разделы
 - cpp-raii
 - electronics-datasheet

@@ -30,10 +30,6 @@ ROS2-нода ≠ вся архитектура. Это вариант IPC-ко�
 - весь control в Python-ноде 10 Гц и ожидание чуда
 - один mega-node на всё
 
-## В Architecture Canvas
-
-Топики ROS — это Connections с протоколом DDS/ROS. Имена топиков в protocol notes.
-
 ## Связанные разделы
 - cpp-threads
 - python-mqtt

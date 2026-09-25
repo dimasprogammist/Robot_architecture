@@ -31,10 +31,6 @@ logging:
 - без лимита на камеру debug
 - секреты в логе healthcheck
 
-## В Architecture Canvas
-
-Согласуйте с python-logging: уровни, не дамп кадра.
-
 ## Связанные разделы
 - linux-disks
 - linux-journalctl

@@ -30,10 +30,6 @@ spi_.xfer(buf, n);
 - ручной lock/unlock с early return
 - RAII, который в деструкторе делает I2C
 
-## В Architecture Canvas
-
-Интерфейсы компонента: кто владеет шиной. На холсте одна шина — один владелец, остальные клиенты.
-
 ## Связанные разделы
 - cpp-ownership
 - cpp-mutex

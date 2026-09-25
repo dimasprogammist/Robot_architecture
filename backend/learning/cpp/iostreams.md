@@ -30,10 +30,6 @@ out << t << ',' << ticks << '\n';
 - flush каждый сэмпл на SD, убивая dt
 - смешать locale и числа протокола
 
-## В Architecture Canvas
-
-Стендовые утилиты — отдельные блоки OTHER.
-
 ## Связанные разделы
 - cpp-logging
 - cpp-argparse

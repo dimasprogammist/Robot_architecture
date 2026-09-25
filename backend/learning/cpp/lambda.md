@@ -29,10 +29,6 @@ auto isr = [this] { this->on_edge(); };
 - висящий this после delete
 - захват vector по значению в 1 кГц
 
-## В Architecture Canvas
-
-Колбэки — часть алгоритма компонента, не «скрытая магия таймера».
-
 ## Связанные разделы
 - cpp-isr
 - cpp-freertos

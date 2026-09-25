@@ -29,10 +29,6 @@ std::unordered_map<int, Joint> joints;
 - map в realtime без пула
 - string-ключи в горячем контуре
 
-## В Architecture Canvas
-
-Каталог суставов — таблица/документ компонента, код только зеркало.
-
 ## Связанные разделы
 - cpp-vector
 - cpp-embedded

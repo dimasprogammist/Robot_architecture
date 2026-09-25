@@ -29,10 +29,6 @@ WHERE robot_id = $1 AND created_at >= $2
 - WHERE DATE(created_at)=today() на большом журнале
 - строковое сравнение uuid
 
-## В Architecture Canvas
-
-Индексы нарисуйте в инспекторе таблицы.
-
 ## Связанные разделы
 - sql-index
 - sql-join

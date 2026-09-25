@@ -29,10 +29,6 @@ CREATE INDEX idx_events_robot_time ON events (robot_id, created_at);
 - уникальный индекс на часто меняющееся float
 - индекс как замена нормализации
 
-## В Architecture Canvas
-
-Table indexes в инспекторе. SQL export пишет CREATE INDEX.
-
 ## Связанные разделы
 - sql-explain
 - sql-where

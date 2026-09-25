@@ -29,10 +29,6 @@ retry | degrade | stop | halt-power
 - retry на ESTOP
 - degrade без индикации оператору
 
-## В Architecture Canvas
-
-failure_modes каждого блока. Requirements.
-
 ## Связанные разделы
 - python-exceptions
 - cpp-expected

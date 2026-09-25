@@ -29,10 +29,6 @@ ssh -i robot.ed25519 robot@10.0.0.21
 - permit root login
 - общий ключ на 40 роботов без учёта
 
-## В Architecture Canvas
-
-Доступ — вложенный холст операций, не runtime-архитектура, но требование безопасности.
-
 ## Связанные разделы
 - linux-permissions
 - linux-firewall

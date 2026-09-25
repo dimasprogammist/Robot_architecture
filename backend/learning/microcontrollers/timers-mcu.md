@@ -29,10 +29,6 @@ TIM2 encoder, TIM1 PWM, TIM6 tick
 - один таймер на PWM и tick с конфликтом ARR
 - не тот AF пин
 
-## В Architecture Canvas
-
-Вложенный холст MCU с блоками TIM.
-
 ## Связанные разделы
 - cpp-timers
 - robotics-odometry

@@ -30,10 +30,6 @@ DmaBuf& operator=(const DmaBuf&) = delete;
 - копирование объекта, держащего DMA
 - пустой деструктор и утечка descriptor
 
-## В Architecture Canvas
-
-Ресурс компонента = объект с lifetime = lifetime блока (пока питание есть).
-
 ## Связанные разделы
 - cpp-raii
 - cpp-ownership

@@ -29,10 +29,6 @@ PLC — Modbus TCP → Python. Подпись на линии.
 - связь без протокола «чтобы было»
 - ESTOP через MQTT без GPIO-ребра
 
-## В Architecture Canvas
-
-Цвет по типу протокола, override вручную.
-
 ## Связанные разделы
 - app-protocols
 - protocols-intro

@@ -29,10 +29,6 @@ git push -u origin feature/estop
 - force push main
 - обход CI «очень надо на выставку»
 
-## В Architecture Canvas
-
-Требования must к процессу — в requirements проекта.
-
 ## Связанные разделы
 - git-tag
 - cpp-safety

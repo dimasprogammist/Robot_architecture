@@ -31,10 +31,6 @@ COMMIT;
 - автокоммит по строке в загрузчике карты
 - длинная транзакция на UI-клик с сетью
 
-## В Architecture Canvas
-
-Инварианты — requirements + транзакция в сервисе.
-
 ## Связанные разделы
 - sql-isolation
 - python-fastapi

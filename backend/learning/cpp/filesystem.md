@@ -29,10 +29,6 @@ std::filesystem::path p{"/var/lib/robot/imu.yaml"};
 - запись по относительному пути из systemd без WorkingDirectory
 - нет fsync на критичном last_pose
 
-## В Architecture Canvas
-
-Attached files в Canvas — инженерные. Runtime path — в документации Linux-сервиса.
-
 ## Связанные разделы
 - cpp-logging
 - linux-systemd

@@ -29,10 +29,6 @@ OpenAPI = документация блока API
 - CRUD на pwm
 - разные имена режима в UI и MCU
 
-## В Architecture Canvas
-
-Поле API компонента. Состояния совпадают с algorithm.
-
 ## Связанные разделы
 - python-fastapi
 - python-enums

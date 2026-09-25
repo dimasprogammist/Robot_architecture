@@ -29,10 +29,6 @@ ip addr add 192.168.10.5/24 dev eth0
 - два DHCP сервера в шкафу
 - один адрес на два устройства
 
-## В Architecture Canvas
-
-Адреса в docs Network Device / Camera.
-
 ## Связанные разделы
 - networking-dns
 - linux-net-tools

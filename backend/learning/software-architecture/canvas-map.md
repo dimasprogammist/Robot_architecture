@@ -29,10 +29,6 @@ code change ⇒ model change
 - архитектура «потом нарисуем»
 - холст для презентации, код другой
 
-## В Architecture Canvas
-
-Экспорт AI тогда помогает, а не врёт.
-
 ## Связанные разделы
 - app-export-ai
 - python-architecture

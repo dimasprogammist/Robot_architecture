@@ -29,10 +29,6 @@ wheel_v1.stl, wheel_v2.stl версии.
 - хранить CAD только на личном диске без ссылки в модели
 - ожидать STEP-preview в MVP
 
-## В Architecture Canvas
-
-AttachedFile.component_id = деталь.
-
 ## Связанные разделы
 - app-files
 - app-mech

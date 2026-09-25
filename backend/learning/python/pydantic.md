@@ -31,10 +31,6 @@ class Twist(BaseModel):
 - модель «всё Optional» без инвариантов
 - два разных Twist в UI и бэкенде
 
-## В Architecture Canvas
-
-Поля модели = документация API компонента = возможно колонки audit-таблицы.
-
 ## Связанные разделы
 - python-dataclasses
 - python-fastapi

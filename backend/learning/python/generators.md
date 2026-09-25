@@ -34,10 +34,6 @@ def frames(cam):
 - генератор с скрытым состоянием железа без close
 - list(generator) «чтобы было удобно» на бесконечном потоке
 
-## В Architecture Canvas
-
-Поток данных на холсте — Connection kind data_flow: Camera → Perception.
-
 ## Связанные разделы
 - python-for
 - python-asyncio

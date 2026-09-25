@@ -31,10 +31,6 @@ void send(std::uint32_t id);
 - анонимный namespace в header
 - гигантский namespace robot на всё
 
-## В Architecture Canvas
-
-Имена namespace = имена вложенных блоков MCU.
-
 ## Связанные разделы
 - cpp-headers
 - cpp-classes

@@ -30,10 +30,6 @@ duty = std::clamp(duty, 0, 1000);
 - кастомные циклы, которые пропускают последний элемент кадра
 - std::function в тике (аллокации)
 
-## В Architecture Canvas
-
-Ограничения актуатора — в mechanical notes и в коде clamp одни числа.
-
 ## Связанные разделы
 - cpp-const
 - cpp-pid

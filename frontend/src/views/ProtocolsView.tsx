@@ -1,3 +1,4 @@
+import { ColorSwatches } from '../components/ColorSwatches'
 import { useProjectStore } from '../store/useProjectStore'
 import { uid } from '../lib/ids'
 import type { Protocol } from '../types'
@@ -22,13 +23,13 @@ const blank = (): Protocol => ({
   color: '',
 })
 
-export function ProtocolsView() {
+export function ProtocolsView({ embedded = false }: { embedded?: boolean }) {
   const project = useProjectStore((s) => s.project)!
   const mutate = useProjectStore((s) => s.mutate)
   return (
-    <div className="page">
-      <h1>Протоколы</h1>
-      <p className="lede">Каталог транспортов для связей. Сюда же кладите структуру своих сообщений.</p>
+    <div className={embedded ? 'embedded-section' : 'page'}>
+      {embedded ? <h2 className="settings-subtitle">Протоколы</h2> : <h1>Протоколы</h1>}
+      <p className="lede">Каталог транспортов для связей. Цвет линии выбирается из фиксированной палитры.</p>
       <button className="btn primary" type="button" onClick={() => mutate((p) => p.protocols.push(blank()))}>
         Новый протокол
       </button>
@@ -59,19 +60,18 @@ export function ProtocolsView() {
                 })
               }
             />
-            <label className="hint" style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              Цвет
-              <input
-                type="color"
-                value={proto.color || '#6e6b63'}
-                onChange={(e) =>
+            <div className="field" style={{ marginTop: 8 }}>
+              <label>Цвет</label>
+              <ColorSwatches
+                value={proto.color}
+                onChange={(color) =>
                   mutate((p) => {
                     const x = p.protocols.find((i) => i.id === proto.id)
-                    if (x) x.color = e.target.value
+                    if (x) x.color = color
                   })
                 }
               />
-            </label>
+            </div>
           </article>
         ))}
       </div>

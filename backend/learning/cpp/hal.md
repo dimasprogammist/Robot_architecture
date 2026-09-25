@@ -29,10 +29,6 @@ void pwm_set(int ch, uint16_t ccr);
 - app включает биты RCC вперемешку с PID
 - HAL-callback ад без очереди в app
 
-## В Architecture Canvas
-
-Вложенный холст MCU: HAL vs App. Связь внутренняя, но семантическая.
-
 ## Связанные разделы
 - cpp-classes
 - cpp-macros

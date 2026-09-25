@@ -29,10 +29,6 @@ OSI: L1 кабель/радио → L4 TCP/UDP → L7 MQTT
 - весь control через облако
 - одна плоская сеть гостей и приводов
 
-## В Architecture Canvas
-
-Связи NETWORK/PROTOCOL на холсте с указанием L4.
-
 ## Связанные разделы
 - networking-l2
 - networking-tcp

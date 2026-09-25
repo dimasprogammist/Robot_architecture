@@ -29,10 +29,6 @@ git stash push -m 'wip imu bias'
 - stash секретов
 - потеря stash на другом ПК
 
-## В Architecture Canvas
-
-Калибровки — файлы в /var или репозиторий config, не stash.
-
 ## Связанные разделы
 - git-commit
 - python-config

@@ -29,10 +29,6 @@ git commit -m 'uart: add seq byte to frame v2'
 - раздельные коммиты несовместимых концов без версии протокола
 - огромный diff с форматером
 
-## В Architecture Canvas
-
-Версия протокола на связи Canvas.
-
 ## Связанные разделы
 - protocols-versioning
 - git-tag

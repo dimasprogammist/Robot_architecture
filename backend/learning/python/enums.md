@@ -32,10 +32,6 @@ class Mode(StrEnum):
 - сравнение строк 'fault'/'FAULT'
 - enum в MCU другой, чем в Python, без таблицы соответствий
 
-## В Architecture Canvas
-
-Состояния алгоритма = Enum. Требование: «неизвестное состояние → FAULT».
-
 ## Связанные разделы
 - python-state-machine
 - python-if

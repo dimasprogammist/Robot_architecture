@@ -29,10 +29,6 @@ api → supervisor → drivers
 - драйвер UART вызывает HTTP
 - UI в прошивке
 
-## В Architecture Canvas
-
-Вложенный холст Backend.
-
 ## Связанные разделы
 - python-modules
 - cpp-hal

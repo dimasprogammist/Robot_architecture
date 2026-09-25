@@ -29,10 +29,6 @@ related: [app-blocks, app-database, app-mech]
 - не искать — библиотека длинная, есть поиск
 - забыть категорию MECHANICS
 
-## В Architecture Canvas
-
-Поиск в библиотеке. Режимы Механика/БД фильтруют.
-
 ## Связанные разделы
 - app-blocks
 - app-database

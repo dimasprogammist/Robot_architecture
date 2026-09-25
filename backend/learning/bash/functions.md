@@ -29,10 +29,6 @@ die() { echo "$*" >&2; exit 1; }
 - функции, меняющие глобальные без local
 - имя cd внутри функции без pushd
 
-## В Architecture Canvas
-
-Скрипт как вложенный алгоритм блока Tooling.
-
 ## Связанные разделы
 - bash-traps
 - bash-strict

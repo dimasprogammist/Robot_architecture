@@ -29,10 +29,6 @@ uint16_t raw; float i = (raw * vref / 4095) / r_shunt;
 - игнор vref
 - земля АЦП рядом с силовым ключом без фильтра
 
-## В Architecture Canvas
-
-Формулы в алгоритме MCU. Шунт — mechanical/electronics notes.
-
 ## Связанные разделы
 - cpp-dma
 - python-math

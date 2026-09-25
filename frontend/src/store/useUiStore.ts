@@ -8,6 +8,7 @@ interface UiState {
   searchOpen: boolean
   exportOpen: boolean
   libraryCollapsed: boolean
+  docTab: 'requirements' | 'notes' | 'bom'
   inspectorTab: 'overview' | 'docs' | 'algorithm' | 'nested' | 'requirements' | 'mechanics' | 'table' | 'files'
   setNav: (nav: NavId) => void
   setTheme: (theme: 'light' | 'dark') => void
@@ -15,6 +16,8 @@ interface UiState {
   setSearchOpen: (v: boolean) => void
   setExportOpen: (v: boolean) => void
   toggleLibrary: () => void
+  setLibraryCollapsed: (v: boolean) => void
+  setDocTab: (t: UiState['docTab']) => void
   setInspectorTab: (t: UiState['inspectorTab']) => void
 }
 
@@ -32,7 +35,8 @@ export const useUiStore = create<UiState>((set) => ({
   },
   searchOpen: false,
   exportOpen: false,
-  libraryCollapsed: false,
+  libraryCollapsed: true,
+  docTab: 'requirements',
   inspectorTab: 'overview',
   setNav: (nav) => set({ nav }),
   setTheme: (theme) => set({ theme }),
@@ -40,5 +44,7 @@ export const useUiStore = create<UiState>((set) => ({
   setSearchOpen: (searchOpen) => set({ searchOpen }),
   setExportOpen: (exportOpen) => set({ exportOpen }),
   toggleLibrary: () => set((s) => ({ libraryCollapsed: !s.libraryCollapsed })),
+  setLibraryCollapsed: (libraryCollapsed) => set({ libraryCollapsed }),
+  setDocTab: (docTab) => set({ docTab }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
 }))

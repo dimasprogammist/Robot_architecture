@@ -29,10 +29,6 @@ SUBSYSTEM=="tty", ATTRS{serial}=="ABC", SYMLINK+="robot-mcu"
 - правило по номеру порта USB-хаба
 - не перезагрузить udev после деплоя
 
-## В Architecture Canvas
-
-Имена устройств — в документации связей UART. Hardware notes камеры/IMU.
-
 ## Связанные разделы
 - linux-fs
 - linux-permissions

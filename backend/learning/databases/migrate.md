@@ -29,10 +29,6 @@ Alembic/Flyway. Запрет «ALTER руками на проде» без за�
 - менять ER в Canvas и забывать миграцию
 - destructive drop на поле
 
-## В Architecture Canvas
-
-Версия схемы в notes блока БД. ER и миграции не должны расходиться.
-
 ## Связанные разделы
 - sql-er
 - git-tag

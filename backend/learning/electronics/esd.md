@@ -29,10 +29,6 @@ TVS + 22R series
 - голый GPIO на панель
 - TVS с неверным напряжением
 
-## В Architecture Canvas
-
-Документ разъёмов. Требование живучести.
-
 ## Связанные разделы
 - electronics-levels
 - electronics-datasheet

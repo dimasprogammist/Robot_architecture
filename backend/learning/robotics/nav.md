@@ -29,10 +29,6 @@ global / local / control
 - глобальный планировщик дёргает PWM
 - нет поведения «стоп если нет плана»
 
-## В Architecture Canvas
-
-Три блока или вложенный холст Nav. Связи setpoint.
-
 ## Связанные разделы
 - robotics-control-split
 - python-state-machine

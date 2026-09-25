@@ -29,10 +29,6 @@ PWM @ MCU, SLAM @ SBC
 - один Pi на ток мотора 20 кГц без доказательства
 - ПЛК на CV
 
-## В Architecture Canvas
-
-Разные блоки HARDWARE. Связи между ними обязательны.
-
 ## Связанные разделы
 - linux-realtime
 - robotics-control-split

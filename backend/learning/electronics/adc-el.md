@@ -29,10 +29,6 @@ RC 1k+100n как старт, потом посчитайте
 - длинная аналоговая рядом с PWM без экрана
 - опора от шумного 3.3
 
-## В Architecture Canvas
-
-Алгоритм ADC в MCU + notes цепи.
-
 ## Связанные разделы
 - electronics-ground
 - electronics-motor

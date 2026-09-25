@@ -30,10 +30,6 @@ auto dt = clk::now() - t0;
 - sleep_for как регулятор ШИМ
 - system_clock для dt
 
-## В Architecture Canvas
-
-Частота контура — в алгоритме и в notes MCU. Это системное требование, не деталь реализации.
-
 ## Связанные разделы
 - cpp-pid
 - cpp-timers

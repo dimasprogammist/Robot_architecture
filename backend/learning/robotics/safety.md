@@ -29,10 +29,6 @@ E-stop, light curtain, software limits
 - софт-стоп вместо грибка
 - тест безопасности только в симе
 
-## В Architecture Canvas
-
-Requirements must. Связи GPIO ESTOP. Алгоритм FAULT.
-
 ## Связанные разделы
 - cpp-safety
 - electronics-pullup

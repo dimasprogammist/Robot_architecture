@@ -29,10 +29,6 @@ related: [app-mech, electronics-motor, app-export-json]
 - вести Excel параллельно как истину
 - нет part number у критичных деталей
 
-## В Architecture Canvas
-
-Экспорт JSON содержит bom. AI — в составе полного экспорта.
-
 ## Связанные разделы
 - app-mech
 - electronics-motor

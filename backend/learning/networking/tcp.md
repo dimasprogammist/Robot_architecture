@@ -29,10 +29,6 @@ ss -ti
 - Nagle + маленькие setpoint
 - бесконечный keepalive без приложения
 
-## В Architecture Canvas
-
-Протокол TCP/HTTP цвет линии. Notes: зачем TCP, а не UDP.
-
 ## Связанные разделы
 - networking-udp
 - protocols-http

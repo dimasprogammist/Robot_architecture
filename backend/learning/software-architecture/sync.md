@@ -29,10 +29,6 @@ queue maxsize, drop-old | block | fault
 - общий dict без лока
 - безлимит очередь кадров
 
-## В Architecture Canvas
-
-data_flow notes: частота и политика.
-
 ## Связанные разделы
 - python-queues
 - cpp-queues

@@ -29,10 +29,6 @@ message Twist { float vx = 1; float wz = 2; }
 - ломать field numbers
 - proto на 32k RAM MCU
 
-## В Architecture Canvas
-
-Файл .proto — attached doc компонента. Версия в Protocol.
-
 ## Связанные разделы
 - protocols-versioning
 - python-struct

@@ -30,10 +30,6 @@ snap = copy.copy(state)
 - deepcopy всего мира 100 Гц
 - считать slice списка копией вложенных dict
 
-## В Architecture Canvas
-
-Граница потоков = очередь сообщений на холсте (data_flow), не общая переменная «на честном слове».
-
 ## Связанные разделы
 - python-threading
 - python-lists

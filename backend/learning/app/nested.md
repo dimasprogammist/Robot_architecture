@@ -29,10 +29,6 @@ Robot / Mechanical System / Drive / Left Wheel.
 - копировать систему рядом вместо вложенности
 - забыть выйти крошками
 
-## В Architecture Canvas
-
-kind mechanical/database выставляется по категории при создании вложенности.
-
 ## Связанные разделы
 - app-mech
 - app-canvas

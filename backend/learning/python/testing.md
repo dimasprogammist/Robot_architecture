@@ -30,10 +30,6 @@ def test_clamp():
 - тесты, которые ходят на реальный /dev без маркера integration
 - случайный sleep «чтобы прошло»
 
-## В Architecture Canvas
-
-Требования → тесты. Свяжите REQ-id в имени теста. В Canvas requirement_ids на компоненте.
-
 ## Связанные разделы
 - python-functions
 - python-protocols-abc

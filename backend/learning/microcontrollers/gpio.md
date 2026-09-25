@@ -29,10 +29,6 @@ pinMode analog: HAL GPIO_Init
 - плавающий ESTOP
 - светодиод и STEP на одном пине «временно»
 
-## В Architecture Canvas
-
-Таблица пинов — Documentation MCU. Связи к кнопке/драйверу.
-
 ## Связанные разделы
 - electronics-pullup
 - cpp-isr

@@ -30,10 +30,6 @@ std::uint16_t pwm;
 - int для сырого регистра 32 бит без комментария signed
 - bool как 8 бит в packed-структуре без static_assert
 
-## В Architecture Canvas
-
-Таблица протокола и packed struct должны совпадать по именам полей.
-
 ## Связанные разделы
 - cpp-struct
 - cpp-endian

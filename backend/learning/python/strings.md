@@ -30,10 +30,6 @@ payload = b'\x01\x02'
 - decode без обработки ошибок на шумной линии
 - логировать бинарь как текст
 
-## В Architecture Canvas
-
-В протоколе связи укажите encoding и пример payload. Это поле Connection, не «заметка где-то».
-
 ## Связанные разделы
 - python-bytes
 - python-json

@@ -29,10 +29,6 @@ trap 'rm -f $LOCK' EXIT
 - trap, который игнорирует INT на опасной операции без сообщения
 - нет lock — две прошивки сразу
 
-## В Architecture Canvas
-
-Процедура flash — алгоритм с отменой.
-
 ## Связанные разделы
 - bash-strict
 - cpp-gdb

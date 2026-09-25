@@ -30,10 +30,6 @@ volumes:
 - bind-mount всей домашней папки
 - забыть uid volume
 
-## В Architecture Canvas
-
-Paths как в linux-fs статье, согласованные.
-
 ## Связанные разделы
 - linux-fs
 - docker-compose

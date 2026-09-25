@@ -30,10 +30,6 @@ USER robot
 - latest теги
 - секреты в слое ENV
 
-## В Architecture Canvas
-
-Версия образа = version компонента.
-
 ## Связанные разделы
 - docker-multi
 - docker-compose

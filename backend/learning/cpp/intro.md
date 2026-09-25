@@ -30,10 +30,6 @@ void tick();
 - писать UI на C++ «потому что быстрее» без измерения
 - крутить кучу new в ISR
 
-## В Architecture Canvas
-
-Блок MCU/CPU: технология C++. Алгоритм tick() — во вкладке Algorithm. Связи — UART/CAN/SPI.
-
 ## Связанные разделы
 - cpp-build-model
 - cpp-embedded

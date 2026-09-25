@@ -29,10 +29,6 @@ related: [git-tag, app-export-json, protocols-versioning]
 - 100 снимков без имён
 - считать это CAD PDM
 
-## В Architecture Canvas
-
-current_version_label в шапке.
-
 ## Связанные разделы
 - git-tag
 - app-export-json

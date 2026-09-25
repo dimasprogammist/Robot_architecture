@@ -31,10 +31,6 @@ view.append(0.3)  # samples тоже вырос
 - ожидать copy-on-assign как в C++
 - однобуквенные имена в публичном API сервиса
 
-## В Architecture Canvas
-
-В заметках компонента фиксируйте, какие структуры разделяются между потоками.
-
 ## Связанные разделы
 - python-types-numbers
 - python-lists

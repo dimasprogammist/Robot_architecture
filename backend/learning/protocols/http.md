@@ -29,10 +29,6 @@ POST /cmd/twist  {"vx":0.2,"wz":0}
 - PUT уставки колёс 50 Гц
 - нет auth на /cmd
 
-## В Architecture Canvas
-
-Протокол HTTP цвет. API блок. Pydantic схемы.
-
 ## Связанные разделы
 - python-fastapi
 - networking-tls

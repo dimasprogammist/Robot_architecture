@@ -29,10 +29,6 @@ constexpr float kWheelRadiusM = 0.03f;
 - #define PI вместо constexpr
 - const метод, который кастует const_cast и пишет в железо
 
-## В Architecture Canvas
-
-Константы геометрии дублируйте в Mechanical Data колеса: радиус, масса.
-
 ## Связанные разделы
 - cpp-macros
 - cpp-pid

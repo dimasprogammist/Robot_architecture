@@ -29,10 +29,6 @@ loop rates table
 - планировщик на MCU
 - ток на Python
 
-## В Architecture Canvas
-
-Алгоритмы на соответствующих блоках. Связи setpoint/feedback.
-
 ## Связанные разделы
 - python-pid
 - cpp-pid

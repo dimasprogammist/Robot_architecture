@@ -29,10 +29,6 @@ while getopts p:f:n flag; do ...; done
 - позиционные без help
 - нет --dry-run на опасных действиях
 
-## В Architecture Canvas
-
-CLI tooling совпадает с python argparse утилитами.
-
 ## Связанные разделы
 - python-argparse
 - bash-help

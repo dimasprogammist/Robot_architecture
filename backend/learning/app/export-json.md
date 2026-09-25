@@ -29,10 +29,6 @@ related: [app-export-md, app-versions]
 - править координаты вручную в JSON без нужды
 - импорт как «merge» — сейчас новый проект-копия
 
-## В Architecture Canvas
-
-format architecture-canvas.
-
 ## Связанные разделы
 - app-export-md
 - app-versions

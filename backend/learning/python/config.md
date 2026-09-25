@@ -30,10 +30,6 @@ wheel_base_m = cfg['mech']['wheel_base_m']
 - yaml.load без safe
 - секреты Wi-Fi в git
 
-## В Architecture Canvas
-
-Параметры механики дублируйте в Mechanical Data блока шасси, чтобы BOM и код не разъехались.
-
 ## Связанные разделы
 - python-files
 - python-dataclasses

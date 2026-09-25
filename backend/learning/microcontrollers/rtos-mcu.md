@@ -29,10 +29,6 @@ while(1){ tick(); } vs tasks
 - RTOS и всё в одной задаче всё равно
 - забытые стеки
 
-## В Architecture Canvas
-
-Вложенный холст задач или один алгоритм loop.
-
 ## Связанные разделы
 - cpp-freertos
 - cpp-embedded

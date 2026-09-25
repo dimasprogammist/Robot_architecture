@@ -30,10 +30,6 @@ static PwmTimer tim;
 - строка STL в тике
 - рекурсия парсера
 
-## В Architecture Canvas
-
-Ограничение «no heap» — notes MCU и требование. Это влияет на выбор STL.
-
 ## Связанные разделы
 - cpp-freertos
 - cpp-string

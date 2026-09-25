@@ -1,18 +1,21 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logoutAndReload } from '../../AuthGate'
+import { api, type AuthUser } from '../../lib/api'
 import {
-  Box,
   BookOpen,
   Database,
   FileText,
   FolderKanban,
   GraduationCap,
   Layers3,
-  Radio,
-  ScrollText,
+  Redo2,
+  Save,
+  Search,
   Settings,
   Share2,
-  Cog,
-  ListTree,
+  Undo2,
+  User,
   Workflow,
 } from 'lucide-react'
 import { useProjectStore } from '../../store/useProjectStore'
@@ -23,17 +26,11 @@ import type { NavId } from '../../types'
 // pieces of app "chrome" used together by Workspace — kept in one file so
 // the overall layout doesn't need two separate tiny files to navigate.
 
-const NAV_ITEMS: { id: NavId; label: string; icon: typeof Box }[] = [
-  { id: 'projects', label: 'Проекты', icon: FolderKanban },
+const NAV_ITEMS: { id: NavId; label: string; icon: typeof Layers3 }[] = [
   { id: 'architecture', label: 'Архитектура', icon: Layers3 },
-  { id: 'mechanics', label: 'Механика', icon: Cog },
   { id: 'database', label: 'База данных', icon: Database },
-  { id: 'components', label: 'Компоненты', icon: Box },
-  { id: 'protocols', label: 'Протоколы', icon: Radio },
   { id: 'algorithms', label: 'Алгоритмы', icon: Workflow },
-  { id: 'requirements', label: 'Требования', icon: ScrollText },
   { id: 'documents', label: 'Документы', icon: FileText },
-  { id: 'bom', label: 'BOM', icon: ListTree },
   { id: 'tutorial', label: 'Учебник', icon: GraduationCap },
   { id: 'learning', label: 'Справочник', icon: BookOpen },
   { id: 'export', label: 'Экспорт', icon: Share2 },
@@ -78,11 +75,6 @@ export function TopBar() {
   const redo = useProjectStore((s) => s.redo)
   const setSearchOpen = useUiStore((s) => s.setSearchOpen)
   const setExportOpen = useUiStore((s) => s.setExportOpen)
-  const theme = useUiStore((s) => s.theme)
-  const setTheme = useUiStore((s) => s.setTheme)
-  const setSettings = useUiStore((s) => s.setSettings)
-  const settings = useUiStore((s) => s.settings)
-
   const crumbs = (() => {
     if (!project || !architectureId) return []
     const path: { id: string; name: string }[] = []
@@ -118,37 +110,63 @@ export function TopBar() {
         ))}
       </div>
       <div className="top-actions">
-        <span className="save-meta">{saving ? 'Сохранение…' : dirty ? 'Не сохранено' : 'Сохранено'}</span>
-        <button className="btn ghost" type="button" onClick={() => undo()}>
-          Отменить
+        {saving || dirty ? (
+          <span className="save-meta">{saving ? 'Сохранение…' : 'Есть изменения'}</span>
+        ) : null}
+        <button className="icon-btn" type="button" title="Отменить" aria-label="Отменить" onClick={() => undo()}>
+          <Undo2 size={16} />
         </button>
-        <button className="btn ghost" type="button" onClick={() => redo()}>
-          Повторить
+        <button className="icon-btn" type="button" title="Повторить" aria-label="Повторить" onClick={() => redo()}>
+          <Redo2 size={16} />
         </button>
-        <button className="btn ghost" type="button" onClick={() => setSearchOpen(true)}>
-          Поиск
+        <button className="icon-btn" type="button" title="Поиск" aria-label="Поиск" onClick={() => setSearchOpen(true)}>
+          <Search size={16} />
         </button>
-        <button
-          className="btn ghost"
-          type="button"
-          onClick={() => {
-            const next = theme === 'light' ? 'dark' : 'light'
-            setTheme(next)
-            setSettings({ ...settings, theme: next })
-          }}
-        >
-          {theme === 'light' ? 'Тёмная' : 'Светлая'}
+        <button className="icon-btn" type="button" title="Сохранить проект" aria-label="Сохранить проект" onClick={() => saveNow()}>
+          <Save size={16} />
         </button>
-        <button className="btn" type="button" onClick={() => saveNow()}>
-          Сохранить
+        <button className="icon-btn primary" type="button" title="Экспорт для AI" aria-label="Экспорт для AI" onClick={() => setExportOpen(true)}>
+          <Share2 size={16} />
         </button>
-        <button className="btn primary" type="button" onClick={() => setExportOpen(true)}>
-          Экспорт для AI
+        <button className="icon-btn" type="button" title="К списку проектов" aria-label="К списку проектов" onClick={() => navigate('/')}>
+          <FolderKanban size={16} />
         </button>
-        <button className="btn ghost" type="button" onClick={() => navigate('/')}>
-          Проекты
-        </button>
+        <ProfileMenu />
       </div>
     </header>
+  )
+}
+
+function ProfileMenu() {
+  const [open, setOpen] = useState(false)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const setNav = useUiStore((s) => s.setNav)
+  useEffect(() => {
+    api.me().then(setUser).catch(() => setUser(null))
+  }, [])
+  return (
+    <div className="profile-wrap">
+      <button className="icon-btn" type="button" title="Профиль" aria-label="Профиль" onClick={() => setOpen((value) => !value)}>
+        <User size={16} />
+      </button>
+      {open ? (
+        <div className="profile-menu">
+          <div className="profile-name">{user?.display_name || 'Профиль'}</div>
+          <div className="hint">{user?.email}</div>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false)
+              setNav('settings')
+            }}
+          >
+            Настройки
+          </button>
+          <button type="button" onClick={logoutAndReload}>
+            Выйти
+          </button>
+        </div>
+      ) : null}
+    </div>
   )
 }

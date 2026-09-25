@@ -30,10 +30,6 @@ def __repr__(self) -> str:
 - тяжёлая работа в __del__
 - __eq__ без __hash__ для ключей
 
-## В Architecture Canvas
-
-Формат логов согласуйте в документации сервиса.
-
 ## Связанные разделы
 - python-classes
 - python-context

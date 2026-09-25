@@ -29,10 +29,6 @@ SELECT params->>'bias_x' FROM imu_calib;
 - вся архитектура в одном jsonb
 - поиск по jsonb без GIN, удивляясь тормозам
 
-## В Architecture Canvas
-
-Если поле в ER-колонке, не дублируйте только в JSON.
-
 ## Связанные разделы
 - sql-select
 - databases-postgres

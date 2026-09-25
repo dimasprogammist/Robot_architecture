@@ -32,10 +32,6 @@ def twist(body: Twist):
 - считать HTTP realtime
 - долгая калибровка внутри request без job id
 
-## В Architecture Canvas
-
-Блок API + связи HTTP к UI. Очередь — внутренний data_flow к Supervisor.
-
 ## Связанные разделы
 - python-pydantic
 - python-asyncio

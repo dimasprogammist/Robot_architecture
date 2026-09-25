@@ -29,10 +29,6 @@ git switch -c feature/can-filter
 - коммиты напрямую в main на стенде
 - ветка на каждого инженера без rebase/merge
 
-## В Architecture Canvas
-
-Architecture version в Canvas ≠ git branch, но релизный tag связывает.
-
 ## Связанные разделы
 - git-merge
 - git-tag

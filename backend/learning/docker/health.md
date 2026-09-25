@@ -29,10 +29,6 @@ HEALTHCHECK CMD curl -f localhost:8000/health
 - health всегда 200
 - health, который ходит в тяжёлый SLAM
 
-## В Architecture Canvas
-
-API health — часть блока Backend.
-
 ## Связанные разделы
 - docker-compose
 - python-fastapi

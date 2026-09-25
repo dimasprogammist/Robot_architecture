@@ -30,10 +30,6 @@ break Fault_Handler
 - оптимизация -O2 и «переменные исчезли» без volatile/debug build
 - отладка ESTOP с включёнными моторами без колодок
 
-## В Architecture Canvas
-
-Стенд отладки — вложенный холст lab: SWD, питание, нагрузка.
-
 ## Связанные разделы
 - cpp-isr
 - electronics-psu

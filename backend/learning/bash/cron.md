@@ -29,10 +29,6 @@ OnCalendar=*-*-* 03:00:00
 - cron с GUI-окружением
 - задача, которая двигает робота
 
-## В Architecture Canvas
-
-Блок maintenance на холсте операций.
-
 ## Связанные разделы
 - linux-systemd
 - bash-intro

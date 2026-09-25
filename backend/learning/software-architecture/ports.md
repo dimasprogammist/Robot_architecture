@@ -29,10 +29,6 @@ interface Bus
 - адаптер, который знает про UI
 - 10 портов на каждый чих
 
-## В Architecture Canvas
-
-Интерфейсы компонента = порты.
-
 ## Связанные разделы
 - python-protocols-abc
 - python-testing

@@ -29,10 +29,6 @@ related: [sql-intro, databases-choose]
 - заменить брокер базой
 - хранить STL в bytea без нужды
 
-## В Architecture Canvas
-
-ER-диаграмма проекта. Блок PostgreSQL на системном холсте — runtime, таблицы — на холсте БД.
-
 ## Связанные разделы
 - sql-intro
 - databases-choose

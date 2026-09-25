@@ -30,10 +30,6 @@ kill -TERM $(pidof robot-svc)
 - kill -9 как обычный рестарт
 - зомби-процессы драйвера камеры, держащие /dev/video0
 
-## В Architecture Canvas
-
-Алгоритм shutdown компонента API/Supervisor.
-
 ## Связанные разделы
 - linux-systemd
 - linux-journalctl

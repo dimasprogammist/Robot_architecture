@@ -29,10 +29,6 @@ if (estop.load()) { pwm_coast(); return; }
 - программный стоп без аппаратного
 - тест ESTOP только в симе
 
-## В Architecture Canvas
-
-Requirements с priority must на ESTOP. Связь с MCU и драйвером мотора.
-
 ## Связанные разделы
 - cpp-atomics
 - cpp-watchdog

@@ -3,7 +3,7 @@ import { useUiStore } from '../store/useUiStore'
 import { STATUS_LABELS } from '../i18n'
 import { uid } from '../lib/ids'
 
-export function ComponentsView() {
+export function ComponentsView({ embedded = false }: { embedded?: boolean }) {
   const project = useProjectStore((s) => s.project)!
   const mutate = useProjectStore((s) => s.mutate)
   const select = useProjectStore((s) => s.select)
@@ -12,8 +12,8 @@ export function ComponentsView() {
   const addComponent = useProjectStore((s) => s.addComponent)
 
   return (
-    <div className="page">
-      <h1>Компоненты</h1>
+    <div className={embedded ? 'embedded-section' : 'page'}>
+      {embedded ? <h2 className="settings-subtitle">Компоненты</h2> : <h1>Компоненты</h1>}
       <p className="lede">Блоки ПО, железа, данных и протоколов. Ниже можно добавить свои типы.</p>
       <div className="row" style={{ marginBottom: 16 }}>
         <button className="btn primary" type="button" onClick={() => addComponent({ name: 'Новый компонент', type: 'Свой компонент', category: 'OTHER' })}>

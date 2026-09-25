@@ -30,10 +30,6 @@ class Bus(Protocol):
 - ABC с обязательным наследованием там, где достаточно Protocol
 - интерфейс из 30 методов
 
-## В Architecture Canvas
-
-Интерфейс компонента = поле interfaces + API. В коде — Protocol с тем же именем.
-
 ## Связанные разделы
 - python-typing
 - python-testing

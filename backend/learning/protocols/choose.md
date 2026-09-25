@@ -29,10 +29,6 @@ related: [protocols-intro, robotics-overview, app-protocols]
 - MQTT потому что статья
 - CAN внутри одной платы без нужды
 
-## В Architecture Canvas
-
-Каждое ребро холста — осознанный протокол.
-
 ## Связанные разделы
 - protocols-intro
 - robotics-overview

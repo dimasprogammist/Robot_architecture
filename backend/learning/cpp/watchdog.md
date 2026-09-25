@@ -29,10 +29,6 @@ if (pid_alive) IWDG_refresh();
 - refresh в ISR «на всякий»
 - слишком длинный timeout для механизма
 
-## В Architecture Canvas
-
-Требование безопасности: независимый WDT. На холсте — часть MCU, явно в requirements.
-
 ## Связанные разделы
 - cpp-safety
 - cpp-freertos

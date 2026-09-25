@@ -31,10 +31,6 @@ magic = 0xAA
 - принять обе константы magic
 - решить конфликт только в Python
 
-## В Architecture Canvas
-
-Протокол на холсте — арбитраж конфликта.
-
 ## Связанные разделы
 - git-merge
 - python-struct

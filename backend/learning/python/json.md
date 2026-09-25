@@ -29,10 +29,6 @@ json.dumps({'temp_c': 36.6}, separators=(',', ':'))
 - NaN в JSON (не стандарт)
 - datetime без timezone
 
-## В Architecture Canvas
-
-data_example связи HTTP/MQTT заполните реальным JSON. Это золото для AI-экспорта.
-
 ## Связанные разделы
 - python-dicts
 - python-fastapi

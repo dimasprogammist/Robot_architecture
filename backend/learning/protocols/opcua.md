@@ -29,10 +29,6 @@ opc.tcp://host:4840
 - Anonymous в проде без решения
 - подписка 1 мс на всё
 
-## В Architecture Canvas
-
-Протокол OPC UA. Блок Gateway к IT/OT.
-
 ## Связанные разделы
 - protocols-modbus
 - networking-tls

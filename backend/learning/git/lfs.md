@@ -29,10 +29,6 @@ git lfs track '*.stl'
 - lfs не поставить на CI runner
 - хранить веса нейросети без версии
 
-## В Architecture Canvas
-
-AttachedFile в Canvas указывает filename+version. В git — тот же version.
-
 ## Связанные разделы
 - git-tag
 - app-stl

@@ -32,10 +32,6 @@ def bind(topic):
 - global для состояния робота
 - лямбда в цикле без default-аргумента
 
-## В Architecture Canvas
-
-Состояние держите в объекте сервиса или очереди, не в global.
-
 ## Связанные разделы
 - python-functions
 - python-classes

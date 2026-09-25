@@ -29,10 +29,6 @@ strain relief, connector P/N
 - макетная плата в корпусе робота
 - кабель без петли компенсации изгиба
 
-## В Architecture Canvas
-
-Mechanical assembly разъёма + part number в BOM.
-
 ## Связанные разделы
 - robotics-mechanics
 - app-bom

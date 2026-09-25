@@ -29,10 +29,6 @@ rate, range, frame, calib file
 - один сенсор на безопасность и SLAM без redundancy
 - нет timeout кадра
 
-## В Architecture Canvas
-
-Блоки Sensor/Camera/Lidar. Docs datasheet. data_flow частоты.
-
 ## Связанные разделы
 - python-opencv
 - robotics-frames

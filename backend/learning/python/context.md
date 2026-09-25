@@ -30,10 +30,6 @@ with Serial('/dev/ttyACM0', 115200) as port:
 - открыть порт в __init__ и забыть close
 - вложенные with без таймаута
 
-## В Architecture Canvas
-
-Ресурсы перечислите во входах компонента: tty, can0, camera /dev.
-
 ## Связанные разделы
 - python-serial
 - python-files

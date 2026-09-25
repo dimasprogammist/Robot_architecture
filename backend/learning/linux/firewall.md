@@ -29,10 +29,6 @@ nft add rule inet filter input tcp dport 1883 ip saddr 10.0.0.0/24 accept
 - disable firewall «чтобы заработало» навсегда
 - проброс 0.0.0.0:80
 
-## В Architecture Canvas
-
-Требования безопасности на блок External Access.
-
 ## Связанные разделы
 - linux-ssh
 - docker-networks

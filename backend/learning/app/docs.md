@@ -29,10 +29,6 @@ Raspberry Pi 5: Official + GPIO notes + My notes.
 - копировать весь интернет в поле
 - URL без названия
 
-## В Architecture Canvas
-
-Документы привязаны к component_id/protocol_id.
-
 ## Связанные разделы
 - app-inspector
 - electronics-datasheet

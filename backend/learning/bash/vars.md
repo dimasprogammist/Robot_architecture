@@ -29,10 +29,6 @@ flash "$DEVICE"
 - rm -rf $DIR/ где DIR пуст
 - неэкранированный ssh
 
-## В Architecture Canvas
-
-Параметры скрипта = конфиг, не хардкод.
-
 ## Связанные разделы
 - bash-strict
 - bash-args

@@ -29,10 +29,6 @@ USART + DMA RX
 - потерять байт без overrun handling
 - разный baud
 
-## В Architecture Canvas
-
-Протокол UART. Алгоритм DMA idle.
-
 ## Связанные разделы
 - cpp-uart
 - cpp-dma

@@ -29,10 +29,6 @@ std::string topic = "robot/imu";
 - исключения bad_alloc в control loop
 - конкатенация string в тике 1 кГц
 
-## В Architecture Canvas
-
-Технология блока MCU: «без кучи» если так решили — это ограничение архитектуры.
-
 ## Связанные разделы
 - cpp-embedded
 - cpp-exceptions

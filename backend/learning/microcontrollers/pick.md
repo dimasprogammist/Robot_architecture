@@ -29,10 +29,6 @@ related: [electronics-datasheet, robotics-overview]
 - выбор по цене модуля без карты пинов
 - нехватка таймеров «потом»
 
-## В Architecture Canvas
-
-Hardware catalog Raspberry/STM32/ESP. Пины в docs.
-
 ## Связанные разделы
 - electronics-datasheet
 - robotics-overview

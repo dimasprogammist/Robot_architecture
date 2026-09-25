@@ -29,10 +29,6 @@ HAL_ADC_Start_DMA(&hadc1, buf, N);
 - читать буфер DMA кэшированным без invalidate
 - перекрыть буфер стеком
 
-## В Architecture Canvas
-
-Внутренний блок ADC/DMA во вложенном холсте MCU.
-
 ## Связанные разделы
 - cpp-isr
 - cpp-arrays

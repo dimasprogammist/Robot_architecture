@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logoutAndReload } from './AuthGate'
 import { api } from './lib/api'
 import type { ProjectSummary, TemplateInfo } from './types'
-import { useUiStore } from './store/useUiStore'
 
 export function Home() {
   const navigate = useNavigate()
@@ -11,11 +11,6 @@ export function Home() {
   const [name, setName] = useState('Робот')
   const [templateId, setTemplateId] = useState('robot')
   const [error, setError] = useState('')
-  const theme = useUiStore((s) => s.theme)
-  const setTheme = useUiStore((s) => s.setTheme)
-  const setSettings = useUiStore((s) => s.setSettings)
-  const settings = useUiStore((s) => s.settings)
-
   const refresh = () => api.projects().then(setProjects)
 
   useEffect(() => {
@@ -31,16 +26,8 @@ export function Home() {
           Architecture Canvas
         </div>
         <div className="grow" />
-        <button
-          className="btn ghost"
-          type="button"
-          onClick={() => {
-            const next = theme === 'light' ? 'dark' : 'light'
-            setTheme(next)
-            setSettings({ ...settings, theme: next })
-          }}
-        >
-          {theme === 'light' ? 'Тёмная' : 'Светлая'}
+        <button className="btn ghost" type="button" onClick={logoutAndReload}>
+          Выйти
         </button>
       </header>
       <div className="page" style={{ maxWidth: 980, margin: '0 auto' }}>

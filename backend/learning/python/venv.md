@@ -30,10 +30,6 @@ pip install -r requirements.txt
 - pip install в prod без pin
 - два сервиса, один site-packages, конфликт protobuf
 
-## В Architecture Canvas
-
-В документации бэкенда: runtime (venv/docker) и файл зависимостей. Это не мелочь.
-
 ## Связанные разделы
 - python-install
 - python-packaging

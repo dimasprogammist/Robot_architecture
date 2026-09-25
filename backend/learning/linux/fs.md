@@ -29,10 +29,6 @@ ls /dev/ttyACM* /dev/ttyUSB* /dev/can*
 - хранить конфиг в домашней папке pi и запускать из systemd без User=
 - относительные пути
 
-## В Architecture Canvas
-
-Документация Linux-компонента: абсолютные пути артефактов.
-
 ## Связанные разделы
 - linux-permissions
 - linux-udev

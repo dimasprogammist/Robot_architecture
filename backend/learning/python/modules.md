@@ -30,10 +30,6 @@ bus = CanBus(iface='can0')
 - циклические импорты как симптом комка
 - from x import * в сервисе
 
-## В Architecture Canvas
-
-Имена пакетов держите рядом с именами блоков. Вложенный холст = подпакет.
-
 ## Связанные разделы
 - python-venv
 - python-packaging

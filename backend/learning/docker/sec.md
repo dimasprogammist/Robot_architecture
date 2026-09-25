@@ -29,10 +29,6 @@ security_opt: ['no-new-privileges:true']
 - сокет docker.sock внутрь приложения
 - root + privileged + host pid
 
-## В Architecture Canvas
-
-Требования безопасности на runtime.
-
 ## Связанные разделы
 - linux-permissions
 - docker-devices

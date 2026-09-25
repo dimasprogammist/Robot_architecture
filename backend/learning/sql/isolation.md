@@ -29,10 +29,6 @@ related: [sql-tx, python-state-machine]
 - потерянный апдейт статуса
 - FOR UPDATE на всю таблицу events
 
-## В Architecture Canvas
-
-Состояние RUN живёт в супервизоре. БД — факт миссии, не PWM.
-
 ## Связанные разделы
 - sql-tx
 - python-state-machine

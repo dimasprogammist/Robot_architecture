@@ -29,10 +29,6 @@ socat - UDP:192.168.10.20:2368
 - считать UDP «ненадёжным значит бесполезным»
 - нет seq и вы собираете облако из разных оборотов
 
-## В Architecture Canvas
-
-data_flow Lidar: UDP, частота, что при потере.
-
 ## Связанные разделы
 - networking-tcp
 - robotics-slam

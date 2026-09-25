@@ -29,10 +29,6 @@ quantity, material, mass
 - картинка вместо вложенного холста
 - STL без версии
 
-## В Architecture Canvas
-
-Раздел Механика, double-click, BOM, файлы STL.
-
 ## Связанные разделы
 - app-mech
 - app-stl

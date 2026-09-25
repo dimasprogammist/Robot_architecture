@@ -29,10 +29,6 @@ Mode step(Mode m, Ev e);
 - состояние только флагами bool без таблицы
 - рассинхрон имён с Python
 
-## В Architecture Canvas
-
-Заполните states/transitions MCU 1:1 с кодом. Иначе AI-экспорт соврёт прошивке.
-
 ## Связанные разделы
 - cpp-enums-class
 - python-state-machine

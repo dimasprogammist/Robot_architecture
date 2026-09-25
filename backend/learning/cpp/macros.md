@@ -33,10 +33,6 @@ REV2 поменял пин STEP. Архитектура та же, hardware revi
 - скрытый ifdef, который меняет семантику протокола
 - макрос min/max ломающий std::min
 
-## В Architecture Canvas
-
-Ревизия платы — в Hardware Data. Не держите только в макросе без холста.
-
 ## Связанные разделы
 - cpp-const
 - cpp-hal

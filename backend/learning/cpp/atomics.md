@@ -29,10 +29,6 @@ std::atomic<bool> estop{false};
 - atomic без указания order «потом разберёмся» в lock-free
 - считать volatile заменой atomic
 
-## В Architecture Canvas
-
-Требование безопасности: ESTOP независим от MQTT. На холсте отдельная связь GPIO, не через брокер.
-
 ## Связанные разделы
 - cpp-isr
 - cpp-watchdog

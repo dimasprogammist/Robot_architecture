@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -18,7 +18,8 @@ import '@xyflow/react/dist/style.css'
 import { ArchNode, TableNode, LabeledEdge } from './nodes'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useUiStore } from '../../store/useUiStore'
-import { protocolColor } from '../../model/defaults'
+import { emptyTable, protocolColor } from '../../model/defaults'
+import { uid } from '../../lib/ids'
 import type { LibraryPreset } from '../../types'
 
 const nodeTypes = { arch: ArchNode, table: TableNode }
@@ -53,6 +54,11 @@ function ArchitectureCanvasInner() {
   const enterComponent = useProjectStore((s) => s.enterComponent)
   const addFromPreset = useProjectStore((s) => s.addFromPreset)
   const settings = useUiStore((s) => s.settings)
+  const setInspectorTab = useUiStore((s) => s.setInspectorTab)
+  const updateComponent = useProjectStore((s) => s.updateComponent)
+  const deleteSelected = useProjectStore((s) => s.deleteSelected)
+  const [menu, setMenu] = useState<{ x: number; y: number; id: string } | null>(null)
+  const [linkFrom, setLinkFrom] = useState<string | null>(null)
 
   const nodes = useMemo(() => {
     if (!project || !architectureId) return []
@@ -88,7 +94,10 @@ function ArchitectureCanvasInner() {
           strokeDasharray: c.kind === 'data_flow' ? '6 4' : undefined,
         },
         data: {
-          label: c.protocol_name || c.cardinality || (c.kind === 'data_flow' ? c.data_format || 'данные' : ''),
+          label:
+            c.protocol_name ||
+            ({ one_to_one: 'один к одному', one_to_many: 'один ко многим', many_to_many: 'многие ко многим' } as Record<string, string>)[c.cardinality] ||
+            (c.kind === 'data_flow' ? c.data_format || 'данные' : ''),
           kind: c.kind,
           bidirectional: c.direction === 'bidirectional',
         },
@@ -167,8 +176,33 @@ function ArchitectureCanvasInner() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onPaneClick={() => select([])}
-        onNodeDoubleClick={(_, node) => enterComponent(node.id)}
+        onPaneClick={() => {
+          select([])
+          setMenu(null)
+        }}
+        onNodeClick={(_, node) => {
+          if (!linkFrom || linkFrom === node.id) return
+          connect(linkFrom, node.id)
+          setLinkFrom(null)
+        }}
+        onNodeContextMenu={(event, node) => {
+          const comp = project?.components.find((c) => c.id === node.id)
+          if (comp?.entity_kind !== 'table') return
+          event.preventDefault()
+          setMenu({ x: event.clientX, y: event.clientY, id: node.id })
+        }}
+        onNodeDoubleClick={(_, node) => {
+          const comp = project?.components.find((c) => c.id === node.id)
+          const mechanicalSystem =
+            comp?.type === 'Механическая система' ||
+            comp?.type === 'Механический узел' ||
+            comp?.name === 'Механическая система'
+          if (!mechanicalSystem) {
+            select([node.id])
+            return
+          }
+          enterComponent(node.id)
+        }}
         onEdgeClick={(_, edge) => select([], edge.id)}
         connectionMode={ConnectionMode.Loose}
         snapToGrid={settings.snap_to_grid}
@@ -193,6 +227,78 @@ function ArchitectureCanvasInner() {
         <Controls showInteractive={false} />
         <MiniMap pannable zoomable />
       </ReactFlow>
+      {linkFrom ? <p className="hint" style={{ position: 'absolute', top: 56, left: 56 }}>Выберите вторую таблицу, чтобы создать связь.</p> : null}
+      {menu ? (
+        <TableMenu
+          x={menu.x}
+          y={menu.y}
+          onProperties={() => {
+            select([menu.id])
+            setInspectorTab('table')
+            setMenu(null)
+          }}
+          onRename={() => {
+            const current = project?.components.find((c) => c.id === menu.id)
+            const name = window.prompt('Новое имя таблицы', current?.name || '')
+            if (name && name.trim()) updateComponent(menu.id, { name: name.trim() })
+            setMenu(null)
+          }}
+          onAddColumn={() => {
+            const current = project?.components.find((c) => c.id === menu.id)
+            const table = current?.table || emptyTable()
+            updateComponent(menu.id, {
+              entity_kind: 'table',
+              table: {
+                ...table,
+                columns: [
+                  ...table.columns,
+                  { id: uid(), name: 'column', type: 'TEXT', nullable: true, default: '', primary_key: false, unique: false, foreign_key: '', description: '' },
+                ],
+              },
+            })
+            select([menu.id])
+            setInspectorTab('table')
+            setMenu(null)
+          }}
+          onLink={() => {
+            setLinkFrom(menu.id)
+            setMenu(null)
+          }}
+          onDelete={() => {
+            select([menu.id])
+            deleteSelected()
+            setMenu(null)
+          }}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function TableMenu({
+  x,
+  y,
+  onProperties,
+  onRename,
+  onAddColumn,
+  onLink,
+  onDelete,
+}: {
+  x: number
+  y: number
+  onProperties: () => void
+  onRename: () => void
+  onAddColumn: () => void
+  onLink: () => void
+  onDelete: () => void
+}) {
+  return (
+    <div className="ctx-menu" style={{ left: x, top: y }}>
+      <button type="button" onClick={onProperties}>Открыть свойства</button>
+      <button type="button" onClick={onRename}>Переименовать</button>
+      <button type="button" onClick={onAddColumn}>Добавить колонку</button>
+      <button type="button" onClick={onLink}>Создать связь</button>
+      <button type="button" onClick={onDelete}>Удалить таблицу</button>
     </div>
   )
 }

@@ -29,10 +29,6 @@ boot0, SWD, app offset
 - нет возможности прошить SWD после OTA-brick
 - неподписанная прошивка из топика
 
-## В Architecture Canvas
-
-Блок Tooling flash. version MCU.
-
 ## Связанные разделы
 - python-subprocess
 - git-tag

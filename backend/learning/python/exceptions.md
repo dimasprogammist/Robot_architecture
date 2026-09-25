@@ -32,10 +32,6 @@ except CameraTimeout as e:
 - голый except
 - использование исключений для нормального потока «цели нет»
 
-## В Architecture Canvas
-
-Отказы компонента — поле failure_modes. Алгоритм: что делаем при каждом классе ошибки.
-
 ## Связанные разделы
 - python-logging
 - python-context

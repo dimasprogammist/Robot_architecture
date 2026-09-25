@@ -29,10 +29,6 @@ related: [sql-crud, networking-nat, python-asyncio]
 - wall clock как id
 - синхронный insert в облако из control loop
 
-## В Architecture Canvas
-
-Блок External Service + очередь. Протокол HTTPS/MQTT.
-
 ## Связанные разделы
 - sql-crud
 - networking-nat

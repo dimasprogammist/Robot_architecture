@@ -29,10 +29,6 @@ VLAN 10 OT, VLAN 20 vision
 - один switch unmanaged на всё
 - QoS только на бумаге
 
-## В Architecture Canvas
-
-Коммутатор — блок NETWORK. VLAN в notes.
-
 ## Связанные разделы
 - networking-l2
 - protocols-modbus

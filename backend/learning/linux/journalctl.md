@@ -29,10 +29,6 @@ journalctl -u robot-svc --since '10 min ago'
 - логировать в файл в /tmp и терять после ребута без причины
 - без RateLimit понимание флуда IMU
 
-## В Architecture Canvas
-
-Наблюдаемость: куда пишем. Документ компонента + связь с UI логов, если есть.
-
 ## Связанные разделы
 - linux-systemd
 - python-logging

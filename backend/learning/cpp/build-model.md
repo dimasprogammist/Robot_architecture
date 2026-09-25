@@ -30,10 +30,6 @@ arm-none-eabi-g++ motor.o -T stm32.ld -o app.elf
 - править только код и игнорировать .map/.ld
 - разные флаги оптимизации на соседних библиотеках без причины
 
-## В Architecture Canvas
-
-Документ MCU: toolchain, MCU part number, linker constraints (RAM/flash).
-
 ## Связанные разделы
 - cpp-headers
 - cpp-cmake

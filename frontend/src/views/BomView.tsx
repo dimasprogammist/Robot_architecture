@@ -1,11 +1,11 @@
 import { useProjectStore } from '../store/useProjectStore'
 
-export function BomView() {
+export function BomView({ embedded = false }: { embedded?: boolean }) {
   const project = useProjectStore((s) => s.project)!
   const rows = project.components.filter((c) => c.category === 'HARDWARE' || c.category === 'MECHANICS')
   return (
-    <div className="page">
-      <h1>BOM</h1>
+    <div className={embedded ? 'embedded-section' : 'page'}>
+      {embedded ? null : <h1>BOM</h1>}
       <p className="lede">Инженерный список hardware- и механических компонентов текущей семантической модели. Складской учёт не ведётся.</p>
       <table className="table">
         <thead>

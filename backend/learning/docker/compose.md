@@ -31,10 +31,6 @@ depends_on:
 - depends_on без health — гонка
 - volume на всё /
 
-## В Architecture Canvas
-
-Несколько software-блоков = несколько сервисов compose, связи = сети/топики.
-
 ## Связанные разделы
 - docker-networks
 - docker-health

@@ -29,10 +29,6 @@ tau, reduction, backlash
 - модель без люфта, а люфт есть
 - драйвер без nFAULT в архитектуре
 
-## В Architecture Canvas
-
-Вложенный mechanical canvas. BOM part numbers.
-
 ## Связанные разделы
 - electronics-motor
 - app-mech

@@ -29,10 +29,6 @@ q.push(std::move(frame));
 - move и повторное использование без reset
 - return std::move(local) мешая NRVO
 
-## В Architecture Canvas
-
-data_flow «кадр» — семантика move на границе компонентов.
-
 ## Связанные разделы
 - cpp-vector
 - cpp-ownership

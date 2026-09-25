@@ -31,10 +31,6 @@ Restart=on-failure
 - Restart=always без backoff при Hardware Fault
 - WorkingDirectory не задан
 
-## В Architecture Canvas
-
-Запуск — README блока SBC/Backend. Связь с MQTT брокером: After=mosquitto.
-
 ## Связанные разделы
 - linux-journalctl
 - linux-processes

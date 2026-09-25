@@ -29,10 +29,6 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 - суперпользователь из приложения
 - без бэкапов WAL
 
-## В Architecture Canvas
-
-Блок PostgreSQL + холст таблиц. SQL export postgresql.
-
 ## Связанные разделы
 - sql-jsonb
 - sql-index

@@ -29,10 +29,6 @@ log_fault("crc", seq);
 - блокирующий UART-лог из ISR
 - строки без лимита в tiny RAM
 
-## В Architecture Canvas
-
-Канал логов — связь MCU → шлюз (может быть тот же UART multiplex или RTT только на стенде).
-
 ## Связанные разделы
 - cpp-uart
 - cpp-watchdog

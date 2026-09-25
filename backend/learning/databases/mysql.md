@@ -29,10 +29,6 @@ related: [sql-er, databases-choose, sql-tx]
 - MyISAM для журнала безопасности
 - разный sql_mode на стенде и заводе
 
-## В Architecture Canvas
-
-Выберите диалект MySQL в панели SQL.
-
 ## Связанные разделы
 - sql-er
 - databases-choose

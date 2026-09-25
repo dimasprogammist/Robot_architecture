@@ -29,10 +29,6 @@ SET robot:1:pose '{...}' EX 2
 - единственное хранилище ESTOP в Redis
 - без TTL и утечка ключей
 
-## В Architecture Canvas
-
-Блок Redis категории DATA. Связь с Backend — протокол Redis/TCP.
-
 ## Связанные разделы
 - python-queues
 - databases-choose

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.db import CurriculumProgressRow
+from app.db import UserLessonProgressRow
 from app.domain.curriculum_content import LESSON_INDEX, LESSON_MODULE, MODULE_INDEX, flat_lesson_sequence
 from app.domain.curriculum_schema import (
     CodeCheckRequest,
@@ -37,8 +37,8 @@ CODE_TIMEOUT_SECONDS = 5
 # ---- progress persistence -----------------------------------------------------
 
 
-def _load_progress(db: Session, lesson_id: str) -> LessonProgress:
-    row = db.get(CurriculumProgressRow, lesson_id)
+def _load_progress(db: Session, user_id: str, lesson_id: str) -> LessonProgress:
+    row = db.get(UserLessonProgressRow, (user_id, lesson_id))
     if row is None:
         return LessonProgress(lesson_id=lesson_id)
     try:
@@ -48,8 +48,8 @@ def _load_progress(db: Session, lesson_id: str) -> LessonProgress:
     return LessonProgress(lesson_id=lesson_id, theory_done=row.theory_done, tasks_done=tasks_done)
 
 
-def _load_all_progress(db: Session) -> dict[str, LessonProgress]:
-    rows = db.query(CurriculumProgressRow).all()
+def _load_all_progress(db: Session, user_id: str) -> dict[str, LessonProgress]:
+    rows = db.query(UserLessonProgressRow).filter(UserLessonProgressRow.user_id == user_id).all()
     out: dict[str, LessonProgress] = {}
     for row in rows:
         try:
@@ -62,11 +62,12 @@ def _load_all_progress(db: Session) -> dict[str, LessonProgress]:
     return out
 
 
-def _save_progress(db: Session, progress: LessonProgress) -> None:
-    row = db.get(CurriculumProgressRow, progress.lesson_id)
+def _save_progress(db: Session, user_id: str, progress: LessonProgress) -> None:
+    row = db.get(UserLessonProgressRow, (user_id, progress.lesson_id))
     now = datetime.now(timezone.utc)
     if row is None:
-        row = CurriculumProgressRow(
+        row = UserLessonProgressRow(
+            user_id=user_id,
             lesson_id=progress.lesson_id,
             theory_done=progress.theory_done,
             tasks_done=json.dumps(progress.tasks_done),
@@ -80,26 +81,17 @@ def _save_progress(db: Session, progress: LessonProgress) -> None:
     db.commit()
 
 
-def _lesson_locked_map(db: Session) -> dict[str, bool]:
-    """First lesson is always unlocked; every next lesson requires the
-    previous one (theory read + all tasks passed) to be complete."""
-    all_progress = _load_all_progress(db)
-    locked: dict[str, bool] = {}
-    previous_complete = True
-    for _module, lesson in flat_lesson_sequence():
-        locked[lesson.id] = not previous_complete
-        prog = all_progress.get(lesson.id, LessonProgress(lesson_id=lesson.id))
-        task_ids = [t.id for t in lesson.tasks]
-        previous_complete = prog.is_complete(task_ids)
-    return locked
+def _lesson_locked_map() -> dict[str, bool]:
+    """Every lesson is available. Completion is tracked, but nothing is gated."""
+    return {lesson.id: False for _module, lesson in flat_lesson_sequence()}
 
 
 # ---- public read API -----------------------------------------------------------
 
 
-def get_course_overview(db: Session) -> CourseProgressOut:
-    locked_map = _lesson_locked_map(db)
-    all_progress = _load_all_progress(db)
+def get_course_overview(db: Session, user_id: str) -> CourseProgressOut:
+    locked_map = _lesson_locked_map()
+    all_progress = _load_all_progress(db, user_id)
     modules_out: list[ModuleSummary] = []
     total = 0
     completed = 0
@@ -137,13 +129,13 @@ def get_course_overview(db: Session) -> CourseProgressOut:
     return CourseProgressOut(total_lessons=total, completed_lessons=completed, modules=modules_out)
 
 
-def get_lesson_detail(db: Session, lesson_id: str) -> LessonDetail | None:
+def get_lesson_detail(db: Session, user_id: str, lesson_id: str) -> LessonDetail | None:
     lesson = LESSON_INDEX.get(lesson_id)
     if lesson is None:
         return None
     module = MODULE_INDEX[LESSON_MODULE[lesson_id]]
-    locked_map = _lesson_locked_map(db)
-    progress = _load_progress(db, lesson_id)
+    locked_map = _lesson_locked_map()
+    progress = _load_progress(db, user_id, lesson_id)
 
     sequence = flat_lesson_sequence()
     ids_in_order = [l.id for _m, l in sequence]
@@ -184,19 +176,19 @@ def get_lesson_detail(db: Session, lesson_id: str) -> LessonDetail | None:
     )
 
 
-def mark_theory_done(db: Session, lesson_id: str) -> LessonDetail | None:
+def mark_theory_done(db: Session, user_id: str, lesson_id: str) -> LessonDetail | None:
     if lesson_id not in LESSON_INDEX:
         return None
-    progress = _load_progress(db, lesson_id)
+    progress = _load_progress(db, user_id, lesson_id)
     progress.theory_done = True
-    _save_progress(db, progress)
-    return get_lesson_detail(db, lesson_id)
+    _save_progress(db, user_id, progress)
+    return get_lesson_detail(db, user_id, lesson_id)
 
 
 # ---- grading --------------------------------------------------------------------
 
 
-def check_quiz(db: Session, lesson_id: str, task_id: str, req: QuizCheckRequest) -> TaskCheckResult | None:
+def check_quiz(db: Session, user_id: str, lesson_id: str, task_id: str, req: QuizCheckRequest) -> TaskCheckResult | None:
     lesson = LESSON_INDEX.get(lesson_id)
     if lesson is None:
         return None
@@ -206,10 +198,10 @@ def check_quiz(db: Session, lesson_id: str, task_id: str, req: QuizCheckRequest)
 
     passed = req.option_id == task.correct_option_id
     if passed:
-        progress = _load_progress(db, lesson_id)
+        progress = _load_progress(db, user_id, lesson_id)
         if task_id not in progress.tasks_done:
             progress.tasks_done.append(task_id)
-        _save_progress(db, progress)
+        _save_progress(db, user_id, progress)
 
     return TaskCheckResult(passed=passed, explanation=task.explanation)
 
@@ -269,7 +261,7 @@ def _run_code_sandboxed(code: str, setup_code: str, tests: list[dict]) -> dict:
     }
 
 
-def check_code(db: Session, lesson_id: str, task_id: str, req: CodeCheckRequest) -> TaskCheckResult | None:
+def check_code(db: Session, user_id: str, lesson_id: str, task_id: str, req: CodeCheckRequest) -> TaskCheckResult | None:
     lesson = LESSON_INDEX.get(lesson_id)
     if lesson is None:
         return None
@@ -281,10 +273,10 @@ def check_code(db: Session, lesson_id: str, task_id: str, req: CodeCheckRequest)
     outcome = _run_code_sandboxed(req.code, task.setup_code, tests_as_dicts)
 
     if outcome.get("passed"):
-        progress = _load_progress(db, lesson_id)
+        progress = _load_progress(db, user_id, lesson_id)
         if task_id not in progress.tasks_done:
             progress.tasks_done.append(task_id)
-        _save_progress(db, progress)
+        _save_progress(db, user_id, progress)
 
     return TaskCheckResult(
         passed=bool(outcome.get("passed")),

@@ -29,10 +29,6 @@ name, transport, port, data_format, timeout, retry, crc
 - одна связь «данные» на всё
 - разные версии кадра без version
 
-## В Architecture Canvas
-
-Каталог протоколов + цвет ребра + data_example.
-
 ## Связанные разделы
 - protocols-versioning
 - app-protocols

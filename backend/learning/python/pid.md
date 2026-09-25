@@ -31,10 +31,6 @@ u = kp*e + ki*integ + kd*(e-e_prev)/dt
 - интегратор без насыщения
 - dt=0 при повторном вызове
 
-## В Architecture Canvas
-
-Алгоритм блока контроллера: шаги PID. Коэффициенты — конфиг и mechanical/notes привода.
-
 ## Связанные разделы
 - python-datetime
 - python-math

@@ -30,10 +30,6 @@ FROM debian-slim
 - оставить compiler в prod
 - разные glibc builder/runtime без проверки
 
-## В Architecture Canvas
-
-Таргеты CMake совпадают со стадиями.
-
 ## Связанные разделы
 - cpp-cmake
 - docker-file

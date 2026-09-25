@@ -31,10 +31,6 @@ drivers / domain / api / tools. Domain не импортирует FastAPI. API 
 - общий util на 80 хелперов, который связывает всё со всем
 - копипаста парсера протокола в трёх сервисах
 
-## В Architecture Canvas
-
-Вложенный холст Python-бэкенда: API, Supervisor, Drivers. Это и есть карта пакетов.
-
 ## Связанные разделы
 - python-modules
 - python-composition

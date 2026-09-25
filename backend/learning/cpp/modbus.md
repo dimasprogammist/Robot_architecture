@@ -29,10 +29,6 @@ uint16_t regs[32];
 - off-by-one 40001 vs 0
 - CRC RTU другой, чем «кажется»
 
-## В Architecture Canvas
-
-Протокол Modbus RTU/TCP на ребре PLC—Service. Карта регистров — Documentation.
-
 ## Связанные разделы
 - protocols-modbus
 - cpp-endian

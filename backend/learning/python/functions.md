@@ -30,10 +30,6 @@ def clamp(x: float, lo: float, hi: float) -> float:
 - mutable default `def f(buf=[])`
 - функции на 200 строк «и драйвер, и PID, и HTTP»
 
-## В Architecture Canvas
-
-Шаги алгоритма в инспекторе должны совпадать с функциями модуля, а не жить только в чате.
-
 ## Связанные разделы
 - python-args
 - python-typing

@@ -33,10 +33,6 @@ class MotorGateway:
 - логика навигации внутри драйвера UART
 - публичные поля порта извне
 
-## В Architecture Canvas
-
-Имя класса ≈ имя компонента. Вложенная архитектура ≈ пакет классов.
-
 ## Связанные разделы
 - python-composition
 - python-protocols-abc

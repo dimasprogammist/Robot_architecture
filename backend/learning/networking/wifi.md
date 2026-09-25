@@ -29,10 +29,6 @@ iw dev wlan0 link
 - control ESTOP по Wi-Fi как единственный канал
 - скрытая сеть без плана
 
-## В Architecture Canvas
-
-Связь Wi-Fi цвет/протокол. ESTOP — провод.
-
 ## Связанные разделы
 - cpp-safety
 - networking-intro

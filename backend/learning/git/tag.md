@@ -29,10 +29,6 @@ git tag -a v1.4.0 -m 'drive pid antiwindup'
 - один tag на всё при несовместимом UART
 - перезапись tag
 
-## В Architecture Canvas
-
-Export JSON архитектуры кладите рядом с tag.
-
 ## Связанные разделы
 - git-commit
 - python-packaging

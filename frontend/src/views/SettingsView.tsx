@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { api } from '../lib/api'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
+import { ComponentsView } from './ComponentsView'
+import { ProtocolsView } from './ProtocolsView'
 
 export function SettingsView() {
   const settings = useUiStore((s) => s.settings)
@@ -75,6 +77,8 @@ export function SettingsView() {
       <button className="btn" type="button" onClick={toggleLibrary}>
         Скрыть или показать библиотеку
       </button>
+      <ProtocolsView embedded />
+      <ComponentsView embedded />
     </div>
   )
 }

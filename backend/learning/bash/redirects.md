@@ -29,10 +29,6 @@ make 2>&1 | tee build.log
 - закрыть stdin сервиса так, что serial отвалился
 - перезаписать калибровку > вместо >> без бэкапа
 
-## В Architecture Canvas
-
-Артефакты flash.log — attached notes версии.
-
 ## Связанные разделы
 - bash-pipes
 - linux-fs

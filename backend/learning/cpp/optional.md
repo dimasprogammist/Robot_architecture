@@ -29,10 +29,6 @@ std::optional<ImuSample> imu.poll();
 - optional для всего, включая критичный estop
 - игнор пустого в цикле без watchdog
 
-## В Architecture Canvas
-
-failure_modes компонента: CRC, timeout, no-sample — разные ветки алгоритма.
-
 ## Связанные разделы
 - cpp-exceptions
 - cpp-expected

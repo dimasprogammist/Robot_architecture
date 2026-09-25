@@ -30,10 +30,6 @@ n = ser.read(64)
 - timeout=None в проде
 - предполагать, что read() вернул целый пакет
 
-## В Architecture Canvas
-
-Протокол UART на связи, алгоритм «сбор кадра» на шлюзе, MCU — парсер зеркальный (C++).
-
 ## Связанные разделы
 - python-struct
 - python-bytes

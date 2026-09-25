@@ -29,10 +29,6 @@ x += v*cos(yaw)*dt
 - интегрировать yaw гироскопа без bias
 - смешать единицы ticks
 
-## В Architecture Canvas
-
-Алгоритм Localization. Входы энкодеры/IMU.
-
 ## Связанные разделы
 - python-math
 - cpp-pid

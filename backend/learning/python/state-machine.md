@@ -29,10 +29,6 @@ TRANS = {('IDLE','START'): 'AUTO', ('ANY','ESTOP'): 'FAULT'}
 - неявные переходы в обработчиках MQTT
 - состояние только в UI, бэкенд не знает
 
-## В Architecture Canvas
-
-В инспекторе заполните states и transitions — это та же семантика, что код автомата.
-
 ## Связанные разделы
 - python-enums
 - python-if

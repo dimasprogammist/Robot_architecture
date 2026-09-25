@@ -30,10 +30,6 @@ devices:
 - privileged: true «потому что serial»
 - нет group_add dialout
 
-## В Architecture Canvas
-
-Документируйте runtime у блока Gateway.
-
 ## Связанные разделы
 - linux-udev
 - python-serial

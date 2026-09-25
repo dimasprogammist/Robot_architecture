@@ -30,10 +30,6 @@ Path('data/last_pose.json').write_text(payload, encoding='utf-8')
 - относительные пути от неизвестного cwd
 - запись JSON вручную конкатенацией
 
-## В Architecture Canvas
-
-Attached files в Canvas — инженерные артефакты. Runtime-файлы опишите в документации сервиса.
-
 ## Связанные разделы
 - python-json
 - python-config

@@ -29,10 +29,6 @@ I_budget = sum(I_max)*margin
 - питание Pi от того же узла, что стартует мотор, без ёмкости
 - нет предохранителя
 
-## В Architecture Canvas
-
-Блок PSU. Напряжения в Hardware Data всех потребителей.
-
 ## Связанные разделы
 - electronics-ohm
 - linux-disks

@@ -29,10 +29,6 @@ auto cam = std::make_unique<V4L2>();
 - shared_ptr как привычка «чтобы не думать»
 - unique_ptr в ISR
 
-## В Architecture Canvas
-
-Связь на холсте не равна shared_ptr. Это поток данных, не совместное владение железом.
-
 ## Связанные разделы
 - cpp-move
 - cpp-raii

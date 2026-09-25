@@ -29,10 +29,6 @@ related: [protocols-intro, app-links, python-struct]
 - только цвет без message_structure
 - две записи HTTP с разным смыслом без описания
 
-## В Architecture Canvas
-
-Цвет по умолчанию из каталога.
-
 ## Связанные разделы
 - protocols-intro
 - app-links

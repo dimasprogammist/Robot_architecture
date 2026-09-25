@@ -29,10 +29,6 @@ image: registry/robot-svc@sha256:...
 - pull latest ночью без тестов
 - разный digest на двух колёсных роботах «одного парка» без учёта
 
-## В Architecture Canvas
-
-version компонента = digest/tag.
-
 ## Связанные разделы
 - git-tag
 - docker-file

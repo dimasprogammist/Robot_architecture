@@ -29,10 +29,6 @@ Timescale/Influx/файлы parquet. Отдельный контур от OLTP �
 - гипертаблица «на всё» включая users
 - высокая cardinality id без плана
 
-## В Architecture Canvas
-
-Не смешивайте на одном ER-холсте OLTP и 10кГц ряды без необходимости.
-
 ## Связанные разделы
 - sql-intro
 - databases-choose

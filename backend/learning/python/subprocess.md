@@ -29,10 +29,6 @@ subprocess.run(['systemctl', 'restart', 'robot'], check=True, timeout=15)
 - shell=True с конкатенацией пути
 - нет timeout
 
-## В Architecture Canvas
-
-Блок Tooling / Firmware flash. Связь с MCU — не runtime UART, а процедура обслуживания.
-
 ## Связанные разделы
 - python-argparse
 - linux-systemd

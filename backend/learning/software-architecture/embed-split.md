@@ -29,10 +29,6 @@ frame, hz, watchdog, estop independent
 - скрытый второй канал «отладки», который может задать RUN
 - разные endian без записи
 
-## В Architecture Canvas
-
-Протокол Custom/UART/CAN между HARDWARE и SOFTWARE.
-
 ## Связанные разделы
 - protocols-choose
 - cpp-struct

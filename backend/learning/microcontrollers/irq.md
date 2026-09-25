@@ -29,10 +29,6 @@ NVIC_SetPriority
 - низкий приоритет ESTOP
 - всё в одном IRQ
 
-## В Architecture Canvas
-
-Требование латентности.
-
 ## Связанные разделы
 - cpp-isr
 - cpp-safety

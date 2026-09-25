@@ -30,10 +30,6 @@ findmnt
 - без мониторинга read-only remount
 - swap на SD
 
-## В Architecture Canvas
-
-Hardware notes SBC: носитель, политика логов.
-
 ## Связанные разделы
 - linux-journalctl
 - linux-fs

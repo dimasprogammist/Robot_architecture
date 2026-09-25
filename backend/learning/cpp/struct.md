@@ -30,10 +30,6 @@ static_assert(sizeof(Frame)==7);
 - паддинг компилятора, о котором забыли
 - float в packed без согласования endian
 
-## В Architecture Canvas
-
-message_structure протокола = эта структура. Пришлите пример hex в data_example.
-
 ## Связанные разделы
 - cpp-endian
 - cpp-hello

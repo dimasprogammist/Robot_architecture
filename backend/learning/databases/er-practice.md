@@ -29,10 +29,6 @@ users→projects 1–N, junction для N–N в SQL.
 - хранить ER скриншотом
 - FK не тем концом
 
-## В Architecture Canvas
-
-Раздел «База данных». Инспектор колонок PK/FK. Скачать .sql.
-
 ## Связанные разделы
 - sql-er
 - sql-keys

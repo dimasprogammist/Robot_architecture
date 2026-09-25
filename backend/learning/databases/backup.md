@@ -29,10 +29,6 @@ pg_dump -Fc robot > robot.dump
 - бэкап рядом на той же SD
 - никогда не пробовали restore
 
-## В Architecture Canvas
-
-Требование must: хранение журнала N суток.
-
 ## Связанные разделы
 - databases-postgres
 - linux-disks

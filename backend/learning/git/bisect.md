@@ -31,10 +31,6 @@ git bisect good v1.3.0
 - bisect без воспроизводимого теста
 - пропуск коммитов протокола
 
-## В Architecture Canvas
-
-Тест одометрии привязан к requirement.
-
 ## Связанные разделы
 - python-testing
 - robotics-odometry

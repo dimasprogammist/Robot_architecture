@@ -30,10 +30,6 @@ crc = crc16(memoryview(frame)[:-2])
 - конкатенация bytes в цикле
 - забытый CRC
 
-## В Architecture Canvas
-
-Документируйте message_structure протокола. Алгоритм «парсер кадра» повесьте на шлюз.
-
 ## Связанные разделы
 - python-strings
 - python-struct

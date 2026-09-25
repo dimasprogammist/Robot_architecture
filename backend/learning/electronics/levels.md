@@ -29,9 +29,5 @@ Vih, Vil, Voh
 - общий GND забыт при «сдвиге»
 - оптопара без расчёта скорости
 
-## В Architecture Canvas
-
-Связь UART заметки про трансивер. Блок level shifter при необходимости.
-
 ## Связанные разделы
 - electronics-pullup

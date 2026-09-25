@@ -29,10 +29,6 @@ SELECT robot_id, COUNT(*) FROM events WHERE code='FAULT' GROUP BY robot_id;
 - SELECT * с GROUP BY некорректно
 - агрегат в приложении циклом без нужды
 
-## В Architecture Canvas
-
-Отчётные запросы — документ блока Analytics, если появится.
-
 ## Связанные разделы
 - sql-select
 - sql-index

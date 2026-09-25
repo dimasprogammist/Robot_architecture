@@ -29,10 +29,6 @@ profile=sim
 - другой протокол в симе «так проще»
 - сим без ESTOP-веток
 
-## В Architecture Canvas
-
-Вложенный стенд Sim. Docker profile.
-
 ## Связанные разделы
 - docker-sim
 - python-protocols-abc

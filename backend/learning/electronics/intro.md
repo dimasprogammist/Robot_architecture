@@ -29,10 +29,6 @@ P = I * V
 - питать мотор и MCU от одной неразвязанной линии без фильтра
 - игнор datasheet
 
-## В Architecture Canvas
-
-Hardware Data: voltage. PSU — блок. Связи питания можно описать notes, позже electrical kind.
-
 ## Связанные разделы
 - electronics-psu
 - electronics-ground

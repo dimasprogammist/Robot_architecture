@@ -29,10 +29,6 @@ struct { uint8_t ver; ...}
 - молча игнорировать лишние байты без версии
 - один топик на v1 и v2 JSON разной формы
 
-## В Architecture Canvas
-
-Поле version у Protocol. Связь указывает протокол.
-
 ## Связанные разделы
 - cpp-struct
 - git-commit

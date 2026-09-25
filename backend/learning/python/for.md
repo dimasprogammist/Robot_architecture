@@ -32,10 +32,6 @@ else:
 - изменение списка во время for
 - busy-loop без sleep в Linux-сервисе
 
-## В Architecture Canvas
-
-Цикл опроса опишите в алгоритме «control loop» блока контроллера.
-
 ## Связанные разделы
 - python-while
 - python-itertools

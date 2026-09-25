@@ -32,10 +32,6 @@ class Twist:
 - мутабельный dataclass как ключ dict
 - 100 полей в одном Twist
 
-## В Architecture Canvas
-
-Таблица `commands` в ER должна повторять поля dataclass, иначе экспорт SQL разъедется с кодом.
-
 ## Связанные разделы
 - python-typing
 - python-json

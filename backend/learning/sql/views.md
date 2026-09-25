@@ -29,10 +29,6 @@ CREATE VIEW last_faults AS SELECT ...;
 - вместо индекса сделать view и ждать ускорения
 - view, скрывающая тяжёлый join без docs
 
-## В Architecture Canvas
-
-В будущем entity view. Сейчас — notes/SQL вручную после базовых таблиц.
-
 ## Связанные разделы
 - sql-select
 - sql-er

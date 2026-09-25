@@ -29,10 +29,6 @@ compatibility matrix
 - обновили только UI
 - нет отката
 
-## В Architecture Canvas
-
-version на блоках. tag git. docker digest.
-
 ## Связанные разделы
 - git-tag
 - docker-ci

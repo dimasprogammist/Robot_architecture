@@ -29,10 +29,6 @@ a_max, alpha_max
 - игнор проскальзывания как «динамика потом»
 - модель, которую не идентифицировали
 
-## В Architecture Canvas
-
-Ограничения в конфиге и requirements.
-
 ## Связанные разделы
 - robotics-pid
 - robotics-actuators

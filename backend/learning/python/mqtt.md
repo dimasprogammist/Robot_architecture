@@ -29,10 +29,6 @@ client.publish('robot/imu', payload, qos=0, retain=False)
 - retained команда движения — робот тронется после рестарта
 - пароль брокера в образе без секрета
 
-## В Architecture Canvas
-
-Блок MQTT + протокол MQTT на рёбрах. В data_example — JSON IMU. В notes — QoS и LWT.
-
 ## Связанные разделы
 - python-json
 - python-asyncio

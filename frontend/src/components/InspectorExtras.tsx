@@ -17,8 +17,8 @@ export function DocsPanel({ component }: { component: Component }) {
           ? 'Официальная документация'
           : kind === 'datasheet'
             ? 'Datasheet'
-            : kind === 'manual'
-              ? 'User Manual'
+              : kind === 'manual'
+              ? 'Руководство'
               : kind === 'pdf'
                 ? 'PDF'
                 : 'Заметка',
@@ -43,7 +43,7 @@ export function DocsPanel({ component }: { component: Component }) {
         <button className="btn" type="button" onClick={() => add('markdown')}>Markdown</button>
         <button className="btn" type="button" onClick={() => add('link')}>Ссылка</button>
         <button className="btn" type="button" onClick={() => add('official')}>Официальная</button>
-        <button className="btn" type="button" onClick={() => add('manual')}>User Manual</button>
+        <button className="btn" type="button" onClick={() => add('manual')}>Руководство</button>
         <button className="btn" type="button" onClick={() => add('pdf')}>PDF / файл</button>
       </div>
       {(component.docs || []).map((d) => (
@@ -105,6 +105,7 @@ export function MechPanel({ component }: { component: Component }) {
 export function TablePanel({ component }: { component: Component }) {
   const updateComponent = useProjectStore((s) => s.updateComponent)
   const table = component.table || emptyTable()
+  const [activeId, setActiveId] = useState<string | null>(table.columns[0]?.id ?? null)
   const set = (next: typeof table) => updateComponent(component.id, { table: next, entity_kind: 'table' })
   const addCol = () => {
     const col: TableColumn = {
@@ -119,25 +120,71 @@ export function TablePanel({ component }: { component: Component }) {
       description: '',
     }
     set({ ...table, columns: [...table.columns, col] })
+    setActiveId(col.id)
   }
+  const active = table.columns.find((c) => c.id === activeId) || null
+  const patchCol = (id: string, patch: Partial<TableColumn>) =>
+    set({ ...table, columns: table.columns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
+  const types = ['TEXT', 'INTEGER', 'BIGINT', 'BOOLEAN', 'REAL', 'TIMESTAMP', 'UUID', 'JSON']
   return (
     <div>
-      <div className="field"><label>Schema</label><input value={table.schema_name} onChange={(e) => set({ ...table, schema_name: e.target.value })} /></div>
-      {table.columns.map((col) => (
-        <div key={col.id} className="field" style={{ borderBottom: '1px solid var(--line)', paddingBottom: 8 }}>
-          <div className="step-row" style={{ gridTemplateColumns: '1fr 90px auto' }}>
-            <input value={col.name} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, name: e.target.value } : c)) })} />
-            <input value={col.type} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, type: e.target.value } : c)) })} />
-            <button className="btn ghost" type="button" onClick={() => set({ ...table, columns: table.columns.filter((c) => c.id !== col.id) })}>×</button>
-          </div>
-          <label className="hint"><input type="checkbox" checked={col.primary_key} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, primary_key: e.target.checked, nullable: e.target.checked ? false : c.nullable } : c)) })} /> PK</label>
-          <label className="hint"><input type="checkbox" checked={!col.nullable} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, nullable: !e.target.checked } : c)) })} /> NOT NULL</label>
-          <label className="hint"><input type="checkbox" checked={col.unique} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, unique: e.target.checked } : c)) })} /> UNIQUE</label>
-          <input placeholder="DEFAULT" value={col.default} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, default: e.target.value } : c)) })} />
-          <input placeholder="FK table.column" value={col.foreign_key} onChange={(e) => set({ ...table, columns: table.columns.map((c) => (c.id === col.id ? { ...c, foreign_key: e.target.value } : c)) })} />
-        </div>
-      ))}
+      <div className="field">
+        <label>Название</label>
+        <input value={component.name} onChange={(e) => updateComponent(component.id, { name: e.target.value })} />
+      </div>
+      <div className="field">
+        <label>Описание</label>
+        <input value={component.description} onChange={(e) => updateComponent(component.id, { description: e.target.value })} />
+      </div>
+      <div className="col-table-wrap">
+        <table className="col-table">
+          <thead>
+            <tr>
+              <th>Колонка</th>
+              <th>Тип</th>
+              <th title="Пустое значение допустимо">Пусто</th>
+              <th title="Первичный ключ">Ключ</th>
+              <th>По умолчанию</th>
+              <th>Связь</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {table.columns.map((col) => (
+              <tr key={col.id} className={col.id === activeId ? 'active' : ''} onClick={() => setActiveId(col.id)}>
+                <td><input value={col.name} onChange={(e) => patchCol(col.id, { name: e.target.value })} /></td>
+                <td>
+                  <select value={types.includes(col.type) ? col.type : col.type} onChange={(e) => patchCol(col.id, { type: e.target.value })}>
+                    {types.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                    {types.includes(col.type) ? null : <option value={col.type}>{col.type}</option>}
+                  </select>
+                </td>
+                <td><input type="checkbox" checked={col.nullable} title="Можно не заполнять" onChange={(e) => patchCol(col.id, { nullable: e.target.checked, primary_key: e.target.checked ? false : col.primary_key })} /></td>
+                <td><input type="checkbox" checked={col.primary_key} title="Первичный ключ" onChange={(e) => patchCol(col.id, { primary_key: e.target.checked, nullable: e.target.checked ? false : col.nullable })} /></td>
+                <td><input value={col.default} onChange={(e) => patchCol(col.id, { default: e.target.value })} /></td>
+                <td><input value={col.foreign_key} placeholder="таблица.колонка" onChange={(e) => patchCol(col.id, { foreign_key: e.target.value })} /></td>
+                <td><button className="btn ghost" type="button" title="Удалить колонку" onClick={() => set({ ...table, columns: table.columns.filter((c) => c.id !== col.id) })}>×</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <button className="btn" type="button" onClick={addCol}>Добавить колонку</button>
+      {active ? (
+        <details className="prop-extra" open>
+          <summary>Колонка «{active.name}»</summary>
+          <label className="row">
+            <input type="checkbox" checked={active.unique} onChange={(e) => patchCol(active.id, { unique: e.target.checked })} />
+            Уникальные значения
+          </label>
+          <div className="field">
+            <label>Комментарий</label>
+            <input value={active.description} onChange={(e) => patchCol(active.id, { description: e.target.value })} />
+          </div>
+        </details>
+      ) : null}
     </div>
   )
 }

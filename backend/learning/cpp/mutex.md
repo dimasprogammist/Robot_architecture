@@ -30,10 +30,6 @@ std::lock_guard n(m);
 - лок в ISR
 - инверсия приоритетов без RTOS-aware lock
 
-## В Architecture Canvas
-
-Граница ISR/task — в алгоритме MCU отдельными шагами.
-
 ## Связанные разделы
 - cpp-atomics
 - cpp-isr

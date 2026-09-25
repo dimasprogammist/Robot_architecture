@@ -29,10 +29,6 @@ cmd vs telemetry vs safety
 - все через события «реактивно»
 - команда без идемпотентности
 
-## В Architecture Canvas
-
-Тип связи connection vs data_flow. Reliability в инспекторе.
-
 ## Связанные разделы
 - protocols-mqtt
 - protocols-http

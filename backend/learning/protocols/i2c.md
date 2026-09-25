@@ -29,10 +29,6 @@ addr 0x68
 - два устройства 0x68
 - нет timeout на SCL
 
-## В Architecture Canvas
-
-Шина как компонент или пучок связей I²C.
-
 ## Связанные разделы
 - cpp-i2c
 - electronics-pullup

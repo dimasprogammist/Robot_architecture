@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
 
-export function RequirementsView() {
+export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
   const project = useProjectStore((s) => s.project)!
   const addRequirement = useProjectStore((s) => s.addRequirement)
   const updateRequirement = useProjectStore((s) => s.updateRequirement)
@@ -13,8 +13,8 @@ export function RequirementsView() {
   const [text, setText] = useState('Робот должен работать офлайн.')
 
   return (
-    <div className="page">
-      <h1>Требования</h1>
+    <div className={embedded ? 'embedded-section' : 'page'}>
+      {embedded ? null : <h1>Требования</h1>}
       <p className="lede">Ограничения, которые можно связать с компонентами и соединениями.</p>
       <div className="create-bar">
         <input

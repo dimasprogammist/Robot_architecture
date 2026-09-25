@@ -30,10 +30,6 @@ Thread(target=reader, args=(q,), daemon=True).start()
 - busy-spin без timeout
 - daemon-поток с записью в GPIO при shutdown
 
-## В Architecture Canvas
-
-Каждый поток с железом = ответственность компонента. На холсте не прячьте «ещё поток» без блока.
-
 ## Связанные разделы
 - python-copy
 - python-asyncio

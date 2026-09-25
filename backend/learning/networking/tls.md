@@ -29,10 +29,6 @@ openssl s_client -connect mqtt:8883
 - отключить verify «временно»
 - один сертификат на всех роботов без учёта
 
-## В Architecture Canvas
-
-Протокол MQTT/HTTPS: port 8883, notes TLS.
-
 ## Связанные разделы
 - protocols-mqtt
 - protocols-http

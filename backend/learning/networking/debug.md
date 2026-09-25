@@ -29,10 +29,6 @@ ping -c 3 192.168.10.1; tcpdump -n port 1883
 - менять PID потому что «сеть лагает»
 - dump без фильтра на GigE
 
-## В Architecture Canvas
-
-Чек-лист в docs Gateway.
-
 ## Связанные разделы
 - linux-net-tools
 - networking-tcp

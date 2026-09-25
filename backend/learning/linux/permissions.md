@@ -30,10 +30,6 @@ ls -l /dev/ttyACM0
 - chmod 777 на /dev
 - пароль pi/raspberry в изделии
 
-## В Architecture Canvas
-
-В notes SBC: user сервиса и группы. Это требование безопасности.
-
 ## Связанные разделы
 - linux-udev
 - linux-systemd

@@ -29,10 +29,6 @@ journalctl -u robot-svc | grep -E 'FAULT|ESTOP'
 - grep по всему диску на роботе
 - ложный матч в hex-дампе
 
-## В Architecture Canvas
-
-Словарь событий согласован с логами Python/C++.
-
 ## Связанные разделы
 - linux-journalctl
 - python-logging

@@ -29,10 +29,6 @@ related: [linux-intro, cpp-embedded, robotics-control-split]
 - маркетинг «realtime Pi» как архитектура привода
 - SCHED_FIFO без понимания инверсии
 
-## В Architecture Canvas
-
-Разделение MCU/SBC на холсте — главное архитектурное решение робота.
-
 ## Связанные разделы
 - linux-intro
 - cpp-embedded

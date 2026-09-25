@@ -30,10 +30,6 @@ publish robot/1/status online
 - QoS2 везде «на всякий»
 - ESTOP только MQTT
 
-## В Architecture Canvas
-
-Блок брокера опционален. Рёбра MQTT. Notes QoS/LWT.
-
 ## Связанные разделы
 - python-mqtt
 - cpp-safety

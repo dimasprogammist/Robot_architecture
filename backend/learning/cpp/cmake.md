@@ -30,10 +30,6 @@ target_compile_features(firmware PRIVATE cxx_std_20)
 - глобальные include на всё подряд
 - отключённые предупреждения -w
 
-## В Architecture Canvas
-
-Сборочные таргеты упомяните в документации компонента MCU/C++ сервиса.
-
 ## Связанные разделы
 - cpp-build-model
 - cpp-sanitizers

@@ -29,10 +29,6 @@ void parse(std::span<const std::uint8_t> f);
 - сохранить span дольше жизни буфера
 - span на временный vector
 
-## В Architecture Canvas
-
-Парсер — алгоритм шлюза. Буфер — драйвер DMA/UART.
-
 ## Связанные разделы
 - cpp-arrays
 - cpp-struct

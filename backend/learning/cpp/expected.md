@@ -30,10 +30,6 @@ Err read_reg(uint8_t a, uint16_t& v);
 - bool без причины отказа
 - исключения при -fno-exceptions «на потом»
 
-## В Architecture Canvas
-
-Поле retry/timeout протокола = политика этого API.
-
 ## Связанные разделы
 - cpp-optional
 - cpp-exceptions

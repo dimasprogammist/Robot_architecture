@@ -31,10 +31,6 @@ robot-svc = 'robot.service:main'
 - версия только в UI Canvas, в коде 0.0.0
 - editable install как способ деплоя на изделие
 
-## В Architecture Canvas
-
-Поле version компонента синхронизируйте с git tag. Экспорт для AI тогда честный.
-
 ## Связанные разделы
 - python-venv
 - python-modules

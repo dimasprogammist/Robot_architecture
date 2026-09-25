@@ -29,10 +29,6 @@ map.pgm + yaml
 - SLAM  в том же процессе, что UART 1 кГц, без приоритетов
 - карта без версии
 
-## В Architecture Canvas
-
-Блок SLAM. Файлы карты — attached/runtime path. Связь Lidar UDP.
-
 ## Связанные разделы
 - python-numpy
 - networking-udp

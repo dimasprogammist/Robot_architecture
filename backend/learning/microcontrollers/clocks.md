@@ -29,10 +29,6 @@ SystemCoreClock
 - UART baud посчитан от другой частоты
 - выключить таймер PWM в sleep
 
-## В Architecture Canvas
-
-Hardware notes MCU: clock source.
-
 ## Связанные разделы
 - electronics-psu
 - cpp-hal

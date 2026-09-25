@@ -30,10 +30,6 @@ void set_omega(int ch, float rad_s);
 - перегрузка float/double без правила единиц
 - inline гигантских функций
 
-## В Architecture Canvas
-
-API блока MCU списком функций. Алгоритм пользуется доменным слоем.
-
 ## Связанные разделы
 - cpp-headers
 - cpp-classes

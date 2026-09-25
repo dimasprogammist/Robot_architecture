@@ -30,10 +30,6 @@ async def run():
 - вызвать blocking OpenCV в coroutine
 - забытый timeout на wait
 
-## В Architecture Canvas
-
-Если шлюз async — укажите в технологии компонента. Алгоритм: gather задач = параллельные шаги.
-
 ## Связанные разделы
 - python-fastapi
 - python-mqtt

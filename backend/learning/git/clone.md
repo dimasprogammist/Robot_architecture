@@ -29,10 +29,6 @@ git clone git@host:org/robot.git
 - на изделии ветка develop
 - https пароль в unit-файле
 
-## В Architecture Canvas
-
-Поставка — отдельный блок CI/CD в будущем; пока notes компонента.
-
 ## Связанные разделы
 - git-branch
 - docker-intro

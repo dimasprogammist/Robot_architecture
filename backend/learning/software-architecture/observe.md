@@ -29,10 +29,6 @@ mission_id, seq, mode
 - метрики без меток робота
 - PII в логах камеры
 
-## В Architecture Canvas
-
-Документ observability у системы.
-
 ## Связанные разделы
 - python-logging
 - linux-journalctl

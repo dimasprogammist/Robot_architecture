@@ -29,10 +29,6 @@ find /var/lib/robot/telem -mtime +7 -delete
 - find без -print0 при пробелах
 - удаление калибровок тем же правилом
 
-## В Architecture Canvas
-
-Политика данных — docs SBC.
-
 ## Связанные разделы
 - linux-disks
 - bash-redirects

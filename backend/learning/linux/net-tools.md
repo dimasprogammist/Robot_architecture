@@ -30,10 +30,6 @@ ip route
 - сразу переписывать код сервиса
 - tcpdump без фильтра на 1 Гбит камере
 
-## В Architecture Canvas
-
-Связь Ethernet/Wi-Fi на холсте. Troubleshooting — в docs шлюза.
-
 ## Связанные разделы
 - networking-ip
 - linux-firewall

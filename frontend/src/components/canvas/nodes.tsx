@@ -57,7 +57,7 @@ export function TableNode({ data, selected }: NodeProps<TableRFNode>) {
         <div className="col" key={col.id}>
           <span>{col.name}</span>
           <span>
-            {col.primary_key ? 'PK ' : ''}
+            {col.primary_key ? 'ключ ' : ''}
             {col.type}
           </span>
         </div>

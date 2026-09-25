@@ -29,10 +29,6 @@ if (!i2c_write(addr, reg, val)) return Err::Nack;
 - игнор NACK
 - два мастера без политики
 
-## В Architecture Canvas
-
-Если много slave — покажите шину как NETWORK/компонент шины, не прямую кашу рёбер.
-
 ## Связанные разделы
 - electronics-pullup
 - cpp-expected

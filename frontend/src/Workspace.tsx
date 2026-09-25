@@ -10,14 +10,10 @@ import { SqlToolbar } from './components/SqlToolbar'
 import { useProjectStore } from './store/useProjectStore'
 import { useUiStore } from './store/useUiStore'
 import { AlgorithmsView } from './views/AlgorithmsView'
-import { BomView } from './views/BomView'
-import { ComponentsView } from './views/ComponentsView'
 import { DocumentsView } from './views/DocumentsView'
 import { ExportView } from './views/ExportView'
 import { LearningView } from './views/LearningView'
 import { TutorialView } from './views/TutorialView'
-import { ProtocolsView } from './views/ProtocolsView'
-import { RequirementsView } from './views/RequirementsView'
 import { SettingsView } from './views/SettingsView'
 import type { LibraryPreset } from './types'
 
@@ -33,7 +29,6 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const paste = useProjectStore((s) => s.paste)
   const saveNow = useProjectStore((s) => s.saveNow)
   const setSearchOpen = useUiStore((s) => s.setSearchOpen)
-  const setNav = useUiStore((s) => s.setNav)
   const ensureKindArchitecture = useProjectStore((s) => s.ensureKindArchitecture)
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const architectureId = useProjectStore((s) => s.architectureId)
@@ -91,8 +86,8 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
     )
   }
 
-  const canvasNav = nav === 'architecture' || nav === 'mechanics' || nav === 'database'
-  const libFilter = nav === 'mechanics' ? 'MECHANICS' : nav === 'database' ? 'table' : undefined
+  const canvasNav = nav === 'architecture' || nav === 'database'
+  const libFilter = nav === 'database' ? 'table' : undefined
 
   return (
     <div className="app-shell">
@@ -110,23 +105,10 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
           </>
         ) : (
           <div style={{ minWidth: 0, minHeight: 0 }}>
-            {nav === 'projects' ? (
-              <div className="page">
-                <h1>Проекты</h1>
-                <p className="lede">Кнопка справа вверху возвращает к списку проектов.</p>
-                <button className="btn" type="button" onClick={() => setNav('architecture')}>
-                  К холсту
-                </button>
-              </div>
-            ) : null}
-            {nav === 'components' ? <ComponentsView /> : null}
-            {nav === 'protocols' ? <ProtocolsView /> : null}
             {nav === 'algorithms' ? <AlgorithmsView /> : null}
-            {nav === 'requirements' ? <RequirementsView /> : null}
             {nav === 'documents' ? <DocumentsView /> : null}
             {nav === 'learning' ? <LearningView /> : null}
             {nav === 'tutorial' ? <TutorialView /> : null}
-            {nav === 'bom' ? <BomView /> : null}
             {nav === 'export' ? <ExportView /> : null}
             {nav === 'settings' ? <SettingsView /> : null}
           </div>

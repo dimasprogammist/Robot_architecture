@@ -29,10 +29,6 @@ related: [app-docs, app-algorithms, app-files]
 - пустые все поля и ждать чудес от AI-экспорта
 - документация только в чате
 
-## В Architecture Canvas
-
-Правая панель на холсте.
-
 ## Связанные разделы
 - app-docs
 - app-algorithms

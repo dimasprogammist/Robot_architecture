@@ -29,10 +29,6 @@ enum { Hunt, Len, Body, Crc };
 - блокирующий wait в тике на RX
 - разный magic на концах
 
-## В Architecture Canvas
-
-Протокол UART на ребре MCU—Gateway. Алгоритм FSM — у обоих, но реализация своя.
-
 ## Связанные разделы
 - python-serial
 - cpp-struct

@@ -29,10 +29,6 @@ Vih min, Vil max, abs max Vin
 - питать 5 В пин 3.3 В MCU
 - SPI 20 МГц при кабеле 30 см
 
-## В Architecture Canvas
-
-Документы: Official + Datasheet URL + My notes.
-
 ## Связанные разделы
 - electronics-levels
 - cpp-spi

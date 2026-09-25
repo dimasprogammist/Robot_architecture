@@ -29,10 +29,6 @@ Drive System → Left Wheel Assembly.
 - сборка без деталей внутри
 - qty=1 при 4 колёсах без мысли
 
-## В Architecture Canvas
-
-BOM собирается из HARDWARE+MECHANICS.
-
 ## Связанные разделы
 - robotics-mechanics
 - app-nested

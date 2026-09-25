@@ -36,10 +36,6 @@ def timed(fn):
 - декоратор, глотающий KeyboardInterrupt
 - стек из 6 декораторов на один handler
 
-## В Architecture Canvas
-
-Политики retry опишите в протоколе (timeout, retry), декоратор только реализует контракт.
-
 ## Связанные разделы
 - python-functions
 - python-logging

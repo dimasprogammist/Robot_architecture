@@ -30,10 +30,6 @@ Pi—STM32 115200. Watchdog кадра.
 - нет framing
 - timeout=None
 
-## В Architecture Canvas
-
-Связь UART цвет. Алгоритм сборки кадра.
-
 ## Связанные разделы
 - python-serial
 - cpp-uart

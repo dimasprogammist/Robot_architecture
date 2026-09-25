@@ -31,10 +31,6 @@ void can_send(std::uint32_t id, const std::uint8_t* d, int n);
 - using namespace std в заголовке
 - статические переменные в header без inline
 
-## В Architecture Canvas
-
-Публичный заголовок драйвера = поле API компонента MCU.
-
 ## Связанные разделы
 - cpp-build-model
 - cpp-namespaces
