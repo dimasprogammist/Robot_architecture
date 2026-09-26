@@ -11,6 +11,7 @@ import type {
   Requirement,
 } from '../types'
 import { emptyMechanical, emptyTable, withComponentDefaults } from '../model/defaults'
+import { definitionFor } from '../model/componentCatalog'
 
 const MAX_HISTORY = 80
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -227,7 +228,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   addFromPreset: (preset, position) =>
-    get().addComponent(
+    (() => {
+      const definition = definitionFor({ name: preset.name, type: preset.type, category: preset.category })
+      const extra_fields = definition
+        ? Object.fromEntries(definition.fields.map((field) => [field.key, preset.name === 'PostgreSQL' && field.key === 'dbms' ? 'PostgreSQL' : '']))
+        : {}
+      return get().addComponent(
       {
         name: preset.name,
         type: preset.type,
@@ -237,9 +243,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         hardware_id: preset.hardware_id || null,
         protocol_id: preset.protocol_id || null,
         entity_kind: preset.entity_kind,
+        extra_fields,
       },
       position,
-    ),
+      )
+    })(),
 
   updateComponent: (id, patch) => {
     get().mutate((p) => {
@@ -381,15 +389,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     let alg = project.algorithms.find((a) => a.component_id === componentId)
     if (alg) return alg
     const component = project.components.find((c) => c.id === componentId)
+    const template = component ? definitionFor(component)?.algorithm : undefined
     const created: Algorithm = {
       id: uid(),
       component_id: componentId,
       name: `${component?.name || 'Компонент'}: алгоритм`,
-      description: '',
-      steps: [],
-      inputs: [],
-      outputs: [],
-      errors: [],
+      description: template?.purpose || '',
+      steps: (template?.steps || []).map((text) => ({ id: uid(), kind: 'action', text, condition: '', on_true: '', on_false: '' })),
+      inputs: template?.inputs || [],
+      outputs: template?.outputs || [],
+      errors: template?.errors || [],
       conditions: [],
       loops: [],
       states: ['IDLE', 'RUNNING', 'ERROR'],

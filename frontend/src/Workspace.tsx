@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { PanelRightOpen } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { ArchitectureCanvas } from './components/canvas/ArchitectureCanvas'
 import { LibraryRail } from './components/canvas/LibraryRail'
@@ -32,6 +33,8 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const ensureKindArchitecture = useProjectStore((s) => s.ensureKindArchitecture)
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const architectureId = useProjectStore((s) => s.architectureId)
+  const [inspectorOpen, setInspectorOpen] = useState(true)
+  const [inspectorWidth, setInspectorWidth] = useState(432)
 
   useEffect(() => {
     if (id) load(id).catch(() => undefined)
@@ -88,11 +91,19 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
 
   const canvasNav = nav === 'architecture' || nav === 'database'
   const libFilter = nav === 'database' ? 'table' : undefined
+  const startResize = (event: React.PointerEvent) => {
+    const startX = event.clientX
+    const startWidth = inspectorWidth
+    const move = (e: PointerEvent) => setInspectorWidth(Math.min(620, Math.max(300, startWidth + startX - e.clientX)))
+    const end = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end) }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', end)
+  }
 
   return (
     <div className="app-shell">
       <TopBar />
-      <div className={`workspace ${canvasNav ? '' : 'no-inspector'}`}>
+      <div className={`workspace ${canvasNav && inspectorOpen ? '' : 'no-inspector'}`} style={canvasNav && inspectorOpen ? { '--inspector': `${inspectorWidth}px` } as React.CSSProperties : undefined}>
         <LeftSidebar />
         {canvasNav ? (
           <>
@@ -101,7 +112,9 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
               <LibraryRail presets={presets} filter={libFilter} />
               <ArchitectureCanvas />
             </div>
-            <Inspector />
+            {inspectorOpen ? <div className="inspector-shell"><div className="inspector-resizer" onPointerDown={startResize} aria-label="Изменить ширину панели свойств" /><Inspector onClose={() => setInspectorOpen(false)} /></div> : (
+              <button className="inspector-show" type="button" title="Показать свойства" aria-label="Показать свойства" onClick={() => setInspectorOpen(true)}><PanelRightOpen size={17} /></button>
+            )}
           </>
         ) : (
           <div style={{ minWidth: 0, minHeight: 0 }}>
