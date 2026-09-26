@@ -3,17 +3,17 @@ import { useProjectStore } from '../store/useProjectStore'
 import { AlgorithmCanvas } from '../components/canvas/AlgorithmCanvas'
 import type { Component, Project } from '../types'
 
-function softwareTree(project: Project) {
-  const software = project.components.filter((c) => c.category === 'SOFTWARE')
-  const byId = new Map(software.map((c) => [c.id, c]))
+function componentTree(project: Project) {
+  const components = project.components.filter((c) => c.entity_kind !== 'table')
+  const byId = new Map(components.map((c) => [c.id, c]))
   const parentOf = new Map<string, string | null>()
-  for (const c of software) {
+  for (const c of components) {
     const arch = project.architectures.find((a) => a.id === c.architecture_id)
     const parentId = arch?.parent_component_id || null
     parentOf.set(c.id, parentId && byId.has(parentId) ? parentId : null)
   }
   const children = new Map<string | null, Component[]>()
-  for (const c of software) {
+  for (const c of components) {
     const parent = parentOf.get(c.id) ?? null
     const list = children.get(parent) || []
     list.push(c)
@@ -28,8 +28,8 @@ export function AlgorithmsView() {
   const ensureAlgorithm = useProjectStore((s) => s.ensureAlgorithm)
   const select = useProjectStore((s) => s.select)
   const updateAlgorithm = useProjectStore((s) => s.updateAlgorithm)
-  const children = useMemo(() => softwareTree(project), [project])
-  const selected = project.components.find((c) => c.category === 'SOFTWARE' && selectedIds.includes(c.id))
+  const children = useMemo(() => componentTree(project), [project])
+  const selected = project.components.find((c) => c.entity_kind !== 'table' && selectedIds.includes(c.id))
   const alg = selected ? project.algorithms.find((a) => a.component_id === selected.id) : undefined
 
   const renderLevel = (parent: string | null, depth: number) =>
@@ -57,8 +57,8 @@ export function AlgorithmsView() {
     <div className="page algo-layout">
       <aside className="algo-tree">
         <h1>Алгоритмы</h1>
-        <p className="lede">Программные компоненты проекта. Механика сюда не входит.</p>
-        {children.get(null)?.length ? renderLevel(null, 0) : <p className="hint">На холсте архитектуры пока нет программных блоков.</p>}
+        <p className="lede">Алгоритм связан с каждым компонентом системы: от датчика и контроллера до сервера и исполнительного механизма.</p>
+        {children.get(null)?.length ? renderLevel(null, 0) : <p className="hint">На холсте архитектуры пока нет компонентов.</p>}
       </aside>
       <div className="algo-canvas">
         {selected && alg ? (
@@ -70,7 +70,7 @@ export function AlgorithmsView() {
             <AlgorithmCanvas algorithmId={alg.id} />
           </>
         ) : (
-          <p className="lede">Выберите программный компонент слева — справа откроется его блок-схема.</p>
+          <p className="lede">Выберите компонент слева — справа откроется его алгоритм и блок-схема.</p>
         )}
       </div>
     </div>

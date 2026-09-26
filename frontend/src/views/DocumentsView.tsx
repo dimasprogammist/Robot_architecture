@@ -19,7 +19,7 @@ export function DocumentsView() {
           [
             ['requirements', 'Требования'],
             ['notes', 'Заметки'],
-            ['bom', 'BOM'],
+            ['bom', 'Спецификация'],
           ] as const
         ).map(([id, label]) => (
           <button key={id} className={`tab ${tab === id ? 'active' : ''}`} type="button" onClick={() => setTab(id)}>

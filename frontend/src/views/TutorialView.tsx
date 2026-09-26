@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { api, type CourseLesson, type CourseOverview } from '../lib/api'
 
@@ -8,6 +8,7 @@ export function TutorialView() {
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
   const [lesson, setLesson] = useState<CourseLesson | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [openModules, setOpenModules] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     api
@@ -45,13 +46,16 @@ export function TutorialView() {
           </p>
         ) : null}
         {error ? <p className="hint">{error}</p> : null}
-        {overview?.modules.map((mod) => (
+        {overview?.modules.map((mod) => {
+          const open = openModules[mod.id] !== false
+          return (
           <section key={mod.id} className="learning-cat">
-            <div className="learning-cat-btn tutorial-module-title">
+            <button className="learning-cat-btn tutorial-module-title" type="button" onClick={() => setOpenModules((value) => ({ ...value, [mod.id]: !open }))} aria-expanded={open}>
+              <ChevronDown className={open ? '' : 'collapsed-chevron'} size={15} />
               <span>{mod.title}</span>
               <span className="hint">{mod.lessons.length}</span>
-            </div>
-            <div className="learning-sec">
+            </button>
+            {open ? <div className="learning-sec">
               {mod.lessons.map((item) => (
                 <button
                   key={item.id}
@@ -62,9 +66,10 @@ export function TutorialView() {
                   <span>{item.title}</span>
                 </button>
               ))}
-            </div>
+            </div> : null}
           </section>
-        ))}
+          )
+        })}
       </aside>
       <article className="learning-article tutorial-article">
         {lesson ? (

@@ -1,4 +1,5 @@
 import { ColorSwatches } from './ColorSwatches'
+import { PanelRightClose } from 'lucide-react'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
 import { DocsPanel, FilesPanel, MechPanel, TablePanel } from './InspectorExtras'
@@ -6,10 +7,11 @@ import { MarkdownField } from './MarkdownField'
 import { uid } from '../lib/ids'
 import { CATEGORY_LABELS, STATUS_LABELS, STEP_KIND_LABELS, TAB_LABELS } from '../i18n'
 import type { AlgorithmStepKind, Component, Connection } from '../types'
+import { componentFields } from '../model/componentCatalog'
 
 const STATUSES = ['planned', 'in-progress', 'ready', 'deprecated']
 
-export function Inspector() {
+export function Inspector({ onClose }: { onClose?: () => void }) {
   const project = useProjectStore((s) => s.project)
   const selectedIds = useProjectStore((s) => s.selectedIds)
   const selectedConnectionId = useProjectStore((s) => s.selectedConnectionId)
@@ -34,7 +36,7 @@ export function Inspector() {
   if (!component) {
     return (
       <aside className="inspector">
-        <h2>Инспектор</h2>
+        <div className="inspector-heading"><h2>Инспектор</h2>{onClose ? <button className="icon-btn" type="button" title="Скрыть свойства" onClick={onClose}><PanelRightClose size={16} /></button> : null}</div>
         <p className="sub">Выберите блок или связь.</p>
         <p className="hint">Внутренний холст открывается двойным щелчком только у механической системы.</p>
       </aside>
@@ -56,7 +58,7 @@ export function Inspector() {
 
   return (
     <aside className="inspector">
-      <h2>{component.name}</h2>
+      <div className="inspector-heading"><h2>{component.name}</h2>{onClose ? <button className="icon-btn" type="button" title="Скрыть свойства" onClick={onClose}><PanelRightClose size={16} /></button> : null}</div>
       <p className="sub">
         {component.type} · {CATEGORY_LABELS[component.category] || component.category}
       </p>
@@ -84,6 +86,15 @@ export function Inspector() {
           <details className="prop-extra" open>
             <summary>Общие</summary>
             <Field label="Название" value={component.name} onChange={(v) => updateComponent(component.id, { name: v })} />
+            <p className="prop-kicker">Свойства компонента</p>
+            {componentFields(component).map((field) => (
+              <Field
+                key={field.key}
+                label={field.label}
+                value={component.extra_fields[field.key] || ''}
+                onChange={(v) => updateComponent(component.id, { extra_fields: { ...component.extra_fields, [field.key]: v } })}
+              />
+            ))}
             <div className="field">
               <label>Тип</label>
               <select value={types.includes(component.type) ? component.type : ''} onChange={(e) => updateComponent(component.id, { type: e.target.value })}>
