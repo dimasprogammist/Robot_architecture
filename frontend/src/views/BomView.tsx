@@ -5,7 +5,7 @@ export function BomView({ embedded = false }: { embedded?: boolean }) {
   const rows = project.components.filter((c) => c.category === 'HARDWARE' || c.category === 'MECHANICS')
   return (
     <div className={embedded ? 'embedded-section' : 'page'}>
-      {embedded ? null : <h1>BOM</h1>}
+      {embedded ? null : <h1>Спецификация</h1>}
       <p className="lede">Инженерный список hardware- и механических компонентов текущей семантической модели. Складской учёт не ведётся.</p>
       <table className="table">
         <thead>

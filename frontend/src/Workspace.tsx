@@ -1,4 +1,6 @@
-import { useEffect } from 'react'
+
+import { useEffect, useState } from 'react'
+import { PanelRightOpen } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { ArchitectureCanvas } from './components/canvas/ArchitectureCanvas'
 import { LibraryRail } from './components/canvas/LibraryRail'
@@ -29,9 +31,14 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const paste = useProjectStore((s) => s.paste)
   const saveNow = useProjectStore((s) => s.saveNow)
   const setSearchOpen = useUiStore((s) => s.setSearchOpen)
-  const ensureKindArchitecture = useProjectStore((s) => s.ensureKindArchitecture)
+  const ensureKindArchitecture = useProjectStore(
+    (s) => s.ensureKindArchitecture,
+  )
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const architectureId = useProjectStore((s) => s.architectureId)
+
+  const [inspectorOpen, setInspectorOpen] = useState(true)
+  const [inspectorWidth, setInspectorWidth] = useState(432)
 
   useEffect(() => {
     if (id) load(id).catch(() => undefined)
@@ -39,44 +46,93 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
 
   useEffect(() => {
     if (!project) return
-    if (nav === 'database') ensureKindArchitecture('database', 'База данных')
+
+    if (nav === 'database') {
+      ensureKindArchitecture('database', 'База данных')
+    }
+
     if (nav === 'architecture') {
-      const current = project.architectures.find((a) => a.id === architectureId)
+      const current = project.architectures.find(
+        (a) => a.id === architectureId,
+      )
+
       if (current?.kind === 'database' && !current.parent_component_id) {
         goToArchitecture(project.root_architecture_id)
       }
     }
-  }, [nav, project?.id, ensureKindArchitecture, goToArchitecture])
+  }, [
+    nav,
+    project?.id,
+    ensureKindArchitecture,
+    goToArchitecture,
+    architectureId,
+  ])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey
+
       if (meta && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setSearchOpen(true)
       }
+
       if (meta && e.key.toLowerCase() === 's') {
         e.preventDefault()
         saveNow()
       }
+
       if (meta && e.key.toLowerCase() === 'z') {
         e.preventDefault()
-        if (e.shiftKey) redo()
-        else undo()
+
+        if (e.shiftKey) {
+          redo()
+        } else {
+          undo()
+        }
       }
-      if (meta && e.key.toLowerCase() === 'c' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+
+      if (
+        meta &&
+        e.key.toLowerCase() === 'c' &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
         copy()
       }
-      if (meta && e.key.toLowerCase() === 'v' && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+
+      if (
+        meta &&
+        e.key.toLowerCase() === 'v' &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
         paste()
       }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !(e.target instanceof HTMLInputElement) && !(e.target instanceof HTMLTextAreaElement)) {
+
+      if (
+        (e.key === 'Delete' || e.key === 'Backspace') &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
         deleteSelected()
       }
     }
+
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [copy, deleteSelected, paste, redo, saveNow, setSearchOpen, undo])
+
+    return () => {
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [
+    copy,
+    deleteSelected,
+    paste,
+    redo,
+    saveNow,
+    setSearchOpen,
+    undo,
+  ])
 
   if (!project || project.id !== id) {
     return (
@@ -89,22 +145,103 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const canvasNav = nav === 'architecture' || nav === 'database'
   const libFilter = nav === 'database' ? 'table' : undefined
 
+  const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    const resizer = event.currentTarget
+    const pointerId = event.pointerId
+    const startX = event.clientX
+    const startWidth = inspectorWidth
+
+    resizer.setPointerCapture(pointerId)
+
+    document.body.classList.add('inspector-resizing')
+
+    const move = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return
+
+      const nextWidth = startWidth + startX - e.clientX
+
+      setInspectorWidth(
+        Math.min(620, Math.max(300, nextWidth)),
+      )
+    }
+
+    const end = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return
+
+      resizer.releasePointerCapture(pointerId)
+      resizer.removeEventListener('pointermove', move)
+      resizer.removeEventListener('pointerup', end)
+      resizer.removeEventListener('pointercancel', end)
+
+      document.body.classList.remove('inspector-resizing')
+    }
+
+    resizer.addEventListener('pointermove', move)
+    resizer.addEventListener('pointerup', end)
+    resizer.addEventListener('pointercancel', end)
+  }
+
   return (
     <div className="app-shell">
       <TopBar />
-      <div className={`workspace ${canvasNav ? '' : 'no-inspector'}`}>
+
+      <div
+        className={`workspace ${
+          canvasNav && inspectorOpen ? '' : 'no-inspector'
+        }`}
+        style={
+          canvasNav && inspectorOpen
+            ? ({
+                '--inspector': `${inspectorWidth}px`,
+              } as React.CSSProperties)
+            : undefined
+        }
+      >
         <LeftSidebar />
+
         {canvasNav ? (
           <>
             <div className="canvas-stage">
               {nav === 'database' ? <SqlToolbar /> : null}
-              <LibraryRail presets={presets} filter={libFilter} />
+
+              <LibraryRail
+                presets={presets}
+                filter={libFilter}
+              />
+
               <ArchitectureCanvas />
             </div>
-            <Inspector />
+
+            {inspectorOpen ? (
+              <div className="inspector-shell">
+                <div
+                  className="inspector-resizer"
+                  onPointerDown={startResize}
+                  aria-label="Изменить ширину панели свойств"
+                  role="separator"
+                  aria-orientation="vertical"
+                />
+
+                <Inspector
+                  onClose={() => setInspectorOpen(false)}
+                />
+              </div>
+            ) : (
+              <button
+                className="inspector-show"
+                type="button"
+                title="Показать свойства"
+                aria-label="Показать свойства"
+                onClick={() => setInspectorOpen(true)}
+              >
+                <PanelRightOpen size={17} />
+              </button>
+            )}
           </>
         ) : (
-          <div style={{ minWidth: 0, minHeight: 0 }}>
+          <div className="workspace-page">
             {nav === 'algorithms' ? <AlgorithmsView /> : null}
             {nav === 'documents' ? <DocumentsView /> : null}
             {nav === 'learning' ? <LearningView /> : null}
@@ -114,6 +251,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
           </div>
         )}
       </div>
+
       <ExportModal />
       <CommandPalette />
     </div>
