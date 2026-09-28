@@ -322,7 +322,6 @@ class Project(BaseModel):
     description: str = ""
     created_at: str
     updated_at: str
-    current_version_label: str = "v1"
     root_architecture_id: str
     architectures: list[Architecture] = Field(default_factory=list)
     components: list[Component] = Field(default_factory=list)
@@ -386,7 +385,6 @@ class ProjectSummary(BaseModel):
     description: str = ""
     created_at: str
     updated_at: str
-    current_version_label: str = "v1"
     component_count: int = 0
 
 
