@@ -106,7 +106,9 @@ export function TutorialView() {
               {lesson.module_title} · урок {lesson.order}
             </p>
 
-            <RichMarkdown>{lesson.content}</RichMarkdown>
+            <RichMarkdown assetBase={lesson.asset_base}>
+              {lesson.content}
+            </RichMarkdown>
 
             <div className="tutorial-nav-buttons">
               {lesson.prev_lesson_id ? (

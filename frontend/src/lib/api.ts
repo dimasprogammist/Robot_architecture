@@ -53,6 +53,7 @@ export interface CourseLesson {
   module_title: string
   order: number
   content: string
+  asset_base: string
   prev_lesson_id: string | null
   next_lesson_id: string | null
 }

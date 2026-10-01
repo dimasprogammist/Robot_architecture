@@ -44,7 +44,7 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
     return (
       <aside className="inspector">
         <div className="inspector-heading">
-          <h2>Инспектор</h2>
+          <h2>Свойства</h2>
           {onClose ? (
             <button
               className="icon-btn"
