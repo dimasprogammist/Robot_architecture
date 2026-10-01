@@ -1280,7 +1280,7 @@ html[data-theme='dark'] .tok-num {
   color: #8bb4ce;
 }
 
-/* ---------- Learning / algorithms ---------- */
+/* ---------- Learning ---------- */
 
 .learn-layout {
   display: grid;
@@ -1295,19 +1295,36 @@ html[data-theme='dark'] .tok-num {
   text-align: left;
 }
 
+.learning-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.learning-related h3 {
+  width: 100%;
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+
+/* ---------- Algorithms ---------- */
+
 .algo-layout {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr);
   gap: 16px;
-  height: 100%;
+  height: calc(100vh - 80px);
   min-height: 0;
 }
 
 .algo-tree {
-  overflow: auto;
+  height: 100%;
   min-height: 0;
+  overflow-y: auto;
   border-right: 1px solid var(--line);
   padding-right: 10px;
+  box-sizing: border-box;
 }
 
 .algo-tree-item {
@@ -1330,21 +1347,18 @@ html[data-theme='dark'] .tok-num {
 .algo-canvas {
   min-width: 0;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.learning-related {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 28px;
+.algo-canvas > .field {
+  flex: 0 0 auto;
 }
 
-.learning-related h3 {
-  width: 100%;
-  font-size: 14px;
-  margin: 0 0 4px;
+.algo-canvas > :last-child {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* ---------- Tutorial ---------- */
@@ -1702,14 +1716,28 @@ html[data-theme='dark'] .tok-num {
   margin-bottom: 18px;
 }
 
+.settings-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+  align-items: stretch;
+}
+
 .settings-card {
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   padding: 16px;
-  margin: 12px 0;
+  margin: 0;
   box-shadow: var(--shadow);
+}
+
+.settings-layout > .settings-card {
+  height: 100%;
 }
 
 .settings-card h2 {
@@ -1719,16 +1747,15 @@ html[data-theme='dark'] .tok-num {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
-  max-width: 680px;
 }
 
 .settings-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(160px, max-content));
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: 10px 20px;
+  gap: 10px;
 }
 
 .settings-options .row {
@@ -1738,6 +1765,27 @@ html[data-theme='dark'] .tok-num {
 .settings-grid-size {
   width: 160px;
   margin: 0;
+}
+
+.settings-wide {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.settings-wide > .page {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-wide > .page > .settings-card {
+  width: 100%;
+  margin: 0;
+}
+
+.settings-wide > .page > .settings-card + .settings-card {
+  margin-top: 24px;
 }
 
 .settings-subtitle {
@@ -1925,14 +1973,6 @@ html[data-theme='dark'] .react-flow__edge-path {
     padding: 20px 18px 48px;
   }
 
-  .settings-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .settings-options {
-    grid-template-columns: 1fr;
-  }
-
   .tutorial-nav-buttons {
     gap: 8px;
   }
@@ -1942,3 +1982,5 @@ html[data-theme='dark'] .react-flow__edge-path {
     justify-content: center;
   }
 }
+
+

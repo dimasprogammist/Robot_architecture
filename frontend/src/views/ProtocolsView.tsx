@@ -23,58 +23,94 @@ const blank = (): Protocol => ({
   color: '',
 })
 
-export function ProtocolsView({ embedded = false }: { embedded?: boolean }) {
-  const project = useProjectStore((s) => s.project)!
+export function ProtocolsView() {
+  const project = useProjectStore((s) => s.project)
   const mutate = useProjectStore((s) => s.mutate)
+
+  if (!project) {
+    return null
+  }
+
   return (
-    <div className={embedded ? 'embedded-section' : 'page'}>
-      {embedded ? <h2 className="settings-subtitle">Протоколы</h2> : <h1>Протоколы</h1>}
-      <p className="lede">Каталог транспортов для связей. Цвет линии выбирается из фиксированной палитры.</p>
-      <button className="btn primary" type="button" onClick={() => mutate((p) => p.protocols.push(blank()))}>
-        Новый протокол
-      </button>
-      <div className="grid-cards" style={{ marginTop: 18 }}>
-        {project.protocols.map((proto) => (
-          <article className="card" key={proto.id}>
-            <input
-              value={proto.name}
-              onChange={(e) =>
-                mutate((p) => {
-                  const x = p.protocols.find((i) => i.id === proto.id)
-                  if (x) x.name = e.target.value
-                })
-              }
-              style={{ fontWeight: 600, fontSize: 15, border: 'none', background: 'transparent', padding: 0 }}
-            />
-            <p>
-              {proto.transport || '—'} {proto.port ? `:${proto.port}` : ''} · {proto.data_format || 'полезная нагрузка'}
-            </p>
-            <textarea
-              style={{ marginTop: 10, width: '100%', minHeight: 64 }}
-              placeholder="Структура сообщения"
-              value={proto.message_structure}
-              onChange={(e) =>
-                mutate((p) => {
-                  const x = p.protocols.find((i) => i.id === proto.id)
-                  if (x) x.message_structure = e.target.value
-                })
-              }
-            />
-            <div className="field" style={{ marginTop: 8 }}>
-              <label>Цвет</label>
-              <ColorSwatches
-                value={proto.color}
-                onChange={(color) =>
+    <div className="page">
+      <section className="settings-card">
+        <h2
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <span>Протоколы</span>
+
+          <button
+            className="btn primary"
+            type="button"
+            onClick={() => mutate((p) => p.protocols.push(blank()))}
+          >
+            Новый протокол
+          </button>
+        </h2>
+
+        <div className="grid-cards" style={{ marginTop: 18 }}>
+          {project.protocols.map((proto) => (
+            <article className="card" key={proto.id}>
+              <input
+                value={proto.name}
+                onChange={(e) =>
                   mutate((p) => {
                     const x = p.protocols.find((i) => i.id === proto.id)
-                    if (x) x.color = color
+                    if (x) x.name = e.target.value
+                  })
+                }
+                style={{
+                  fontWeight: 600,
+                  fontSize: 15,
+                  border: 'none',
+                  background: 'transparent',
+                  padding: 0,
+                }}
+              />
+
+              <p>
+                {proto.transport || '—'}
+                {proto.port ? `:${proto.port}` : ''} ·{' '}
+                {proto.data_format || 'полезная нагрузка'}
+              </p>
+
+              <textarea
+                style={{
+                  marginTop: 5,
+                  width: '100%',
+                  minHeight: 10,
+                }}
+                placeholder="Структура сообщения"
+                value={proto.message_structure}
+                onChange={(e) =>
+                  mutate((p) => {
+                    const x = p.protocols.find((i) => i.id === proto.id)
+                    if (x) x.message_structure = e.target.value
                   })
                 }
               />
-            </div>
-          </article>
-        ))}
-      </div>
+
+              <div className="field" style={{ marginTop: 5 }}>
+                <label>Цвет</label>
+
+                <ColorSwatches
+                  value={proto.color}
+                  onChange={(color) =>
+                    mutate((p) => {
+                      const x = p.protocols.find((i) => i.id === proto.id)
+                      if (x) x.color = color
+                    })
+                  }
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

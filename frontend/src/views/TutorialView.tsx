@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { api, type CourseLesson, type CourseOverview } from '../lib/api'
@@ -10,6 +9,7 @@ export function TutorialView() {
   const [lesson, setLesson] = useState<CourseLesson | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({})
+  const [q, setQ] = useState('')
 
   useEffect(() => {
     api
@@ -39,10 +39,36 @@ export function TutorialView() {
       .catch(() => setError('Не удалось загрузить урок.'))
   }, [activeLessonId])
 
+  const filteredModules = useMemo(() => {
+    const search = q.trim().toLowerCase()
+
+    if (!search) {
+      return overview?.modules || []
+    }
+
+    return (
+      overview?.modules
+        .map((mod) => ({
+          ...mod,
+          lessons: mod.lessons.filter((item) =>
+            item.title.toLowerCase().includes(search),
+          ),
+        }))
+        .filter((mod) => mod.lessons.length) || []
+    )
+  }, [overview, q])
+
   return (
     <div className="page learning-page tutorial-page">
       <aside className="learning-nav">
         <h1>Учебник</h1>
+
+        <input
+          className="lib-search"
+          placeholder="Поиск по учебнику"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
 
         {overview ? (
           <p className="hint">
@@ -52,8 +78,10 @@ export function TutorialView() {
 
         {error ? <p className="hint">{error}</p> : null}
 
-        {overview?.modules.map((mod) => {
-          const open = openModules[mod.id] !== false
+        {filteredModules.map((mod) => {
+          const open = q
+            ? true
+            : openModules[mod.id] !== false
 
           return (
             <section key={mod.id} className="learning-cat">

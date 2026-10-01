@@ -57,7 +57,6 @@ export function AlgorithmsView() {
     <div className="page algo-layout">
       <aside className="algo-tree">
         <h1>Алгоритмы</h1>
-        <p className="lede">Алгоритм связан с каждым компонентом системы: от датчика и контроллера до сервера и исполнительного механизма.</p>
         {children.get(null)?.length ? renderLevel(null, 0) : <p className="hint">На холсте архитектуры пока нет компонентов.</p>}
       </aside>
       <div className="algo-canvas">
@@ -65,13 +64,11 @@ export function AlgorithmsView() {
           <>
             <div className="field" style={{ maxWidth: 420 }}>
               <label>Алгоритм · {selected.name}</label>
-              <input value={alg.name} onChange={(e) => updateAlgorithm(alg.id, { name: e.target.value })} />
+
             </div>
             <AlgorithmCanvas algorithmId={alg.id} />
           </>
-        ) : (
-          <p className="lede">Выберите компонент слева — справа откроется его алгоритм и блок-схема.</p>
-        )}
+        ) : null}
       </div>
     </div>
   )

@@ -191,9 +191,7 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
             Удалить блок
           </button>
         </div>
-      ) : (
-        <p className="hint flow-hint">Перетащите блоки, соедините их от выхода к входу. У условия правая точка — ветка «нет».</p>
-      )}
+      ) : null}
     </div>
   )
 }

@@ -20,61 +20,142 @@ export function SettingsView() {
   return (
     <div className="page settings-page">
       <h1>Настройки</h1>
-      <p className="lede">Параметры рабочей области. Тема и сетка применяются сразу.</p>
-      <section className="settings-card"><h2>Профиль и оформление</h2><div className="settings-grid"><div className="field">
-        <label>Отображаемое имя</label>
-        <input value={settings.display_name} onChange={(e) => setSettings({ ...settings, display_name: e.target.value })} />
-      </div><div className="field">
-        <label>Тема</label>
-        <select
-          value={settings.theme}
-          onChange={(e) => {
-            const theme = e.target.value as 'light' | 'dark'
-            setTheme(theme)
-            setSettings({ ...settings, theme })
-          }}
-        >
-          <option value="light">Светлая</option>
-          <option value="dark">Тёмная</option>
-        </select>
-      </div></div></section><section className="settings-card"><h2>Canvas</h2><div className="settings-options"><label className="row">
-        <input
-          type="checkbox"
-          checked={settings.show_grid}
-          onChange={(e) => setSettings({ ...settings, show_grid: e.target.checked })}
-        />
-        Показывать сетку
-      </label><label className="row">
-        <input
-          type="checkbox"
-          checked={settings.snap_to_grid}
-          onChange={(e) => setSettings({ ...settings, snap_to_grid: e.target.checked })}
-        />
-        Привязка к сетке
-      </label><label className="row">
-        <input
-          type="checkbox"
-          checked={settings.autosave}
-          onChange={(e) => {
-            setSettings({ ...settings, autosave: e.target.checked })
-            if (project) mutate((p) => { p.settings.autosave = e.target.checked })
-          }}
-        />
-        Автосохранение
-      </label><div className="field settings-grid-size">
-        <label>Шаг сетки</label>
-        <input
-          type="number"
-          value={settings.grid_size}
-          onChange={(e) => setSettings({ ...settings, grid_size: Number(e.target.value) || 20 })}
-        />
+
+      <div className="settings-layout">
+        <section className="settings-card">
+          <h2>Профиль и оформление</h2>
+
+          <div className="settings-grid">
+            <div className="field">
+              <label>Отображаемое имя</label>
+              <input
+                value={settings.display_name}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    display_name: e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div className="field">
+              <label>Тема</label>
+              <select
+                value={settings.theme}
+                onChange={(e) => {
+                  const theme = e.target.value as 'light' | 'dark'
+
+                  setTheme(theme)
+
+                  setSettings({
+                    ...settings,
+                    theme,
+                  })
+                }}
+              >
+                <option value="light">Светлая</option>
+                <option value="dark">Тёмная</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section className="settings-card">
+          <h2
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 16,
+              flexWrap: 'nowrap',
+            }}
+          >
+            <span>Canvas</span>
+
+            <button
+              className="btn primary"
+              type="button"
+              style={{ whiteSpace: 'nowrap' }}
+              onClick={toggleLibrary}
+            >
+              Скрывать/показывать библиотеку
+            </button>
+          </h2>
+
+          <div className="settings-options">
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={settings.show_grid}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    show_grid: e.target.checked,
+                  })
+                }
+              />
+              Показывать сетку
+            </label>
+
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={settings.snap_to_grid}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    snap_to_grid: e.target.checked,
+                  })
+                }
+              />
+              Привязка к сетке
+            </label>
+
+            <label className="row">
+              <input
+                type="checkbox"
+                checked={settings.autosave}
+                onChange={(e) => {
+                  setSettings({
+                    ...settings,
+                    autosave: e.target.checked,
+                  })
+
+                  if (project) {
+                    mutate((p) => {
+                      p.settings.autosave = e.target.checked
+                    })
+                  }
+                }}
+              />
+              Автосохранение
+            </label>
+
+            <div className="field settings-grid-size">
+              <label>Шаг сетки</label>
+              <input
+                type="number"
+                value={settings.grid_size}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    grid_size: Number(e.target.value) || 20,
+                  })
+                }
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className="settings-wide">
+          <ProtocolsView />
+        </div>
+
+        <div className="settings-wide">
+          <ComponentsView />
+        </div>
       </div>
-      <button className="btn" type="button" onClick={toggleLibrary}>
-        Скрыть или показать библиотеку
-      </button></div></section><section className="settings-card settings-management">
-      <h2>Справочники проекта</h2>
-      <ProtocolsView embedded />
-      <ComponentsView embedded /></section>
     </div>
   )
 }

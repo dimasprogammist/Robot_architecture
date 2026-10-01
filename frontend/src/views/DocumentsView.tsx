@@ -49,7 +49,7 @@ export function DocumentsView() {
           })
         }
       >
-        Новый документ
+        Новая заметка
       </button>
       <div style={{ marginTop: 20, display: 'grid', gap: 18, maxWidth: 720 }}>
         {project.documents.map((d) => (
