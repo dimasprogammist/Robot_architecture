@@ -1087,7 +1087,7 @@ html[data-theme='dark'] .btn.primary {
 
 .learning-page {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 28px;
   align-items: stretch;
   overflow: hidden;
@@ -1108,6 +1108,10 @@ html[data-theme='dark'] .btn.primary {
   font-size: 22px;
 }
 
+.learning-nav {
+  width: 340px;
+}
+
 .learning-cat {
   margin-bottom: 8px;
 }
@@ -1118,13 +1122,13 @@ html[data-theme='dark'] .btn.primary {
   justify-content: space-between;
   border: none;
   background: transparent;
-  padding: 8px 4px;
-  font-weight: 600;
+  padding: 6px 10px;
+  font-weight: 500;
   font-size: 13px;
 }
 
 .learning-sec {
-  margin: 0 0 10px 6px;
+  margin: 0 0 10px 40px;
 }
 
 .learning-sec-title {
@@ -1308,6 +1312,40 @@ html[data-theme='dark'] .tok-num {
   margin: 0 0 4px;
 }
 
+.learning-group-title {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 6px;
+  padding: 0px 0px;
+  margin: 2px 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.learning-group-title:hover {
+  background: var(--surface-2);
+}
+
+.learning-group-title svg {
+  flex: 0 0 auto;
+}
+
+.learning-group-title span {
+  min-width: 0;
+}
+
+.learning-group-content {
+  margin-left: 0;
+}
+
 /* ---------- Algorithms ---------- */
 
 .algo-layout {
@@ -1381,14 +1419,51 @@ html[data-theme='dark'] .tok-num {
   transition: width 0.3s ease;
 }
 
-.tutorial-module-title {
-  font-weight: 650;
-  cursor: default;
+.tutorial-module-title,
+.tutorial-block-title {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
 }
 
-.tutorial-module-title {
-  cursor: pointer;
+.tutorial-module-title > span:first-of-type,
+.tutorial-block-title > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.tutorial-module-title > .hint,
+.tutorial-block-title > .hint {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 12px;
+}
+
+.learning-cat-btn.tutorial-block-title {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
   gap: 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.learning-cat-btn.tutorial-block-title > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.learning-cat-btn.tutorial-block-title > .hint {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-left: 12px;
 }
 
 .collapsed-chevron {
@@ -1483,7 +1558,7 @@ html[data-theme='dark'] .tok-num {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 60px 0;
+  padding: 10px 0;
   color: var(--faint);
   text-align: center;
 }
