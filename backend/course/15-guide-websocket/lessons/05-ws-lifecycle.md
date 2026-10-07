@@ -1,0 +1,81 @@
+---
+id: ws-lifecycle
+title: Жизненный цикл соединения
+module_id: websocket
+module_title: WebSocket
+module_order: 15
+order: 5
+---
+
+# Жизненный цикл соединения
+
+## Цель
+
+Провести accept → exchange → close и ресурсы на сервере.
+
+## Что уже нужно знать
+
+Фреймы.
+
+## Объяснение с нуля
+
+Сервер accept, регистрирует соединение в менеджере, читает цикл сообщений, при выходе удаляет из множества и закрывает. Утечка сокетов при исключениях — классика.
+
+Идемпотентный unregister важен.
+
+## Термины
+
+- **accept**.
+- **connection manager**.
+- **close code**.
+
+## Внутреннее устройство
+
+try/finally вокруг цикла receive.
+
+## Пример
+
+Клиент закрыл вкладку → receive кидает disconnect → finally cleanup.
+
+## Разбор
+
+Без finally соединение останется в broadcast-списке.
+
+## Код
+
+```python
+async def handle(ws):
+    await ws.accept()
+    manager.add(ws)
+    try:
+        while True:
+            msg = await ws.receive_text()
+            await ws.send_text(msg)
+    finally:
+        manager.remove(ws)
+```
+
+## Практика
+
+Какие close codes полезны?
+
+## Типичные ошибки
+
+- Забыть remove.
+- Бесконечный receive без таймаутов политики.
+
+## Что запомнить
+
+Жизнь сокета = accept + цикл + гарантированный cleanup.
+
+## Задание
+
+Добавьте лог connect/disconnect с request_id.
+
+## Связь со следующим уроком
+
+Reconnect.
+
+### Закрепление 1
+
+Объясните соседу суть урока без подглядывания в текст. Если запнулись — вернитесь к блоку «Разбор».

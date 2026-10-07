@@ -1,0 +1,235 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#F4F2EC"/>
+
+  <text x="400" y="42"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="24"
+        fill="#1C1B17">
+    Метод Ньютона
+  </text>
+
+  <!-- Сетка -->
+  <g stroke="#9A968C" stroke-width="1" opacity="0.22">
+    <line x1="150" y1="90" x2="150" y2="330"/>
+    <line x1="250" y1="90" x2="250" y2="330"/>
+    <line x1="350" y1="90" x2="350" y2="330"/>
+    <line x1="450" y1="90" x2="450" y2="330"/>
+    <line x1="550" y1="90" x2="550" y2="330"/>
+    <line x1="650" y1="90" x2="650" y2="330"/>
+    <line x1="700" y1="90" x2="700" y2="330"/>
+
+    <line x1="100" y1="140" x2="720" y2="140"/>
+    <line x1="100" y1="190" x2="720" y2="190"/>
+    <line x1="100" y1="240" x2="720" y2="240"/>
+    <line x1="100" y1="290" x2="720" y2="290"/>
+  </g>
+
+  <!-- Оси -->
+  <g stroke="#6E6B63" stroke-width="2" fill="none">
+    <line x1="100" y1="300" x2="720" y2="300"/>
+    <line x1="100" y1="340" x2="100" y2="80"/>
+  </g>
+
+  <path d="M720 300 L709 294 L709 306 Z" fill="#6E6B63"/>
+  <path d="M100 80 L94 91 L106 91 Z" fill="#6E6B63"/>
+
+  <!--
+    Функция:
+    f(x) = (x - 500)^2 / 100 - 100
+
+    Точка Ньютона:
+    x_n = 650
+    f(x_n) = 125
+    f'(x_n) = 3
+
+    Масштаб по Y:
+    экранный Y = 300 - 0.6 * f(x)
+  -->
+
+  <!-- Точная парабола -->
+  <path d="
+    M 300 120
+    L 305 131.8
+    L 310 143.4
+    L 315 154.7
+    L 320 165.6
+    L 325 176.2
+    L 330 186.6
+    L 335 196.7
+    L 340 206.4
+    L 345 215.9
+    L 350 225
+    L 355 233.9
+    L 360 242.4
+    L 365 250.7
+    L 370 258.6
+    L 375 266.3
+    L 380 273.6
+    L 385 280.7
+    L 390 287.4
+    L 395 293.9
+    L 400 300
+    L 405 305.9
+    L 410 311.4
+    L 415 316.7
+    L 420 321.6
+    L 425 326.3
+    L 430 330.6
+    L 435 334.7
+    L 440 338.4
+    L 445 341.9
+    L 450 345
+    L 455 347.9
+    L 460 350.4
+    L 465 352.7
+    L 470 354.6
+    L 475 356.3
+    L 480 357.6
+    L 485 358.7
+    L 490 359.4
+    L 495 359.9
+    L 500 360
+    L 505 359.9
+    L 510 359.4
+    L 515 358.7
+    L 520 357.6
+    L 525 356.3
+    L 530 354.6
+    L 535 352.7
+    L 540 350.4
+    L 545 347.9
+    L 550 345
+    L 555 341.9
+    L 560 338.4
+    L 565 334.7
+    L 570 330.6
+    L 575 326.3
+    L 580 321.6
+    L 585 316.7
+    L 590 311.4
+    L 595 305.9
+    L 600 300
+    L 605 293.9
+    L 610 287.4
+    L 615 280.7
+    L 620 273.6
+    L 625 266.3
+    L 630 258.6
+    L 635 250.7
+    L 640 242.4
+    L 645 233.9
+    L 650 225
+    L 655 215.9
+    L 660 206.4
+    L 665 196.7
+    L 670 186.6
+    L 675 176.2
+    L 680 165.6
+    L 685 154.7
+    L 690 143.4
+    L 695 131.8
+    L 700 120
+  "
+  fill="none"
+  stroke="#2F5D50"
+  stroke-width="4"
+  stroke-linecap="round"
+  stroke-linejoin="round"/>
+
+  <!--
+    Касательная в x_n = 650.
+
+    В математических координатах:
+    y = 125 + 3(x - 650)
+
+    Пересечение с y = 0:
+    x_(n+1) = 650 - 125/3 = 608.33
+
+    В экранных координатах это:
+    точка касания = (650, 225)
+    пересечение оси X = (608.33, 300)
+  -->
+
+  <!-- Касательная -->
+  <line x1="560"
+        y1="385"
+        x2="700"
+        y2="135"
+        stroke="#6E6B63"
+        stroke-width="2.5"
+        stroke-dasharray="8 7"/>
+
+  <!-- Вертикаль от x_n -->
+  <line x1="650"
+        y1="300"
+        x2="650"
+        y2="225"
+        stroke="#6E6B63"
+        stroke-width="2"
+        stroke-dasharray="6 6"/>
+
+  <!-- Точка касания -->
+  <circle cx="650" cy="225" r="7" fill="#2F5D50"/>
+
+  <!-- Новое приближение -->
+  <circle cx="608.33" cy="300" r="7" fill="#2F5D50"/>
+
+  <!-- Подпись точки -->
+  <text x="665" y="218"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#1C1B17">
+    (xₙ, f(xₙ))
+  </text>
+
+  <!-- Подпись касательной -->
+  <text x="665" y="135"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#6E6B63">
+    касательная
+  </text>
+
+  <!-- x_n -->
+  <text x="650" y="325"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">
+    xₙ
+  </text>
+
+  <!-- x_n+1 -->
+  <text x="608" y="325"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">
+    xₙ₊₁
+  </text>
+
+  <!-- Оси -->
+  <text x="728" y="294"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">
+    x
+  </text>
+
+  <text x="88" y="75"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">
+    f(x)
+  </text>
+
+  <!-- Нижняя подпись -->
+  <text x="400" y="410"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#6E6B63">
+    касательная в xₙ пересекает ось x в xₙ₊₁
+  </text>
+</svg>

@@ -1,22 +1,67 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { logoutAndReload } from './AuthGate'
+import { ProfileMenu } from './components/layout/Layout'
 import { api } from './lib/api'
+import { useUiStore } from './store/useUiStore'
 import type { ProjectSummary, TemplateInfo } from './types'
+
+function formatUpdated(iso: string) {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso
+  return date.toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 export function Home() {
   const navigate = useNavigate()
-  const [projects, setProjects] = useState<ProjectSummary[]>([])
+  const settings = useUiStore((s) => s.settings)
+  const [projects, setProjects] = useState<ProjectSummary[] | null>(null)
   const [templates, setTemplates] = useState<TemplateInfo[]>([])
   const [name, setName] = useState('Робот')
-  const [templateId, setTemplateId] = useState('robot')
+  const [templateId, setTemplateId] = useState(settings.default_template_id || 'robot')
   const [error, setError] = useState('')
   const refresh = () => api.projects().then(setProjects)
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)))
+    refresh().catch((e) => {
+      setError(String(e))
+      setProjects([])
+    })
     api.templates().then(setTemplates).catch(() => undefined)
   }, [])
+
+  useEffect(() => {
+    if (settings.default_template_id) setTemplateId(settings.default_template_id)
+  }, [settings.default_template_id])
+
+  const create = async () => {
+    const p = await api.createProject({
+      name: name || 'Без названия',
+      template_id: templateId,
+    })
+    navigate(`/p/${p.id}`)
+  }
+
+  const createBar = (
+    <div className="create-bar">
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Название проекта" />
+      <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
+        {templates.map((t) => (
+          <option key={t.id} value={t.id}>
+            {t.name}
+          </option>
+        ))}
+      </select>
+      <button className="btn primary" type="button" onClick={create}>
+        + Создать проект
+      </button>
+    </div>
+  )
 
   return (
     <div className="home" style={{ minHeight: '100%' }}>
@@ -26,86 +71,64 @@ export function Home() {
           Architecture Canvas
         </div>
         <div className="grow" />
-        <button className="btn ghost" type="button" onClick={logoutAndReload}>
-          Выйти
-        </button>
+        <div className="top-actions">
+          <ProfileMenu showSettings={false} />
+        </div>
       </header>
       <div className="page" style={{ maxWidth: 980, margin: '0 auto' }}>
         <p className="hint" style={{ letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           Визуальная архитектура для разработки с нейросетями
         </p>
-        <h1>Соберите систему. Затем отдайте её модели.</h1>
-        <p className="lede">
-          Соберите железо, ПО и протоколы на бесконечном холсте. Откройте любой блок и опишите внутренности,
-          алгоритмы и требования — затем экспортируйте структурированный промпт для Cursor, Claude или ChatGPT.
-        </p>
+        <h1>Мои проекты</h1>
         {error ? <p style={{ color: 'var(--danger)' }}>{error}</p> : null}
-        <div className="create-bar">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Название проекта" />
-          <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-          <button
-            className="btn primary"
-            type="button"
-            onClick={async () => {
-              const p = await api.createProject({ name: name || 'Без названия', template_id: templateId })
-              navigate(`/p/${p.id}`)
-            }}
-          >
-            Создать проект
-          </button>
-        </div>
-        <h2 style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faint)' }}>
-          Шаблоны
-        </h2>
-        <div className="grid-cards" style={{ margin: '12px 0 32px' }}>
-          {templates.map((t) => (
-            <button
-              key={t.id}
-              className="card"
-              type="button"
-              onClick={() => setTemplateId(t.id)}
-              style={{ outline: templateId === t.id ? '2px solid var(--accent)' : undefined }}
-            >
-              <h3>{t.name}</h3>
-              <p>{t.description}</p>
-            </button>
-          ))}
-        </div>
-        <h2 style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--faint)' }}>
-          Проекты
-        </h2>
-        <div className="grid-cards" style={{ marginTop: 12 }}>
-          {projects.map((p) => (
-            <div key={p.id} className="card">
-              <h3>{p.name}</h3>
-              <p>{p.description || `${p.component_count} компонентов`}</p>
-              <div className="foot">
-                <span>{p.current_version_label}</span>
-                <span>
-                  <button className="btn ghost" type="button" onClick={() => navigate(`/p/${p.id}`)}>
-                    Открыть
-                  </button>
-                  <button
-                    className="btn ghost danger"
-                    type="button"
-                    onClick={async () => {
-                      await api.deleteProject(p.id)
-                      refresh()
-                    }}
-                  >
-                    Удалить
-                  </button>
-                </span>
-              </div>
+
+        {projects === null ? (
+          <p className="lede">Загрузка проектов…</p>
+        ) : projects.length === 0 ? (
+          <div className="empty home-empty">
+            <h2>Проектов пока нет</h2>
+            <p>Создайте первый проект</p>
+            {createBar}
+          </div>
+        ) : (
+          <>
+            <div className="grid-cards" style={{ marginTop: 12 }}>
+              {projects.map((p) => (
+                <div key={p.id} className="card">
+                  <h3>{p.name}</h3>
+                  <p>Последнее изменение: {formatUpdated(p.updated_at)}</p>
+                  <div className="foot">
+                    <span>{p.current_version_label || 'черновик'}</span>
+                    <span className="project-card-actions">
+                      <button className="btn primary" type="button" onClick={() => navigate(`/p/${p.id}`)}>
+                        Открыть
+                      </button>
+                      <button
+                        className="btn danger"
+                        type="button"
+                        onClick={async () => {
+                          if (
+                            settings.confirm_delete_project &&
+                            !window.confirm(`Удалить проект «${p.name}»?`)
+                          ) {
+                            return
+                          }
+                          await api.deleteProject(p.id)
+                          refresh()
+                        }}
+                      >
+                        Удалить
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            <h2 className="home-create-title">Новый проект</h2>
+            {createBar}
+          </>
+        )}
+
         <div style={{ marginTop: 28 }}>
           <label className="btn">
             Импорт JSON

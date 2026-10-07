@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1200 450"
+     width="1200"
+     height="450">
+
+  <rect width="1200" height="450" fill="#F4F2EC"/>
+
+  <!-- ==================== GRID ==================== -->
+  <g stroke="#9A968C" stroke-width="0.8" opacity="0.18">
+
+    <!-- Left panel -->
+    <line x1="50" y1="80" x2="350" y2="80"/>
+    <line x1="50" y1="140" x2="350" y2="140"/>
+    <line x1="50" y1="200" x2="350" y2="200"/>
+    <line x1="50" y1="260" x2="350" y2="260"/>
+    <line x1="50" y1="320" x2="350" y2="320"/>
+    <line x1="50" y1="380" x2="350" y2="380"/>
+
+    <line x1="50" y1="60" x2="50" y2="390"/>
+    <line x1="110" y1="60" x2="110" y2="390"/>
+    <line x1="170" y1="60" x2="170" y2="390"/>
+    <line x1="230" y1="60" x2="230" y2="390"/>
+    <line x1="290" y1="60" x2="290" y2="390"/>
+    <line x1="350" y1="60" x2="350" y2="390"/>
+
+    <!-- Center panel -->
+    <line x1="450" y1="80" x2="750" y2="80"/>
+    <line x1="450" y1="140" x2="750" y2="140"/>
+    <line x1="450" y1="200" x2="750" y2="200"/>
+    <line x1="450" y1="260" x2="750" y2="260"/>
+    <line x1="450" y1="320" x2="750" y2="320"/>
+    <line x1="450" y1="380" x2="750" y2="380"/>
+
+    <line x1="450" y1="60" x2="450" y2="390"/>
+    <line x1="510" y1="60" x2="510" y2="390"/>
+    <line x1="570" y1="60" x2="570" y2="390"/>
+    <line x1="630" y1="60" x2="630" y2="390"/>
+    <line x1="690" y1="60" x2="690" y2="390"/>
+    <line x1="750" y1="60" x2="750" y2="390"/>
+
+    <!-- Right panel -->
+    <line x1="850" y1="80" x2="1150" y2="80"/>
+    <line x1="850" y1="140" x2="1150" y2="140"/>
+    <line x1="850" y1="200" x2="1150" y2="200"/>
+    <line x1="850" y1="260" x2="1150" y2="260"/>
+    <line x1="850" y1="320" x2="1150" y2="320"/>
+    <line x1="850" y1="380" x2="1150" y2="380"/>
+
+    <line x1="850" y1="60" x2="850" y2="390"/>
+    <line x1="910" y1="60" x2="910" y2="390"/>
+    <line x1="970" y1="60" x2="970" y2="390"/>
+    <line x1="1030" y1="60" x2="1030" y2="390"/>
+    <line x1="1090" y1="60" x2="1090" y2="390"/>
+    <line x1="1150" y1="60" x2="1150" y2="390"/>
+
+  </g>
+
+
+  <!-- ==================== HEADINGS ==================== -->
+
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="20"
+     font-weight="600"
+     text-anchor="middle">
+
+    <text x="200" y="42">a·b &gt; 0</text>
+    <text x="600" y="42">a·b = 0</text>
+    <text x="1000" y="42">a·b &lt; 0</text>
+
+  </g>
+
+
+  <!-- ==================== LEFT: ACUTE ANGLE ==================== -->
+
+  <!-- Vector a -->
+  <line x1="130" y1="300"
+        x2="250" y2="170"
+        stroke="#2F5D50"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <polygon points="250,170 231,176 243,187"
+           fill="#2F5D50"/>
+
+  <!-- Vector b -->
+  <line x1="130" y1="300"
+        x2="280" y2="250"
+        stroke="#2F5D50"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <polygon points="280,250 261,246 267,263"
+           fill="#2F5D50"/>
+
+  <!-- Angle arc -->
+  <path d="M 168 260 A 55 55 0 0 1 183 282"
+        fill="none"
+        stroke="#6E6B63"
+        stroke-width="1.5"/>
+
+  <!-- Labels -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-style="italic">
+
+    <text x="246" y="155">a</text>
+    <text x="285" y="246">b</text>
+
+  </g>
+
+
+  <!-- ==================== CENTER: PERPENDICULAR ==================== -->
+
+  <!-- Vector a -->
+  <line x1="600" y1="300"
+        x2="600" y2="140"
+        stroke="#2F5D50"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <polygon points="600,140 592,157 608,157"
+           fill="#2F5D50"/>
+
+  <!-- Vector b -->
+  <line x1="600" y1="300"
+        x2="735" y2="300"
+        stroke="#2F5D50"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <polygon points="735,300 718,292 718,308"
+           fill="#2F5D50"/>
+
+  <!-- Right angle marker -->
+  <path d="M 600 270 L 630 270 L 630 300"
+        fill="none"
+        stroke="#6E6B63"
+        stroke-width="1.5"/>
+
+  <!-- Labels -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-style="italic">
+
+    <text x="610" y="135">a</text>
+    <text x="740" y="295">b</text>
+
+  </g>
+
+
+  <!-- ==================== RIGHT: OBTUSE ANGLE ==================== -->
+
+  <!-- Vector a -->
+  <line x1="1000" y1="300"
+        x2="900" y2="170"
+        stroke="#2F5D50"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <polygon points="900,170 908,189 920,180"
+           fill="#2F5D50"/>
+
+  <!-- Vector b -->
+  <line x1="1000" y1="300"
+        x2="1140" y2="300"
+        stroke="#2F5D50"
+        stroke-width="3"
+        stroke-linecap="round"/>
+
+  <polygon points="1140,300 1123,292 1123,308"
+           fill="#2F5D50"/>
+
+  <!-- Angle arc -->
+  <path d="M 958 245 A 65 65 0 0 0 950 300"
+        fill="none"
+        stroke="#6E6B63"
+        stroke-width="1.5"/>
+
+  <!-- Labels -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-style="italic">
+
+    <text x="887" y="158">a</text>
+    <text x="1145" y="295">b</text>
+
+  </g>
+
+
+  <!-- ==================== EXPLANATIONS ==================== -->
+
+  <g fill="#6E6B63"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="14"
+     text-anchor="middle">
+
+    <text x="200" y="405">острый угол</text>
+    <text x="600" y="405">прямой угол</text>
+    <text x="1000" y="405">тупой угол</text>
+
+  </g>
+
+</svg>

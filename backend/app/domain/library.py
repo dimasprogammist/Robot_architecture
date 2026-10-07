@@ -63,6 +63,30 @@ BUILTIN_TYPES: list[ComponentTypeDef] = [
     ComponentTypeDef(id="mech-bracket", category="MECHANICS", name="Кронштейн", icon="part"),
     ComponentTypeDef(id="mech-housing", category="MECHANICS", name="Корпус", icon="box"),
     ComponentTypeDef(id="table", category="DATA", name="Таблица", icon="db"),
+    ComponentTypeDef(id="gpu", category="HARDWARE", name="GPU", icon="cpu"),
+    ComponentTypeDef(id="ipc", category="HARDWARE", name="IPC", icon="cpu"),
+    ComponentTypeDef(id="imu", category="HARDWARE", name="IMU", icon="sensor"),
+    ComponentTypeDef(id="encoder", category="HARDWARE", name="Энкодер", icon="sensor"),
+    ComponentTypeDef(id="servo", category="HARDWARE", name="Сервопривод", icon="motor"),
+    ComponentTypeDef(id="drive", category="HARDWARE", name="Привод", icon="motor"),
+    ComponentTypeDef(id="manipulator", category="HARDWARE", name="Манипулятор", icon="gear"),
+    ComponentTypeDef(id="jetson", category="HARDWARE", name="Jetson", icon="board"),
+    ComponentTypeDef(id="ethercat", category="PROTOCOL", name="EtherCAT", icon="protocol"),
+    ComponentTypeDef(id="profinet", category="PROTOCOL", name="PROFINET", icon="protocol"),
+    ComponentTypeDef(id="canopen", category="PROTOCOL", name="CANopen", icon="protocol"),
+    ComponentTypeDef(id="ros2", category="PROTOCOL", name="ROS 2", icon="protocol"),
+    ComponentTypeDef(id="dds", category="PROTOCOL", name="DDS", icon="protocol"),
+    ComponentTypeDef(id="rest", category="PROTOCOL", name="REST", icon="protocol"),
+    ComponentTypeDef(id="python", category="SOFTWARE", name="Python", icon="app"),
+    ComponentTypeDef(id="cpp", category="SOFTWARE", name="C++", icon="app"),
+    ComponentTypeDef(id="csharp", category="SOFTWARE", name="C#", icon="app"),
+    ComponentTypeDef(id="ros2-sw", category="SOFTWARE", name="ROS 2 middleware", icon="puzzle"),
+    ComponentTypeDef(id="linux", category="SOFTWARE", name="Linux", icon="app"),
+    ComponentTypeDef(id="windows", category="SOFTWARE", name="Windows", icon="app"),
+    ComponentTypeDef(id="fastapi", category="SOFTWARE", name="FastAPI", icon="server"),
+    ComponentTypeDef(id="kafka", category="DATA", name="Kafka", icon="queue"),
+    ComponentTypeDef(id="docker", category="SOFTWARE", name="Docker", icon="box"),
+    ComponentTypeDef(id="tcpip", category="PROTOCOL", name="TCP/IP", icon="protocol"),
 ]
 
 
@@ -85,6 +109,13 @@ BUILTIN_PROTOCOLS: list[Protocol] = [
     Protocol(id="proto-usb", name="USB", version="2.0", transport="USB", direction="bidirectional", built_in=True, color="#5c5870"),
     Protocol(id="proto-eth", name="Ethernet", version="1.0", transport="Ethernet", direction="bidirectional", built_in=True, color="#4a6270"),
     Protocol(id="proto-wifi", name="Wi-Fi", version="802.11", transport="Wi-Fi", direction="bidirectional", built_in=True, color="#4e5f78"),
+    Protocol(id="proto-ethercat", name="EtherCAT", version="1.0", transport="Ethernet", port="", direction="bidirectional", data_format="Frames", description="Промышленный Ethernet реального времени", timing="цикл поля", built_in=True),
+    Protocol(id="proto-profinet", name="PROFINET", version="2.4", transport="Ethernet", port="", direction="bidirectional", data_format="IO data", description="Промышленный Ethernet Siemens", built_in=True),
+    Protocol(id="proto-canopen", name="CANopen", version="CiA 301", transport="CAN", direction="bidirectional", data_format="PDO/SDO", description="Протокол прикладного уровня над CAN", built_in=True),
+    Protocol(id="proto-ros2", name="ROS 2", version="Humble+", transport="DDS", direction="bidirectional", data_format="Topics/Services", encoding="CDR", description="Middleware робототехнических узлов", built_in=True),
+    Protocol(id="proto-dds", name="DDS", version="1.0", transport="UDP/TCP", direction="bidirectional", data_format="Topics", description="Data Distribution Service", built_in=True),
+    Protocol(id="proto-rest", name="REST", version="HTTP", transport="TCP", port="443", direction="bidirectional", data_format="JSON", encoding="UTF-8", description="HTTP API в стиле REST", built_in=True),
+    Protocol(id="proto-tcpip", name="TCP/IP", version="4/6", transport="IP", direction="bidirectional", data_format="Packets", description="Стек межсетевого обмена", built_in=True),
 ]
 
 for _proto in BUILTIN_PROTOCOLS:
@@ -111,33 +142,68 @@ BUILTIN_HARDWARE: list[HardwareComponent] = [
     HardwareComponent(id="hw-camera", name="Камера", manufacturer="универсальный", model="", interfaces="CSI / USB / GigE", voltage="5V", protocols="RTSP / USB Video", category="Камера", built_in=True),
     HardwareComponent(id="hw-lidar", name="LiDAR", manufacturer="универсальный", model="", interfaces="Ethernet / UART", voltage="12V", protocols="UDP point cloud", category="LiDAR", built_in=True),
     HardwareComponent(id="hw-motor-ctrl", name="Контроллер двигателя", manufacturer="универсальный", model="", interfaces="CAN / PWM", voltage="24-48V", protocols="CAN", category="Контроллер двигателя", built_in=True),
+    HardwareComponent(id="hw-gpu", name="GPU", manufacturer="универсальный", model="", interfaces="PCIe", voltage="", category="GPU", built_in=True),
+    HardwareComponent(id="hw-imu", name="IMU", manufacturer="универсальный", model="", interfaces="SPI / I2C", voltage="3.3V", category="Датчик", built_in=True),
+    HardwareComponent(id="hw-jetson", name="Jetson", manufacturer="NVIDIA", model="Orin", cpu="ARM + GPU", ram="8-64GB", interfaces="CSI, USB, Ethernet, GPIO", voltage="9-20V", os="Linux", category="SBC", built_in=True),
+    HardwareComponent(id="hw-ur", name="Манипулятор", manufacturer="универсальный", model="", interfaces="Ethernet / RTDE", voltage="48V", protocols="TCP, ROS 2", category="Манипулятор", built_in=True),
 ]
 
 
 LIBRARY_PRESETS = [
     {"name": "PostgreSQL", "type": "PostgreSQL", "category": "DATA", "icon": "db", "technology": "PostgreSQL"},
+    {"name": "MySQL", "type": "MySQL", "category": "DATA", "icon": "db", "technology": "MySQL"},
     {"name": "Redis", "type": "Redis", "category": "DATA", "icon": "cache", "technology": "Redis"},
+    {"name": "Kafka", "type": "Kafka", "category": "DATA", "icon": "queue", "technology": "Kafka"},
     {"name": "MQTT", "type": "MQTT", "category": "PROTOCOL", "icon": "protocol", "technology": "MQTT", "protocol_id": "proto-mqtt"},
+    {"name": "Ethernet", "type": "Ethernet", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-eth"},
+    {"name": "TCP/IP", "type": "TCP/IP", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-tcpip"},
+    {"name": "UDP", "type": "UDP", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-udp"},
+    {"name": "HTTP / REST", "type": "REST", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-rest"},
+    {"name": "WebSocket", "type": "WebSocket", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-ws"},
+    {"name": "OPC UA", "type": "OPC UA", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-opcua"},
+    {"name": "Modbus TCP", "type": "Modbus TCP", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-modbus-tcp"},
+    {"name": "Modbus RTU", "type": "Modbus RTU", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-modbus-rtu"},
+    {"name": "CAN", "type": "CAN", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-can"},
+    {"name": "CANopen", "type": "CANopen", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-canopen"},
+    {"name": "EtherCAT", "type": "EtherCAT", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-ethercat"},
+    {"name": "PROFINET", "type": "PROFINET", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-profinet"},
+    {"name": "ROS 2", "type": "ROS 2", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-ros2"},
     {"name": "Raspberry Pi", "type": "SBC", "category": "HARDWARE", "icon": "board", "technology": "Linux", "hardware_id": "hw-rpi"},
+    {"name": "Jetson", "type": "SBC", "category": "HARDWARE", "icon": "board", "technology": "Linux", "hardware_id": "hw-jetson"},
     {"name": "STM32", "type": "MCU", "category": "HARDWARE", "icon": "chip", "technology": "C/C++", "hardware_id": "hw-stm32"},
     {"name": "ESP32", "type": "MCU", "category": "HARDWARE", "icon": "chip", "technology": "ESP-IDF", "hardware_id": "hw-esp32"},
+    {"name": "Arduino", "type": "MCU", "category": "HARDWARE", "icon": "chip", "hardware_id": "hw-arduino"},
+    {"name": "ПЛК", "type": "ПЛК", "category": "HARDWARE", "icon": "factory", "hardware_id": "hw-siemens-plc"},
+    {"name": "IPC", "type": "IPC", "category": "HARDWARE", "icon": "cpu", "hardware_id": "hw-ipc"},
+    {"name": "GPU", "type": "GPU", "category": "HARDWARE", "icon": "cpu", "hardware_id": "hw-gpu"},
+    {"name": "Python", "type": "Python", "category": "SOFTWARE", "icon": "app", "technology": "Python"},
+    {"name": "C++", "type": "C++", "category": "SOFTWARE", "icon": "app", "technology": "C++"},
+    {"name": "C#", "type": "C#", "category": "SOFTWARE", "icon": "app", "technology": "C#"},
+    {"name": "ROS 2 middleware", "type": "ROS 2 middleware", "category": "SOFTWARE", "icon": "puzzle", "technology": "ROS 2"},
+    {"name": "FastAPI", "type": "FastAPI", "category": "SOFTWARE", "icon": "server", "technology": "Python"},
     {"name": "Python-бэкенд", "type": "Бэкенд", "category": "SOFTWARE", "icon": "server", "technology": "Python"},
     {"name": "React-фронтенд", "type": "Фронтенд", "category": "SOFTWARE", "icon": "layout", "technology": "React"},
-    {"name": "Docker", "type": "Модуль", "category": "SOFTWARE", "icon": "box", "technology": "Docker"},
+    {"name": "Linux", "type": "Linux", "category": "SOFTWARE", "icon": "app", "technology": "Linux"},
+    {"name": "Windows", "type": "Windows", "category": "SOFTWARE", "icon": "app", "technology": "Windows"},
+    {"name": "Docker", "type": "Docker", "category": "SOFTWARE", "icon": "box", "technology": "Docker"},
     {"name": "Камера", "type": "Камера", "category": "HARDWARE", "icon": "camera", "hardware_id": "hw-camera"},
     {"name": "LiDAR", "type": "LiDAR", "category": "HARDWARE", "icon": "radar", "hardware_id": "hw-lidar"},
+    {"name": "IMU", "type": "IMU", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-imu"},
+    {"name": "Датчик", "type": "Датчик", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-sensor"},
+    {"name": "Энкодер", "type": "Энкодер", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-encoder"},
     {"name": "Контроллер двигателя", "type": "Контроллер двигателя", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-motor-ctrl"},
+    {"name": "Сервопривод", "type": "Сервопривод", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-servo"},
+    {"name": "Двигатель", "type": "Двигатель", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-motor"},
+    {"name": "Манипулятор", "type": "Манипулятор", "category": "HARDWARE", "icon": "gear", "hardware_id": "hw-ur"},
     {"name": "Концевой выключатель", "type": "Концевой выключатель", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-limit-switch"},
     {"name": "Дальномер HC-SR04", "type": "Дальномер HC-SR04", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-hc-sr04"},
     {"name": "Датчик расстояния VL53L0X", "type": "Датчик расстояния VL53L0X", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-vl53l0x"},
     {"name": "Датчик температуры DS18B20", "type": "Датчик температуры DS18B20", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-ds18b20"},
     {"name": "Датчик положения", "type": "Датчик положения", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-position"},
     {"name": "Web-сервер", "type": "Web-сервер", "category": "SOFTWARE", "icon": "server", "technology": "HTTP"},
-    {"name": "WebSocket", "type": "WebSocket", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-ws"},
-    {"name": "Modbus TCP", "type": "Modbus TCP", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-modbus-tcp"},
-    {"name": "CAN", "type": "CAN", "category": "PROTOCOL", "icon": "protocol", "protocol_id": "proto-can"},
-    {"name": "ПЛК", "type": "ПЛК", "category": "HARDWARE", "icon": "factory", "hardware_id": "hw-siemens-plc"},
     {"name": "Шлюз", "type": "Шлюз", "category": "NETWORK", "icon": "network"},
+    {"name": "Маршрутизатор", "type": "Маршрутизатор", "category": "NETWORK", "icon": "network"},
+    {"name": "Коммутатор", "type": "Коммутатор", "category": "NETWORK", "icon": "network"},
     {"name": "Механическая система", "type": "Механический узел", "category": "MECHANICS", "icon": "gear"},
     {"name": "Колесо", "type": "Колесо", "category": "MECHANICS", "icon": "part"},
     {"name": "Редуктор", "type": "Редуктор", "category": "MECHANICS", "icon": "gear"},
@@ -147,3 +213,30 @@ LIBRARY_PRESETS = [
     {"name": "Корпус", "type": "Корпус", "category": "MECHANICS", "icon": "box"},
     {"name": "Таблица", "type": "Таблица", "category": "DATA", "icon": "db", "entity_kind": "table"},
 ]
+
+
+def _with_preset_meta(items: list[dict]) -> list[dict]:
+    colors = {
+        "SOFTWARE": "#2f5d50",
+        "HARDWARE": "#7a5c2e",
+        "DATA": "#355f7a",
+        "PROTOCOL": "#5a4a78",
+        "NETWORK": "#4f6270",
+        "MECHANICS": "#7a6a52",
+        "OTHER": "#5c5a54",
+    }
+    out: list[dict] = []
+    for i, item in enumerate(items):
+        row = dict(item)
+        slug = f"{row.get('category', 'x')}-{row.get('name', 'x')}-{i}".lower()
+        slug = "".join(ch if ch.isalnum() else "-" for ch in slug)
+        row.setdefault("id", f"lib-{slug}")
+        row.setdefault("color", colors.get(str(row.get("category")), "#5c5a54"))
+        row.setdefault("built_in", True)
+        row.setdefault("technology", row.get("technology") or "")
+        row.setdefault("entity_kind", row.get("entity_kind") or "component")
+        out.append(row)
+    return out
+
+
+LIBRARY_PRESETS = _with_preset_meta(LIBRARY_PRESETS)

@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
+import { SearchField } from '../components/SearchField'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { api, type LearningArticle, type LearningCategory } from '../lib/api'
 
@@ -130,11 +131,10 @@ export function LearningView() {
       <aside className="learning-nav">
         <h1>Справочник</h1>
 
-        <input
-          className="lib-search"
+        <SearchField
           placeholder="Поиск по разделам"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={setQ}
         />
 
         {filtered.map((cat) => {

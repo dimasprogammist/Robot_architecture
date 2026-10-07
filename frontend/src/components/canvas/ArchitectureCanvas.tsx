@@ -36,7 +36,10 @@ export function ArchitectureCanvas() {
 function FitViewOnData({ count }: { count: number }) {
   const { fitView } = useReactFlow()
   useEffect(() => {
-    const t = window.setTimeout(() => fitView({ padding: 0.18, duration: 200 }), 40)
+    const t = window.setTimeout(
+      () => fitView({ padding: 0.18, duration: useUiStore.getState().settings.reduce_motion ? 0 : 200 }),
+      40,
+    )
     return () => window.clearTimeout(t)
   }, [fitView, count])
   return null
@@ -81,6 +84,8 @@ function ArchitectureCanvasInner() {
         id: c.id,
         source: c.source,
         target: c.target,
+        sourceHandle: c.source_handle || undefined,
+        targetHandle: c.target_handle || undefined,
         type: 'labeled' as const,
         selected: selectedConnectionId === c.id,
         markerEnd: { type: 'arrowclosed' as const },
@@ -94,15 +99,16 @@ function ArchitectureCanvasInner() {
           strokeDasharray: c.kind === 'data_flow' ? '6 4' : undefined,
         },
         data: {
-          label:
-            c.protocol_name ||
-            ({ one_to_one: 'один к одному', one_to_many: 'один ко многим', many_to_many: 'многие ко многим' } as Record<string, string>)[c.cardinality] ||
-            (c.kind === 'data_flow' ? c.data_format || 'данные' : ''),
+          label: settings.show_edge_labels
+            ? c.protocol_name ||
+              ({ one_to_one: 'один к одному', one_to_many: 'один ко многим', many_to_many: 'многие ко многим' } as Record<string, string>)[c.cardinality] ||
+              ''
+            : '',
           kind: c.kind,
           bidirectional: c.direction === 'bidirectional',
         },
       }))
-  }, [project, architectureId, selectedConnectionId, settings.theme])
+  }, [project, architectureId, selectedConnectionId, settings.theme, settings.show_edge_labels])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -148,7 +154,10 @@ function ArchitectureCanvasInner() {
   const onConnect: OnConnect = useCallback(
     (params: Connection) => {
       if (!params.source || !params.target) return
-      connect(params.source, params.target)
+      connect(params.source, params.target, 'connection', {
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
+      })
       addEdge(params, [])
     },
     [connect],
@@ -160,6 +169,7 @@ function ArchitectureCanvasInner() {
       const raw = e.dataTransfer.getData('application/architecture-preset')
       if (!raw) return
       const preset = JSON.parse(raw) as LibraryPreset
+      if (preset.category === 'PROTOCOL') return
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY })
       addFromPreset(preset, position)
     },
@@ -222,10 +232,11 @@ function ArchitectureCanvasInner() {
             gap={settings.grid_size}
             size={1}
             color="var(--line-strong)"
+            bgColor="var(--canvas)"
           />
         ) : null}
         <Controls showInteractive={false} />
-        <MiniMap pannable zoomable />
+        {settings.show_minimap ? <MiniMap pannable zoomable /> : null}
       </ReactFlow>
       {linkFrom ? <p className="hint" style={{ position: 'absolute', top: 56, left: 56 }}>Выберите вторую таблицу, чтобы создать связь.</p> : null}
       {menu ? (
@@ -265,6 +276,13 @@ function ArchitectureCanvasInner() {
             setMenu(null)
           }}
           onDelete={() => {
+            if (
+              useUiStore.getState().settings.confirm_delete &&
+              !window.confirm('Удалить выбранный элемент?')
+            ) {
+              setMenu(null)
+              return
+            }
             select([menu.id])
             deleteSelected()
             setMenu(null)
@@ -298,7 +316,7 @@ function TableMenu({
       <button type="button" onClick={onRename}>Переименовать</button>
       <button type="button" onClick={onAddColumn}>Добавить колонку</button>
       <button type="button" onClick={onLink}>Создать связь</button>
-      <button type="button" onClick={onDelete}>Удалить таблицу</button>
+      <button type="button" className="danger" onClick={onDelete}>Удалить таблицу</button>
     </div>
   )
 }

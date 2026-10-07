@@ -1,0 +1,881 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1400" viewBox="0 0 1400 1400">
+
+  <!-- ============================================================
+       ОСНОВНОЙ ФОН
+       ============================================================ -->
+
+  <rect width="1400" height="1400" fill="#f4f2ec"/>
+
+
+  <!-- ============================================================
+       ФОНОВАЯ ТЕХНИЧЕСКАЯ СЕТКА
+       ============================================================ -->
+
+  <g stroke="#dedbd2" stroke-width="1" opacity="0.55">
+
+    <!-- Вертикальные линии -->
+    <path d="M40 0V1400M100 0V1400M160 0V1400M220 0V1400M280 0V1400M340 0V1400M400 0V1400M460 0V1400M520 0V1400M580 0V1400M640 0V1400M700 0V1400M760 0V1400M820 0V1400M880 0V1400M940 0V1400M1000 0V1400M1060 0V1400M1120 0V1400M1180 0V1400M1240 0V1400M1300 0V1400M1360 0V1400"/>
+
+    <!-- Горизонтальные линии -->
+    <path d="M0 40H1400M0 100H1400M0 160H1400M0 220H1400M0 280H1400M0 340H1400M0 400H1400M0 460H1400M0 520H1400M0 580H1400M0 640H1400M0 700H1400M0 760H1400M0 820H1400M0 880H1400M0 940H1400M0 1000H1400M0 1060H1400M0 1120H1400M0 1180H1400M0 1240H1400M0 1300H1400M0 1360H1400"/>
+
+  </g>
+
+
+  <!-- ============================================================
+       ВЕРХНИЙ ЗАГОЛОВОК
+       НЕ ИЗМЕНЯЛСЯ
+       ============================================================ -->
+
+  <text x="90" y="72"
+        font-family="Arial, sans-serif"
+        font-size="25"
+        font-weight="700"
+        fill="#1c1b17"
+        letter-spacing="3">
+    ROBOT ARCHITECTURE
+  </text>
+
+  <text x="90" y="108"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6e6b63"
+        letter-spacing="2">
+    CONTROL SYSTEM / ROBOTICS / AUTOMATION
+  </text>
+
+  <line x1="90" y1="130"
+        x2="1310" y2="130"
+        stroke="#bdb9ae"
+        stroke-width="1"/>
+
+  <circle cx="1275" cy="77" r="6" fill="#2F5D50"/>
+
+  <text x="1290" y="83"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6e6b63"
+        letter-spacing="2">
+    ONLINE
+  </text>
+
+
+  <!-- ============================================================
+       ЛЕВЫЙ ВЕРХНИЙ БЛОК — КОНТРОЛЛЕР
+       БЫЛ: y=190 / height=280
+       СТАЛ: y=170 / height=280
+       ============================================================ -->
+
+  <rect x="90" y="170"
+        width="340"
+        height="280"
+        rx="4"
+        fill="#fcfbf8"
+        stroke="#bdb9ae"
+        stroke-width="1.5"/>
+
+  <text x="115" y="205"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        font-weight="700"
+        fill="#2F5D50"
+        letter-spacing="2">
+    CONTROL NODE
+  </text>
+
+  <text x="115" y="243"
+        font-family="Arial, sans-serif"
+        font-size="24"
+        font-weight="700"
+        fill="#1c1b17">
+    MOTION CONTROLLER
+  </text>
+
+  <rect x="115" y="270"
+        width="290"
+        height="52"
+        fill="#f0eee7"
+        stroke="#d4d0c6"/>
+
+  <text x="135" y="302"
+        font-family="monospace"
+        font-size="16"
+        fill="#1c1b17">
+    PID / TRAJECTORY / I/O
+  </text>
+
+  <line x1="115" y1="350"
+        x2="405" y2="350"
+        stroke="#d4d0c6"/>
+
+  <text x="115" y="377"
+        font-family="monospace"
+        font-size="14"
+        fill="#6e6b63">
+    cycle        2.0 ms
+  </text>
+
+  <text x="115" y="402"
+        font-family="monospace"
+        font-size="14"
+        fill="#6e6b63">
+    state        RUNNING
+  </text>
+
+  <text x="115" y="427"
+        font-family="monospace"
+        font-size="14"
+        fill="#6e6b63">
+    output       94.7 %
+  </text>
+
+
+  <!-- ============================================================
+       ЛЕВЫЙ СРЕДНИЙ БЛОК — ДАТЧИКИ
+       БЫЛ: y=505 / height=235
+       СТАЛ: y=485 / height=235
+       ============================================================ -->
+
+  <rect x="90" y="485"
+        width="340"
+        height="235"
+        rx="4"
+        fill="#fcfbf8"
+        stroke="#bdb9ae"
+        stroke-width="1.5"/>
+
+  <text x="115" y="520"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        font-weight="700"
+        fill="#2F5D50"
+        letter-spacing="2">
+    SENSOR ARRAY
+  </text>
+
+  <text x="115" y="555"
+        font-family="Arial, sans-serif"
+        font-size="21"
+        font-weight="700"
+        fill="#1c1b17">
+    INPUT STREAM
+  </text>
+
+  <g font-family="monospace" font-size="14">
+
+    <text x="115" y="595" fill="#6e6b63">IMU</text>
+    <text x="250" y="595" fill="#2F5D50">●  GOOD</text>
+
+    <text x="115" y="628" fill="#6e6b63">LIDAR</text>
+    <text x="250" y="628" fill="#2F5D50">●  GOOD</text>
+
+    <text x="115" y="661" fill="#6e6b63">ENCODERS</text>
+    <text x="250" y="661" fill="#2F5D50">●  GOOD</text>
+
+    <text x="115" y="694" fill="#6e6b63">CAMERA</text>
+    <text x="250" y="694" fill="#2F5D50">●  GOOD</text>
+
+  </g>
+
+
+  <!-- ============================================================
+       СОЕДИНЕНИЯ
+       ============================================================ -->
+
+  <!-- Контроллер -> манипулятор -->
+  <line x1="430" y1="310"
+        x2="470" y2="310"
+        stroke="#2F5D50"
+        stroke-width="2"
+        stroke-dasharray="7 6"/>
+
+  <!-- Датчики -> контроллер -->
+  <line x1="260" y1="485"
+        x2="260" y2="450"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+
+  <!-- ============================================================
+       БОЛЬШОЙ БЛОК — РОБОТ-МАНИПУЛЯТОР
+       БЫЛ: y=190 / height=550
+       СТАЛ: y=170 / height=550
+       ============================================================ -->
+
+  <rect x="470" y="170"
+        width="840"
+        height="550"
+        rx="4"
+        fill="#fcfbf8"
+        stroke="#bdb9ae"
+        stroke-width="1.5"/>
+
+  <text x="500" y="205"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        font-weight="700"
+        fill="#2F5D50"
+        letter-spacing="2">
+    ROBOT MANIPULATOR
+  </text>
+
+  <text x="500" y="240"
+        font-family="Arial, sans-serif"
+        font-size="24"
+        font-weight="700"
+        fill="#1c1b17">
+    6-AXIS MOTION SYSTEM
+  </text>
+
+
+  <!-- ============================================================
+       СИСТЕМА КООРДИНАТ
+       ============================================================ -->
+
+  <line x1="1175" y1="640"
+        x2="1265" y2="640"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+  <line x1="1175" y1="640"
+        x2="1175" y2="555"
+        stroke="#6e6b63"
+        stroke-width="2"/>
+
+  <line x1="1175" y1="640"
+        x2="1130" y2="685"
+        stroke="#9a968c"
+        stroke-width="2"/>
+
+  <text x="1275" y="645"
+        font-family="monospace"
+        font-size="13"
+        fill="#2F5D50">
+    X
+  </text>
+
+  <text x="1170" y="545"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    Z
+  </text>
+
+  <text x="1115" y="700"
+        font-family="monospace"
+        font-size="13"
+        fill="#9a968c">
+    Y
+  </text>
+
+
+  <!-- ============================================================
+       ТРАЕКТОРИЯ МАНИПУЛЯТОРА
+       ============================================================ -->
+
+  <path d="M620 590
+           C720 500 820 540 900 445
+           C980 350 1070 385 1195 310"
+        fill="none"
+        stroke="#2F5D50"
+        stroke-width="2.5"
+        stroke-dasharray="8 8"/>
+
+
+  <!-- ============================================================
+       ОСНОВАНИЕ МАНИПУЛЯТОРА
+       ============================================================ -->
+
+  <rect x="650" y="580"
+        width="115"
+        height="48"
+        rx="5"
+        fill="#ece9e0"
+        stroke="#6e6b63"
+        stroke-width="2"/>
+
+  <circle cx="708" cy="570"
+          r="32"
+          fill="#f7f5ef"
+          stroke="#2F5D50"
+          stroke-width="5"/>
+
+
+  <!-- ============================================================
+       ЗВЕНЬЯ МАНИПУЛЯТОРА
+       ============================================================ -->
+
+  <!-- Первое звено -->
+  <line x1="708" y1="570"
+        x2="790" y2="480"
+        stroke="#2F5D50"
+        stroke-width="28"
+        stroke-linecap="round"/>
+
+  <!-- Второй шарнир -->
+  <circle cx="790" cy="480"
+          r="25"
+          fill="#f7f5ef"
+          stroke="#2F5D50"
+          stroke-width="5"/>
+
+
+  <!-- Второе звено -->
+  <line x1="790" y1="480"
+        x2="900" y2="525"
+        stroke="#3e7667"
+        stroke-width="25"
+        stroke-linecap="round"/>
+
+  <!-- Третий шарнир -->
+  <circle cx="900" cy="525"
+          r="23"
+          fill="#f7f5ef"
+          stroke="#3e7667"
+          stroke-width="5"/>
+
+
+  <!-- Третье звено -->
+  <line x1="900" y1="525"
+        x2="1005" y2="415"
+        stroke="#2F5D50"
+        stroke-width="23"
+        stroke-linecap="round"/>
+
+  <!-- Четвёртый шарнир -->
+  <circle cx="1005" cy="415"
+          r="21"
+          fill="#f7f5ef"
+          stroke="#2F5D50"
+          stroke-width="5"/>
+
+
+  <!-- Четвёртое звено -->
+  <line x1="1005" y1="415"
+        x2="1110" y2="450"
+        stroke="#3e7667"
+        stroke-width="21"
+        stroke-linecap="round"/>
+
+  <!-- Пятый шарнир -->
+  <circle cx="1110" cy="450"
+          r="19"
+          fill="#f7f5ef"
+          stroke="#3e7667"
+          stroke-width="5"/>
+
+
+  <!-- ============================================================
+       ЗАХВАТ МАНИПУЛЯТОРА
+       ============================================================ -->
+
+  <line x1="1110" y1="450"
+        x2="1170" y2="390"
+        stroke="#2F5D50"
+        stroke-width="18"
+        stroke-linecap="round"/>
+
+  <line x1="1170" y1="390"
+        x2="1200" y2="360"
+        stroke="#1c1b17"
+        stroke-width="7"/>
+
+  <line x1="1170" y1="390"
+        x2="1195" y2="405"
+        stroke="#1c1b17"
+        stroke-width="7"/>
+
+
+  <!-- ============================================================
+       СТАТУС МАНИПУЛЯТОРА
+       ============================================================ -->
+
+  <rect x="1050" y="195"
+        width="235"
+        height="92"
+        fill="#f0eee7"
+        stroke="#d4d0c6"/>
+
+  <circle cx="1075" cy="223"
+          r="5"
+          fill="#2F5D50"/>
+
+  <text x="1090" y="228"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        font-weight="700"
+        fill="#2F5D50"
+        letter-spacing="1.5">
+    MOTION ACTIVE
+  </text>
+
+  <text x="1075" y="255"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    speed   1.24 m/s
+  </text>
+
+  <text x="1075" y="276"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    error   0.03 mm
+  </text>
+
+
+  <!-- ============================================================
+       НИЖНИЙ РЯД
+       ВСЕ ТРИ БЛОКА:
+       БЫЛИ y=765 / height=470
+       СТАЛИ y=745 / height=490
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       НИЖНИЙ ЛЕВЫЙ БЛОК — ГРАФИК
+       ============================================================ -->
+
+  <rect x="90" y="745"
+        width="340"
+        height="490"
+        rx="4"
+        fill="#fcfbf8"
+        stroke="#bdb9ae"
+        stroke-width="1.5"/>
+
+  <text x="115" y="780"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        font-weight="700"
+        fill="#2F5D50"
+        letter-spacing="2">
+    SYSTEM RESPONSE
+  </text>
+
+  <text x="115" y="814"
+        font-family="Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#1c1b17">
+    POSITION CONTROL
+  </text>
+
+
+  <!-- ============================================================
+       ГРАФИК
+       ============================================================ -->
+
+  <rect x="115" y="845"
+        width="290"
+        height="290"
+        fill="#f7f5ef"
+        stroke="#d4d0c6"/>
+
+  <!-- Сетка графика -->
+  <g stroke="#dedbd2" stroke-width="1">
+
+    <line x1="115" y1="903" x2="405" y2="903"/>
+    <line x1="115" y1="961" x2="405" y2="961"/>
+    <line x1="115" y1="1019" x2="405" y2="1019"/>
+    <line x1="115" y1="1077" x2="405" y2="1077"/>
+
+    <line x1="173" y1="845" x2="173" y2="1135"/>
+    <line x1="231" y1="845" x2="231" y2="1135"/>
+    <line x1="289" y1="845" x2="289" y2="1135"/>
+    <line x1="347" y1="845" x2="347" y2="1135"/>
+
+  </g>
+
+
+  <!-- Эталонная линия -->
+  <line x1="115" y1="930"
+        x2="405" y2="930"
+        stroke="#9a968c"
+        stroke-width="1.5"
+        stroke-dasharray="5 5"/>
+
+
+  <!-- Кривая отклика -->
+  <path d="M115 1115
+           C135 1095 150 1025 170 960
+           C190 895 210 880 230 905
+           C250 930 265 980 280 965
+           C295 950 310 910 325 924
+           C340 938 350 945 365 935
+           C380 928 392 930 405 930"
+        fill="none"
+        stroke="#2F5D50"
+        stroke-width="4"/>
+
+
+  <!-- Ось X -->
+  <line x1="115" y1="1135"
+        x2="405" y2="1135"
+        stroke="#6e6b63"
+        stroke-width="1.5"/>
+
+  <!-- Ось Y -->
+  <line x1="115" y1="845"
+        x2="115" y2="1135"
+        stroke="#6e6b63"
+        stroke-width="1.5"/>
+
+
+  <!-- Подписи графика -->
+  <text x="120" y="1160"
+        font-family="monospace"
+        font-size="12"
+        fill="#6e6b63">
+    0
+  </text>
+
+  <text x="370" y="1160"
+        font-family="monospace"
+        font-size="12"
+        fill="#6e6b63">
+    t
+  </text>
+
+  <text x="120" y="870"
+        font-family="monospace"
+        font-size="12"
+        fill="#6e6b63">
+    y
+  </text>
+
+
+  <!-- Параметры графика -->
+  <text x="115" y="1192"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    overshoot  8.2%
+  </text>
+
+  <text x="115" y="1213"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    settling   1.8 s
+  </text>
+
+
+  <!-- ============================================================
+       НИЖНИЙ ЦЕНТРАЛЬНЫЙ БЛОК — РОВЕР
+       ============================================================ -->
+
+  <rect x="470" y="745"
+        width="420"
+        height="490"
+        rx="4"
+        fill="#fcfbf8"
+        stroke="#bdb9ae"
+        stroke-width="1.5"/>
+
+  <text x="495" y="780"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        font-weight="700"
+        fill="#2F5D50"
+        letter-spacing="2">
+    AUTONOMOUS ROVER
+  </text>
+
+  <text x="495" y="814"
+        font-family="Arial, sans-serif"
+        font-size="21"
+        font-weight="700"
+        fill="#1c1b17">
+    MOBILE ROBOT PLATFORM
+  </text>
+
+
+  <!-- Траектория ровера -->
+  <path d="M525 1105
+           C590 1040 610 950 680 925
+           C750 900 790 950 835 875"
+        fill="none"
+        stroke="#2F5D50"
+        stroke-width="2"
+        stroke-dasharray="7 7"/>
+
+
+  <!-- ============================================================
+       КОРПУС РОВЕРА
+       ============================================================ -->
+
+  <rect x="585" y="980"
+        width="205"
+        height="85"
+        rx="18"
+        fill="#ece9e0"
+        stroke="#2F5D50"
+        stroke-width="3"/>
+
+
+  <!-- Колёса -->
+  <circle cx="615" cy="1070"
+          r="35"
+          fill="#1c1b17"/>
+
+  <circle cx="755" cy="1070"
+          r="35"
+          fill="#1c1b17"/>
+
+  <circle cx="615" cy="1070"
+          r="15"
+          fill="#f4f2ec"/>
+
+  <circle cx="755" cy="1070"
+          r="15"
+          fill="#f4f2ec"/>
+
+
+  <!-- Верхняя платформа -->
+  <rect x="640" y="935"
+        width="95"
+        height="45"
+        rx="8"
+        fill="#f7f5ef"
+        stroke="#2F5D50"
+        stroke-width="3"/>
+
+
+  <!-- ============================================================
+       КАМЕРА РОВЕРА
+       ============================================================ -->
+
+  <line x1="688" y1="935"
+        x2="688" y2="880"
+        stroke="#1c1b17"
+        stroke-width="5"/>
+
+  <rect x="665" y="855"
+        width="48"
+        height="28"
+        rx="4"
+        fill="#2F5D50"/>
+
+  <circle cx="688" cy="869"
+          r="7"
+          fill="#f4f2ec"/>
+
+
+  <!-- ============================================================
+       LIDAR
+       ============================================================ -->
+
+
+
+  <!-- Параметры ровера -->
+  <text x="495" y="1155"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    lidar       360°
+  </text>
+
+  <text x="495" y="1180"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    autonomy    ACTIVE
+  </text>
+
+  <text x="495" y="1205"
+        font-family="monospace"
+        font-size="13"
+        fill="#6e6b63">
+    battery     87%
+  </text>
+
+
+  <!-- ============================================================
+       НИЖНИЙ ПРАВЫЙ БЛОК — C++
+       ============================================================ -->
+
+  <rect x="930" y="745"
+        width="380"
+        height="490"
+        rx="4"
+        fill="#202522"
+        stroke="#3e7667"
+        stroke-width="1.5"/>
+
+
+  <!-- Заголовок редактора -->
+  <rect x="930" y="745"
+        width="380"
+        height="54"
+        rx="4"
+        fill="#292f2b"/>
+
+  <!-- Кнопки окна -->
+  <circle cx="955" cy="772" r="6" fill="#6e6b63"/>
+  <circle cx="976" cy="772" r="6" fill="#6e6b63"/>
+  <circle cx="997" cy="772" r="6" fill="#6e6b63"/>
+
+  <!-- Имя файла -->
+  <text x="1025" y="778"
+        font-family="monospace"
+        font-size="15"
+        fill="#f4f2ec"
+        letter-spacing="1">
+    CONTROL.CPP
+  </text>
+
+
+  <!-- ============================================================
+       КОД C++
+       ============================================================ -->
+
+  <g font-family="monospace" font-size="18">
+
+    <!-- Строка 01 -->
+    <text x="955" y="835" fill="#9a968c">01</text>
+
+    <text x="995" y="835" fill="#d6d2c8">
+      #include
+    </text>
+
+    <text x="1090" y="835" fill="#7fb4a5">
+      &lt;robot.cpp&gt;
+    </text>
+
+
+    <!-- Строка 02 -->
+    <text x="955" y="875" fill="#9a968c">02</text>
+
+    <text x="995" y="875" fill="#d6d2c8">
+      void
+    </text>
+
+    <text x="1040" y="875" fill="#7fb4a5">
+      update()
+    </text>
+
+    <text x="1138" y="875" fill="#d6d2c8">
+      {
+    </text>
+
+
+    <!-- Строка 03 -->
+    <text x="955" y="915" fill="#9a968c">03</text>
+
+    <text x="995" y="915" fill="#d6d2c8">
+      robot.
+    </text>
+
+    <text x="1050" y="915" fill="#7fb4a5">
+      readSensors()
+    </text>
+
+    <text x="1175" y="915" fill="#d6d2c8">
+      ;
+    </text>
+
+
+    <!-- Строка 04 -->
+    <text x="955" y="955" fill="#9a968c">04</text>
+
+    <text x="995" y="955" fill="#d6d2c8">
+      robot.
+    </text>
+
+    <text x="1050" y="955" fill="#7fb4a5">
+      calculate()
+    </text>
+
+    <text x="1160" y="955" fill="#d6d2c8">
+      ;
+    </text>
+
+
+    <!-- Строка 05 -->
+    <text x="955" y="995" fill="#9a968c">05</text>
+
+    <text x="995" y="995" fill="#d6d2c8">
+      robot.
+    </text>
+
+    <text x="1050" y="995" fill="#7fb4a5">
+      move()
+    </text>
+
+    <text x="1120" y="995" fill="#d6d2c8">
+      ;
+    </text>
+
+
+    <!-- Строка 06 -->
+    <text x="955" y="1035" fill="#9a968c">06</text>
+
+    <text x="995" y="1035" fill="#d6d2c8">
+      }
+    </text>
+
+  </g>
+
+
+  <!-- ============================================================
+       СТАТУС КОМПИЛЯЦИИ
+       ============================================================ -->
+
+  <line x1="955" y1="1070"
+        x2="1285" y2="1070"
+        stroke="#3b423e"
+        stroke-width="1"/>
+
+  <circle cx="963" cy="1100"
+          r="6"
+          fill="#2F5D50"/>
+
+  <text x="980" y="1106"
+        font-family="monospace"
+        font-size="16"
+        fill="#b9c9c2">
+    build successful
+  </text>
+
+  <text x="955" y="1140"
+        font-family="monospace"
+        font-size="14"
+        fill="#777f7a">
+    target: robot-controller
+  </text>
+
+  <text x="955" y="1170"
+        font-family="monospace"
+        font-size="14"
+        fill="#777f7a">
+    cycle: 2.0 ms
+  </text>
+
+
+  <!-- ============================================================
+       FOOTER
+       НЕ ИЗМЕНЯЛСЯ
+       ============================================================ -->
+
+  <line x1="90" y1="1280"
+        x2="1310" y2="1280"
+        stroke="#bdb9ae"
+        stroke-width="1"/>
+
+  <text x="90" y="1320"
+        font-family="monospace"
+        font-size="12"
+        fill="#9a968c"
+        letter-spacing="1">
+    ROBOT_ARCH / CONTROL / MOTION / SENSING
+  </text>
+
+  <text x="90" y="1355"
+        font-family="Arial, sans-serif"
+        font-size="11"
+        fill="#b0aca2">
+    REAL-TIME ROBOTICS SYSTEM
+  </text>
+
+</svg>

@@ -6,7 +6,7 @@ export function BomView({ embedded = false }: { embedded?: boolean }) {
   return (
     <div className={embedded ? 'embedded-section' : 'page'}>
       {embedded ? null : <h1>Спецификация</h1>}
-      <p className="lede">Инженерный список hardware- и механических компонентов текущей семантической модели. Складской учёт не ведётся.</p>
+      <p className="lede bom-lede">Инженерный список hardware- и механических компонентов текущей семантической модели.</p>
       <table className="table">
         <thead>
           <tr>

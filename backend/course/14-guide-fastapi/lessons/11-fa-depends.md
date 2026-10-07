@@ -1,0 +1,84 @@
+---
+id: fa-depends
+title: Depends и сессия БД
+module_id: fastapi
+module_title: FastAPI
+module_order: 14
+order: 11
+---
+
+# Depends и сессия БД
+
+## Цель
+
+Внедрять зависимости: текущий пользователь и сессия БД.
+
+## Что уже нужно знать
+
+Модели ответа.
+
+## Объяснение с нуля
+
+Depends позволяет переиспользовать получение ресурсов. Типичный паттерн: get_db() yield session; get_current_user(). FastAPI вызывает зависимости до handler и закрывает генераторы после.
+
+Это стержень реального сервиса, не hello world.
+
+## Термины
+
+- **Depends**.
+- **yield dependency**.
+- **dependency override** в тестах.
+
+## Внутреннее устройство
+
+дерево зависимостей резолвится на запрос.
+
+## Пример
+
+create_note(db=Depends(get_db), user=Depends(get_current_user))
+
+## Разбор
+
+После ответа session закрывается в finally генератора.
+
+## Код
+
+```python
+from fastapi import Depends
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post("")
+def create_note(body: NoteCreate, db=Depends(get_db)):
+    ...
+```
+
+## Практика
+
+Как мокать get_db в тестах?
+
+## Типичные ошибки
+
+- Открывать Session внутри каждого репозитория хаотично.
+- Забывать close.
+
+## Что запомнить
+
+Depends = композиция инфраструктуры запроса.
+
+## Задание
+
+Добавьте get_current_user и защиту роута.
+
+## Связь со следующим уроком
+
+Middleware во FastAPI.
+
+### Закрепление 1
+
+Объясните соседу суть урока без подглядывания в текст. Если запнулись — вернитесь к блоку «Разбор».

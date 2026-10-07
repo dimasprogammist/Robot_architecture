@@ -2,10 +2,20 @@ import { useState } from 'react'
 import { uid } from '../lib/ids'
 import { MarkdownField } from './MarkdownField'
 import { StlPreview } from './StlPreview'
+import { Toggle } from './Toggle'
 import { useProjectStore } from '../store/useProjectStore'
 import { api } from '../lib/api'
 import { emptyMechanical, emptyPrint, emptyTable } from '../model/defaults'
-import type { Component, DocumentationItem, TableColumn } from '../types'
+import type { AttachedFile, Component, DocumentationItem, TableColumn } from '../types'
+
+export function fileExt(filename: string) {
+  const i = filename.lastIndexOf('.')
+  return i >= 0 ? filename.slice(i + 1).toUpperCase() : ''
+}
+
+export function projectFileUrl(projectId: string, fileId: string) {
+  return `/api/projects/${projectId}/files/${fileId}`
+}
 
 export function DocsPanel({ component }: { component: Component }) {
   const updateComponent = useProjectStore((s) => s.updateComponent)
@@ -127,63 +137,81 @@ export function TablePanel({ component }: { component: Component }) {
     set({ ...table, columns: table.columns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
   const types = ['TEXT', 'INTEGER', 'BIGINT', 'BOOLEAN', 'REAL', 'TIMESTAMP', 'UUID', 'JSON']
   return (
-    <div>
-      <div className="field">
-        <label>Название</label>
-        <input value={component.name} onChange={(e) => updateComponent(component.id, { name: e.target.value })} />
-      </div>
+    <div className="table-inspector">
       <div className="field">
         <label>Описание</label>
-        <input value={component.description} onChange={(e) => updateComponent(component.id, { description: e.target.value })} />
+        <textarea value={component.description} onChange={(e) => updateComponent(component.id, { description: e.target.value })} />
       </div>
-      <div className="col-table-wrap">
-        <table className="col-table">
-          <thead>
-            <tr>
-              <th>Колонка</th>
-              <th>Тип</th>
-              <th title="Пустое значение допустимо">Пусто</th>
-              <th title="Первичный ключ">Ключ</th>
-              <th>По умолчанию</th>
-              <th>Связь</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {table.columns.map((col) => (
-              <tr key={col.id} className={col.id === activeId ? 'active' : ''} onClick={() => setActiveId(col.id)}>
-                <td><input value={col.name} onChange={(e) => patchCol(col.id, { name: e.target.value })} /></td>
-                <td>
-                  <select value={types.includes(col.type) ? col.type : col.type} onChange={(e) => patchCol(col.id, { type: e.target.value })}>
-                    {types.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                    {types.includes(col.type) ? null : <option value={col.type}>{col.type}</option>}
-                  </select>
-                </td>
-                <td><input type="checkbox" checked={col.nullable} title="Можно не заполнять" onChange={(e) => patchCol(col.id, { nullable: e.target.checked, primary_key: e.target.checked ? false : col.primary_key })} /></td>
-                <td><input type="checkbox" checked={col.primary_key} title="Первичный ключ" onChange={(e) => patchCol(col.id, { primary_key: e.target.checked, nullable: e.target.checked ? false : col.nullable })} /></td>
-                <td><input value={col.default} onChange={(e) => patchCol(col.id, { default: e.target.value })} /></td>
-                <td><input value={col.foreign_key} placeholder="таблица.колонка" onChange={(e) => patchCol(col.id, { foreign_key: e.target.value })} /></td>
-                <td><button className="btn ghost" type="button" title="Удалить колонку" onClick={() => set({ ...table, columns: table.columns.filter((c) => c.id !== col.id) })}>×</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="col-list">
+        {table.columns.map((col) => (
+          <button
+            key={col.id}
+            type="button"
+            className={`col-list-item ${col.id === activeId ? 'active' : ''}`}
+            onClick={() => setActiveId(col.id)}
+          >
+            <span>{col.name || 'колонка'}</span>
+            <span className="hint">{col.type}</span>
+          </button>
+        ))}
       </div>
       <button className="btn" type="button" onClick={addCol}>Добавить колонку</button>
       {active ? (
-        <details className="prop-extra" open>
-          <summary>Колонка «{active.name}»</summary>
-          <label className="row">
-            <input type="checkbox" checked={active.unique} onChange={(e) => patchCol(active.id, { unique: e.target.checked })} />
-            Уникальные значения
-          </label>
+        <div className="col-editor">
+          <p className="prop-kicker">Колонка</p>
+          <div className="field">
+            <label>Имя</label>
+            <input value={active.name} onChange={(e) => patchCol(active.id, { name: e.target.value })} />
+          </div>
+          <div className="field">
+            <label>Тип</label>
+            <select value={types.includes(active.type) ? active.type : active.type} onChange={(e) => patchCol(active.id, { type: e.target.value })}>
+              {types.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+              {types.includes(active.type) ? null : <option value={active.type}>{active.type}</option>}
+            </select>
+          </div>
+          <div className="field">
+            <label>По умолчанию</label>
+            <input value={active.default} onChange={(e) => patchCol(active.id, { default: e.target.value })} />
+          </div>
+          <div className="field">
+            <label>Связь</label>
+            <input value={active.foreign_key} placeholder="таблица.колонка" onChange={(e) => patchCol(active.id, { foreign_key: e.target.value })} />
+          </div>
           <div className="field">
             <label>Комментарий</label>
             <input value={active.description} onChange={(e) => patchCol(active.id, { description: e.target.value })} />
           </div>
-        </details>
+          <div className="table-toggles">
+          <Toggle
+            label="Можно не заполнять"
+            checked={active.nullable}
+            onChange={(v) => patchCol(active.id, { nullable: v, primary_key: v ? false : active.primary_key })}
+          />
+          <Toggle
+            label="Первичный ключ"
+            checked={active.primary_key}
+            onChange={(v) => patchCol(active.id, { primary_key: v, nullable: v ? false : active.nullable })}
+          />
+          <Toggle
+            label="Уникальные значения"
+            checked={active.unique}
+            onChange={(v) => patchCol(active.id, { unique: v })}
+          />
+          </div>
+          <button
+            className="btn danger"
+            type="button"
+            onClick={() => {
+              set({ ...table, columns: table.columns.filter((c) => c.id !== active.id) })
+              setActiveId(table.columns.find((c) => c.id !== active.id)?.id ?? null)
+            }}
+          >
+            Удалить колонку
+          </button>
+        </div>
       ) : null}
     </div>
   )
@@ -195,25 +223,61 @@ export function FilesPanel({ component }: { component: Component }) {
   const [preview, setPreview] = useState<string | null>(null)
   return (
     <div>
-      <input
-        type="file"
-        accept=".stl,.step,.stp,.obj,.pdf,.md"
-        onChange={async (e) => {
-          const file = e.target.files?.[0]
-          if (!file) return
-          const meta = await api.uploadFile(project.id, file, component.id)
-          updateComponent(component.id, { files: [...(component.files || []), { ...meta, component_id: component.id }] })
-        }}
-      />
+      <label className="btn">
+        Добавить файл
+        <input
+          type="file"
+          hidden
+          accept=".stl,.step,.stp,.obj,.pdf,.md"
+          onChange={async (e) => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            const meta = await api.uploadFile(project.id, file, component.id)
+            updateComponent(component.id, { files: [...(component.files || []), { ...meta, component_id: component.id }] })
+            e.target.value = ''
+          }}
+        />
+      </label>
       {(component.files || []).map((f) => (
-        <div key={f.id} className="row" style={{ marginTop: 8 }}>
-          <span>{f.filename}</span>
-          {f.kind === 'stl' ? (
-            <button className="btn" type="button" onClick={() => setPreview(f.id)}>Просмотр STL</button>
-          ) : null}
-        </div>
+        <AttachedFileRow
+          key={f.id}
+          file={f}
+          projectId={project.id}
+          onPreview={setPreview}
+        />
       ))}
-      {preview ? <StlPreview url={`/api/projects/${project.id}/files/${preview}`} /> : null}
+      {preview ? <StlPreview url={projectFileUrl(project.id, preview)} /> : null}
+    </div>
+  )
+}
+
+export function AttachedFileRow({
+  file,
+  projectId,
+  componentName,
+  onPreview,
+}: {
+  file: AttachedFile
+  projectId: string
+  componentName?: string
+  onPreview?: (id: string) => void
+}) {
+  const ext = fileExt(file.filename) || file.kind
+  return (
+    <div className="row attached-file-row">
+      <button
+        className="btn ghost attached-file-open"
+        type="button"
+        title={file.filename}
+        onClick={() => {
+          if (file.kind === 'stl' && onPreview) onPreview(file.id)
+          else window.open(projectFileUrl(projectId, file.id), '_blank')
+        }}
+      >
+        <span className="attached-file-name">{file.filename}</span>
+        {componentName ? <span className="hint">{componentName}</span> : null}
+        {ext ? <span className="tag">{ext}</span> : null}
+      </button>
     </div>
   )
 }

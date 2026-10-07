@@ -178,7 +178,7 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
             </select>
           </div>
           <button
-            className="btn ghost"
+            className="btn danger"
             type="button"
             onClick={() => {
               updateAlgorithm(algorithm.id, {

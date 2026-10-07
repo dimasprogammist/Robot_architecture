@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import {
   Box,
   Camera,
@@ -50,7 +51,99 @@ const map: Record<string, LucideIcon> = {
   part: Cog,
 }
 
+export const TYPE_ICON_NAMES = Object.keys(map)
+
+export const TYPE_ICON_LABELS: Record<string, string> = {
+  box: 'Компонент',
+  app: 'Приложение',
+  service: 'Сервис',
+  server: 'Сервер',
+  layout: 'Макет',
+  book: 'Документы',
+  puzzle: 'Модуль',
+  api: 'API',
+  chip: 'Плата',
+  cpu: 'Процессор',
+  board: 'Плата',
+  factory: 'Производство',
+  sensor: 'Датчик',
+  motor: 'Двигатель',
+  camera: 'Камера',
+  radar: 'Радар',
+  network: 'Сеть',
+  db: 'База данных',
+  cache: 'Кэш',
+  folder: 'Папка',
+  queue: 'Очередь',
+  protocol: 'Протокол',
+  cloud: 'Облако',
+  globe: 'Глобус',
+  user: 'Пользователь',
+  gear: 'Шестерня',
+  part: 'Деталь',
+}
+
+export function typeIconLabel(name: string) {
+  return TYPE_ICON_LABELS[name] || name
+}
+
 export function TypeIcon({ name, size = 14 }: { name: string; size?: number }) {
   const Icon = map[name] || Box
   return <Icon size={size} />
+}
+
+export function IconPicker({ value, onChange }: { value: string; onChange: (name: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onPointer = (event: MouseEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="icon-picker" ref={root}>
+      <button
+        className="icon-picker-btn"
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <TypeIcon name={value} size={16} />
+        <span>{typeIconLabel(value)}</span>
+      </button>
+      {open ? (
+        <div className="icon-picker-menu" role="listbox">
+          {TYPE_ICON_NAMES.map((name) => (
+            <button
+              key={name}
+              className={`icon-picker-option ${name === value ? 'on' : ''}`}
+              type="button"
+              role="option"
+              aria-selected={name === value}
+              onClick={() => {
+                onChange(name)
+                setOpen(false)
+              }}
+            >
+              <TypeIcon name={name} size={16} />
+              <span>{typeIconLabel(name)}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
 }

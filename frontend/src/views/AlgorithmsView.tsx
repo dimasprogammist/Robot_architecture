@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useProjectStore } from '../store/useProjectStore'
 import { AlgorithmCanvas } from '../components/canvas/AlgorithmCanvas'
+import { componentSupportsAlgorithm } from '../model/componentCatalog'
 import type { Component, Project } from '../types'
 
 function componentTree(project: Project) {
@@ -27,7 +28,6 @@ export function AlgorithmsView() {
   const selectedIds = useProjectStore((s) => s.selectedIds)
   const ensureAlgorithm = useProjectStore((s) => s.ensureAlgorithm)
   const select = useProjectStore((s) => s.select)
-  const updateAlgorithm = useProjectStore((s) => s.updateAlgorithm)
   const children = useMemo(() => componentTree(project), [project])
   const selected = project.components.find((c) => c.entity_kind !== 'table' && selectedIds.includes(c.id))
   const alg = selected ? project.algorithms.find((a) => a.component_id === selected.id) : undefined
@@ -38,6 +38,7 @@ export function AlgorithmsView() {
       .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
       .map((c) => (
         <div key={c.id}>
+          {componentSupportsAlgorithm(c) ? (
           <button
             className={`algo-tree-item ${selected?.id === c.id ? 'active' : ''}`}
             style={{ paddingLeft: 8 + depth * 14 }}
@@ -49,6 +50,7 @@ export function AlgorithmsView() {
           >
             {c.name}
           </button>
+          ) : null}
           {renderLevel(c.id, depth + 1)}
         </div>
       ))
@@ -57,7 +59,7 @@ export function AlgorithmsView() {
     <div className="page algo-layout">
       <aside className="algo-tree">
         <h1>Алгоритмы</h1>
-        {children.get(null)?.length ? renderLevel(null, 0) : <p className="hint">На холсте архитектуры пока нет компонентов.</p>}
+        {project.components.some((c) => componentSupportsAlgorithm(c)) ? renderLevel(null, 0) : <p className="hint">Программируемых компонентов на холсте пока нет.</p>}
       </aside>
       <div className="algo-canvas">
         {selected && alg ? (

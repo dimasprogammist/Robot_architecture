@@ -42,7 +42,14 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
           Добавить
         </button>
       </div>
-      <table className="table">
+      <table className="table req-table">
+        <colgroup>
+          <col className="req-col-code" />
+          <col className="req-col-text" />
+          <col className="req-col-pri" />
+          <col className="req-col-links" />
+          <col className="req-col-act" />
+        </colgroup>
         <thead>
           <tr>
             <th>Код</th>
@@ -57,7 +64,11 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
             <tr key={r.id}>
               <td>{r.code}</td>
               <td>
-                <input value={r.text} onChange={(e) => updateRequirement(r.id, { text: e.target.value })} />
+                <input
+                  className="req-text-input"
+                  value={r.text}
+                  onChange={(e) => updateRequirement(r.id, { text: e.target.value })}
+                />
               </td>
               <td>
                 <select value={r.priority} onChange={(e) => updateRequirement(r.id, { priority: e.target.value })}>
@@ -102,7 +113,7 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
                 </select>
               </td>
               <td>
-                <button className="btn ghost danger" type="button" onClick={() => deleteRequirement(r.id)}>
+                <button className="btn danger" type="button" onClick={() => deleteRequirement(r.id)}>
                   Удалить
                 </button>
               </td>

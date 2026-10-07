@@ -56,6 +56,8 @@ export interface CourseLesson {
   asset_base: string
   prev_lesson_id: string | null
   next_lesson_id: string | null
+  notes_url?: string | null
+  completed?: boolean
 }
 
 export interface AiExportBody {
@@ -204,6 +206,18 @@ export const api = {
   me: () => apiFetch('/api/auth/me').then((r) => json<AuthUser>(r)),
   course: () => apiFetch('/api/course').then((r) => json<CourseOverview>(r)),
   courseLesson: (id: string) => apiFetch(`/api/course/${id}`).then((r) => json<CourseLesson>(r)),
+  courseProgress: () =>
+    apiFetch('/api/course/progress').then((r) =>
+      json<{
+        course_total: number
+        course_done: number
+        exercises_total: number
+        exercises_done: number
+        completed_ids?: string[]
+      }>(r),
+    ),
+  courseSeen: (id: string) => apiFetch(`/api/course/${id}/seen`, { method: 'POST' }).then(json),
+  courseUnseen: (id: string) => apiFetch(`/api/course/${id}/unseen`, { method: 'POST' }).then(json),
   projects: () => apiFetch('/api/projects').then((r) => json<ProjectSummary[]>(r)),
   project: (id: string) => apiFetch(`/api/projects/${id}`).then((r) => json<Project>(r)),
   createProject: (body: { name: string; description?: string; template_id?: string | null }) =>

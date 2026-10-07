@@ -1,15 +1,77 @@
+import { useEffect, useState } from 'react'
 import { ColorSwatches } from './ColorSwatches'
 import { PanelRightClose } from 'lucide-react'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
-import { DocsPanel, FilesPanel, MechPanel, TablePanel } from './InspectorExtras'
-import { MarkdownField } from './MarkdownField'
+import { FilesPanel, MechPanel, TablePanel } from './InspectorExtras'
 import { uid } from '../lib/ids'
 import { CATEGORY_LABELS, STATUS_LABELS, STEP_KIND_LABELS, TAB_LABELS } from '../i18n'
-import type { AlgorithmStepKind, Component, Connection } from '../types'
-import { componentFields } from '../model/componentCatalog'
+import type { AlgorithmStepKind, Component, Connection, Protocol } from '../types'
+import {
+  OTHER_VALUE,
+  componentSupportsAlgorithm,
+  groupedComponentFields,
+  inferManufacturer,
+  inspectorChrome,
+} from '../model/componentCatalog'
+import { catalogLook } from '../model/library'
+import { PROGRAM_LANGUAGES, RELIABILITY_OPTIONS, protocolSelectOptions } from '../model/protocols'
 
 const STATUSES = ['planned', 'in-progress', 'ready', 'deprecated']
+
+function EditableName({
+  value,
+  onSave,
+}: {
+  value: string
+  onSave: (next: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+
+  useEffect(() => {
+    if (!editing) setDraft(value)
+  }, [value, editing])
+
+  const commit = () => {
+    const next = draft.trim() || value
+    setEditing(false)
+    if (next !== value) onSave(next)
+  }
+
+  if (!editing) {
+    return (
+      <h2
+        className="editable-title"
+        title="Изменить название"
+        onClick={() => setEditing(true)}
+      >
+        {value}
+      </h2>
+    )
+  }
+
+  return (
+    <input
+      className="editable-title-input"
+      value={draft}
+      autoFocus
+      aria-label="Название"
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          commit()
+        }
+        if (e.key === 'Escape') {
+          setDraft(value)
+          setEditing(false)
+        }
+      }}
+    />
+  )
+}
 
 export function Inspector({ onClose }: { onClose?: () => void }) {
   const project = useProjectStore((s) => s.project)
@@ -22,8 +84,9 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
   const updateAlgorithm = useProjectStore((s) => s.updateAlgorithm)
   const addRequirement = useProjectStore((s) => s.addRequirement)
   const updateRequirement = useProjectStore((s) => s.updateRequirement)
-  const tab = useUiStore((s) => s.inspectorTab)
+  const tabRaw = useUiStore((s) => s.inspectorTab)
   const setTab = useUiStore((s) => s.setInspectorTab)
+  const tab = tabRaw === 'docs' || tabRaw === 'nested' ? 'overview' : tabRaw
 
   if (!project) return null
 
@@ -34,7 +97,8 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
     return (
       <ConnectionInspector
         connection={connection}
-        projectProtocols={project.protocols.map((p) => p.name)}
+        components={project.components}
+        protocols={project.protocols}
         onChange={(patch) => updateConnection(connection.id, patch)}
       />
     )
@@ -67,7 +131,10 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
     return (
       <aside className="inspector">
         <div className="inspector-heading">
-          <h2>Таблица</h2>
+          <EditableName
+            value={component.name}
+            onSave={(name) => updateComponent(component.id, { name })}
+          />
           {onClose ? (
             <button
               className="icon-btn"
@@ -80,6 +147,7 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
             </button>
           ) : null}
         </div>
+        <p className="sub">Таблица</p>
 
         <TablePanel component={component} />
       </aside>
@@ -87,19 +155,39 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
   }
 
   const alg = project.algorithms.find((a) => a.component_id === component.id)
-  const types = Array.from(
-    new Set([...project.custom_types.map((t) => t.name), component.type]),
-  )
   const linkedReqs = project.requirements.filter(
     (r) =>
       r.component_ids.includes(component.id) ||
       component.requirement_ids.includes(r.id),
   )
+  const appearance = catalogLook(component, project.library_presets || [])
+  const supportsAlgorithm = componentSupportsAlgorithm(appearance)
+  const chrome = inspectorChrome(appearance)
+  const inspectorTabs = (
+    [
+      'overview',
+      ...(supportsAlgorithm ? (['algorithm'] as const) : []),
+      'requirements',
+      ...(component.category === 'MECHANICS' ? (['mechanics'] as const) : []),
+      'files',
+    ] as const
+  )
 
   return (
     <aside className="inspector">
       <div className="inspector-heading">
-        <h2>{component.name}</h2>
+        <div className="inspector-title-row">
+          <EditableName
+            value={component.name}
+            onSave={(name) => updateComponent(component.id, { name })}
+          />
+          <span
+            className="inspector-type"
+            title={`${component.extra_fields?.sensor_kind || appearance.type} · ${CATEGORY_LABELS[appearance.category] || appearance.category}`}
+          >
+            {(component.extra_fields?.sensor_kind || appearance.type)} · {CATEGORY_LABELS[appearance.category] || appearance.category}
+          </span>
+        </div>
 
         {onClose ? (
           <button
@@ -114,27 +202,8 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
         ) : null}
       </div>
 
-      <p className="sub">
-        {component.type} · {CATEGORY_LABELS[component.category] || component.category}
-      </p>
-
       <div className="tabs">
-        {(
-          [
-            'overview',
-            'docs',
-            'algorithm',
-            'nested',
-            'requirements',
-            ...(component.category === 'MECHANICS'
-              ? (['mechanics'] as const)
-              : []),
-            ...(component.entity_kind === 'table' || component.table
-              ? (['table'] as const)
-              : []),
-            'files',
-          ] as const
-        ).map((t) => (
+        {inspectorTabs.map((t) => (
           <button
             key={t}
             className={`tab ${tab === t ? 'active' : ''}`}
@@ -148,246 +217,114 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
 
       {tab === 'overview' && (
         <>
-          <details className="prop-extra" open>
-            <summary>Общие</summary>
+          {(() => {
+            const groups = groupedComponentFields(appearance)
+            const mainFields = groups.find((group) => group.id === 'main')?.fields || []
+            const otherGroups = groups.filter((group) => group.id !== 'main')
+            const renderExtra = (field: (typeof mainFields)[number]) => {
+              const extra = component.extra_fields || {}
+              const raw = extra[field.key] || ''
+              const guessed =
+                field.auto && field.key === 'manufacturer'
+                  ? inferManufacturer(component.name, component.type, extra.model || '')
+                  : ''
+              const value = raw || guessed
+              return (
+                <Field
+                  key={field.key}
+                  label={field.label}
+                  value={value}
+                  options={field.options}
+                  allowOther={field.allowOther}
+                  multiline={field.multiline}
+                  onChange={(v) => {
+                    if (field.key === 'model') {
+                      const maker = inferManufacturer(component.name, component.type, v)
+                      updateComponent(component.id, {
+                        extra_fields: {
+                          ...extra,
+                          model: v,
+                          ...(maker ? { manufacturer: maker } : {}),
+                        },
+                      })
+                      return
+                    }
+                    updateComponent(component.id, {
+                      extra_fields: { ...extra, [field.key]: v },
+                    })
+                  }}
+                />
+              )
+            }
+            return (
+              <>
+                <div className="prop-group">
+                  <p className="prop-kicker">Основное</p>
+                  <div className="field">
+                    <label>Готовность</label>
+                    <select
+                      value={component.status}
+                      onChange={(e) => updateComponent(component.id, { status: e.target.value })}
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {mainFields.map(renderExtra)}
+                </div>
+                {otherGroups.map((group) => (
+                  <div className="prop-group" key={group.id}>
+                    <p className="prop-kicker">{group.title}</p>
+                    {group.fields.map(renderExtra)}
+                  </div>
+                ))}
+              </>
+            )
+          })()}
 
-            <Field
-              label="Название"
-              value={component.name}
-              onChange={(v) =>
-                updateComponent(component.id, { name: v })
-              }
-            />
-
-            <p className="prop-kicker">Свойства компонента</p>
-
-            {componentFields(component).map((field) => (
+          {chrome.connection ? (
+            <div className="prop-group">
+              <p className="prop-kicker">Связь</p>
               <Field
-                key={field.key}
-                label={field.label}
-                value={component.extra_fields?.[field.key] || ''}
-                onChange={(v) =>
-                  updateComponent(component.id, {
-                    extra_fields: {
-                      ...(component.extra_fields || {}),
-                      [field.key]: v,
-                    },
-                  })
-                }
+                label="Технология"
+                value={component.technology}
+                onChange={(v) => updateComponent(component.id, { technology: v })}
               />
-            ))}
-
-            <div className="field">
-              <label>Тип</label>
-              <select
-                value={types.includes(component.type) ? component.type : ''}
-                onChange={(e) =>
-                  updateComponent(component.id, {
-                    type: e.target.value,
-                  })
-                }
-              >
-                {!types.includes(component.type) ? (
-                  <option value="">
-                    {component.type || 'Свой тип'}
-                  </option>
-                ) : null}
-
-                {types.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+              <Field
+                label="Адрес / API"
+                value={component.api}
+                onChange={(v) => updateComponent(component.id, { api: v })}
+              />
             </div>
-
-            <div className="field">
-              <label>Готовность</label>
-              <select
-                value={component.status}
-                onChange={(e) =>
-                  updateComponent(component.id, {
-                    status: e.target.value,
-                  })
-                }
-              >
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </details>
-
-          <details className="prop-extra">
-            <summary>Подключение</summary>
-
-            <Field
-              label="Технология"
-              value={component.technology}
-              onChange={(v) =>
-                updateComponent(component.id, { technology: v })
-              }
-            />
-
-            <Field
-              label="Как обращаться"
-              value={component.api}
-              onChange={(v) =>
-                updateComponent(component.id, { api: v })
-              }
-            />
-
-            <Field
-              label="Состояние"
-              value={component.state}
-              onChange={(v) =>
-                updateComponent(component.id, { state: v })
-              }
-            />
-          </details>
-
-          {component.category === 'MECHANICS' ? (
-            <p className="hint">
-              Размеры, материал и артикул — на вкладке «Механика».
-            </p>
           ) : null}
 
-          <details className="prop-extra">
-            <summary>Описание</summary>
+          {component.category === 'MECHANICS' ? (
+            <p className="hint">Размеры и материал — на вкладке «Механика».</p>
+          ) : null}
 
+          <div className="prop-group">
             <Field
-              label="Что делает"
+              label="Описание"
               value={component.description}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  description: v,
-                })
-              }
+              onChange={(v) => updateComponent(component.id, { description: v })}
               multiline
             />
+          </div>
 
-            <Field
-              label="Заметки"
-              value={component.notes}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  notes: v,
-                })
-              }
-              multiline
-            />
-          </details>
-
-          <details className="prop-extra">
-            <summary>Дополнительно</summary>
-
-            <Field
-              label="Версия"
-              value={component.version}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  version: v,
-                })
-              }
-            />
-
-            <Field
-              label="Ответственный"
-              value={component.owner}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  owner: v,
-                })
-              }
-            />
-
-            <Field
-              label="Теги"
-              value={component.tags.join(', ')}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  tags: v
-                    .split(',')
-                    .map((x) => x.trim())
-                    .filter(Boolean),
-                })
-              }
-            />
-
-            <Field
-              label="Состав"
-              value={component.modules.join(', ')}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  modules: v
-                    .split(',')
-                    .map((x) => x.trim())
-                    .filter(Boolean),
-                })
-              }
-            />
-          </details>
+          <button className="btn" type="button" onClick={() => enterComponent(component.id)}>
+            Внутренняя архитектура
+          </button>
         </>
       )}
 
-      {tab === 'docs' && (
-        <>
-          {(
-            [
-              ['purpose', 'Назначение'],
-              ['responsibilities', 'Ответственность'],
-              ['inputs', 'Входы'],
-              ['outputs', 'Выходы'],
-              ['dependencies', 'Зависимости'],
-              ['interfaces', 'Интерфейсы'],
-              ['failure_modes', 'Отказы'],
-              ['notes', 'Заметки'],
-            ] as const
-          ).map(([key, label]) => (
-            <MarkdownField
-              key={key}
-              label={label}
-              value={component.documentation[key]}
-              onChange={(v) =>
-                updateComponent(component.id, {
-                  documentation: {
-                    ...component.documentation,
-                    [key]: v,
-                  },
-                })
-              }
-            />
-          ))}
-
-          <DocsPanel component={component} />
-        </>
-      )}
-
-      {tab === 'algorithm' && (
+      {tab === 'algorithm' && supportsAlgorithm && (
         <AlgorithmEditor
           component={component}
           algorithmId={alg?.id}
           onOpen={() => ensureAlgorithm(component.id)}
           onChange={(id, patch) => updateAlgorithm(id, patch)}
         />
-      )}
-
-      {tab === 'nested' && (
-        <>
-          <p className="hint">
-            Откройте вложенный холст для подсистем, модулей и функций.
-          </p>
-
-          <button
-            className="btn primary"
-            type="button"
-            onClick={() => enterComponent(component.id)}
-          >
-            Открыть внутреннюю архитектуру
-          </button>
-        </>
       )}
 
       {tab === 'mechanics' && <MechPanel component={component} />}
@@ -430,13 +367,24 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
 
 function ConnectionInspector({
   connection,
-  projectProtocols,
+  components,
+  protocols,
   onChange,
 }: {
   connection: Connection
-  projectProtocols: string[]
+  components: Component[]
+  protocols: Protocol[]
   onChange: (patch: Partial<Connection>) => void
 }) {
+  const source = components.find((c) => c.id === connection.source)
+  const target = components.find((c) => c.id === connection.target)
+  const names = protocolSelectOptions(protocols.map((p) => p.name))
+  const tableLink =
+    (source?.entity_kind === 'table' || Boolean(source?.table)) &&
+    (target?.entity_kind === 'table' || Boolean(target?.table))
+  const reliabilityOptions = connection.reliability && !RELIABILITY_OPTIONS.includes(connection.reliability as typeof RELIABILITY_OPTIONS[number])
+    ? [connection.reliability, ...RELIABILITY_OPTIONS]
+    : [...RELIABILITY_OPTIONS]
   return (
     <aside className="inspector">
       <div className="inspector-heading">
@@ -450,39 +398,36 @@ function ConnectionInspector({
       </p>
 
       <div className="field">
-        <label>Вид</label>
+        <label>Источник</label>
+        <input value={source?.name || connection.source} readOnly />
+      </div>
 
-        <select
-          value={connection.kind}
-          onChange={(e) =>
-            onChange({
-              kind: e.target.value as Connection['kind'],
-            })
-          }
-        >
-          <option value="connection">Соединение</option>
-          <option value="data_flow">Поток данных</option>
-        </select>
+      <div className="field">
+        <label>Назначение</label>
+        <input value={target?.name || connection.target} readOnly />
       </div>
 
       <div className="field">
         <label>Протокол</label>
-
-        <input
+        <select
           value={connection.protocol_name}
-          list="proto-list"
-          onChange={(e) =>
+          onChange={(e) => {
+            const name = e.target.value
+            const proto = protocols.find((p) => p.name === name)
             onChange({
-              protocol_name: e.target.value,
+              protocol_name: name,
+              protocol_id: proto?.id || null,
+              color: proto?.color || connection.color,
             })
-          }
-        />
-
-        <datalist id="proto-list">
-          {projectProtocols.map((p) => (
-            <option key={p} value={p} />
+          }}
+        >
+          <option value="">Без протокола</option>
+          {names.map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
           ))}
-        </datalist>
+        </select>
       </div>
 
       <div className="field">
@@ -552,13 +497,18 @@ function ConnectionInspector({
           }
         />
 
-        <Field
-          label="Надёжность"
-          value={connection.reliability}
-          onChange={(v) =>
-            onChange({ reliability: v })
-          }
-        />
+        <div className="field">
+          <label>Надёжность</label>
+          <select
+            value={connection.reliability}
+            onChange={(e) => onChange({ reliability: e.target.value })}
+          >
+            <option value="">Не задано</option>
+            {reliabilityOptions.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+        </div>
 
         <Field
           label="Заметки"
@@ -568,45 +518,47 @@ function ConnectionInspector({
           }
           multiline
         />
+      </details>
 
-        <div className="field">
-          <label>Связь таблиц</label>
-
-          <select
-            value={connection.cardinality}
-            onChange={(e) =>
+      {tableLink ? (
+        <div className="prop-group">
+          <p className="prop-kicker">Связь таблиц</p>
+          <div className="field">
+            <label>Кардинальность</label>
+            <select
+              value={connection.cardinality}
+              onChange={(e) =>
+                onChange({
+                  cardinality: e.target.value,
+                })
+              }
+            >
+              <option value="">Не задано</option>
+              <option value="one_to_one">Один к одному</option>
+              <option value="one_to_many">Один ко многим</option>
+              <option value="many_to_many">Многие ко многим</option>
+            </select>
+          </div>
+          <Field
+            label="Колонка источника"
+            value={connection.source_column}
+            onChange={(v) =>
               onChange({
-                cardinality: e.target.value,
+                source_column: v,
               })
             }
-          >
-            <option value="">Не таблица</option>
-            <option value="one_to_one">Один к одному</option>
-            <option value="one_to_many">Один ко многим</option>
-            <option value="many_to_many">Многие ко многим</option>
-          </select>
+          />
+          <Field
+            label="Колонка цели"
+            value={connection.target_column}
+            onChange={(v) =>
+              onChange({
+                target_column: v,
+              })
+            }
+          />
         </div>
-
-        <Field
-          label="Колонка источника"
-          value={connection.source_column}
-          onChange={(v) =>
-            onChange({
-              source_column: v,
-            })
-          }
-        />
-
-        <Field
-          label="Колонка цели"
-          value={connection.target_column}
-          onChange={(v) =>
-            onChange({
-              target_column: v,
-            })
-          }
-        />
-      </details>
+      ) : null}
     </aside>
   )
 }
@@ -616,26 +568,60 @@ function Field({
   value,
   onChange,
   multiline,
+  options,
+  allowOther,
+  readOnly,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   multiline?: boolean
+  options?: string[]
+  allowOther?: boolean
+  readOnly?: boolean
 }) {
+  const selectOptions = options?.length
+    ? allowOther && !options.includes(OTHER_VALUE)
+      ? [...options, OTHER_VALUE]
+      : options
+    : []
+  const known = selectOptions.includes(value)
+  const selectValue = !selectOptions.length
+    ? ''
+    : !value
+      ? ''
+      : known
+        ? value
+        : OTHER_VALUE
+  const showOther = Boolean(allowOther && selectValue === OTHER_VALUE)
+
   return (
     <div className="field">
       <label>{label}</label>
-
-      {multiline ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
+      {selectOptions.length ? (
+        <>
+          <select
+            value={selectValue}
+            disabled={readOnly}
+            onChange={(e) => onChange(e.target.value)}
+          >
+            <option value="">Не задано</option>
+            {selectOptions.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+          {showOther ? (
+            <input
+              value={value === OTHER_VALUE ? '' : value}
+              placeholder="Своё значение"
+              onChange={(e) => onChange(e.target.value || OTHER_VALUE)}
+            />
+          ) : null}
+        </>
+      ) : multiline ? (
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} readOnly={readOnly} />
       ) : (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <input value={value} onChange={(e) => onChange(e.target.value)} readOnly={readOnly} />
       )}
     </div>
   )
@@ -655,6 +641,7 @@ function AlgorithmEditor({
   const algorithm = useProjectStore(
     (s) => s.project?.algorithms.find((a) => a.id === algorithmId),
   )
+  const [stepsOpen, setStepsOpen] = useState(true)
 
   if (!algorithm) {
     return (
@@ -712,8 +699,36 @@ function AlgorithmEditor({
         multiline
       />
 
-      <div className="field">
-        <label>Шаги</label>
+      <Field
+        label="Программа"
+        value={algorithm.program_name || ''}
+        onChange={(v) => onChange(algorithm.id, { program_name: v })}
+      />
+
+      <Field
+        label="Язык программирования"
+        value={algorithm.language || ''}
+        options={[...PROGRAM_LANGUAGES]}
+        onChange={(v) => onChange(algorithm.id, { language: v })}
+      />
+
+      <Field
+        label="Назначение"
+        value={algorithm.purpose || ''}
+        onChange={(v) => onChange(algorithm.id, { purpose: v })}
+        multiline
+      />
+
+      <div className="prop-group algo-steps">
+        <button
+          className="algo-steps-toggle"
+          type="button"
+          onClick={() => setStepsOpen((open) => !open)}
+        >
+          Шаги {stepsOpen ? '▼' : '▶'}
+        </button>
+        {stepsOpen ? (
+        <div className="algo-steps-body">
 
         {algorithm.steps.map((step, i) => (
           <div className="step-row" key={step.id}>
@@ -845,6 +860,8 @@ function AlgorithmEditor({
         >
           Добавить шаг
         </button>
+        </div>
+        ) : null}
       </div>
 
       <Field

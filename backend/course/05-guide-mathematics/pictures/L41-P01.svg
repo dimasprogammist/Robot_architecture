@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#F4F2EC"/>
+
+  <text x="400" y="42"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="24"
+        fill="#1C1B17">
+    Метод половинного деления
+  </text>
+
+  <!-- Coordinate area -->
+  <g stroke="#9A968C" stroke-width="1" opacity="0.22">
+    <line x1="100" y1="115" x2="100" y2="330"/>
+    <line x1="250" y1="115" x2="250" y2="330"/>
+    <line x1="400" y1="115" x2="400" y2="330"/>
+    <line x1="550" y1="115" x2="550" y2="330"/>
+    <line x1="700" y1="115" x2="700" y2="330"/>
+
+    <line x1="70" y1="150" x2="730" y2="150"/>
+    <line x1="70" y1="205" x2="730" y2="205"/>
+    <line x1="70" y1="260" x2="730" y2="260"/>
+    <line x1="70" y1="315" x2="730" y2="315"/>
+  </g>
+
+  <!-- Axes -->
+  <g stroke="#6E6B63" stroke-width="2" fill="none">
+    <line x1="70" y1="260" x2="730" y2="260"/>
+    <line x1="70" y1="330" x2="70" y2="95"/>
+  </g>
+
+  <path d="M730 260 L719 254 L719 266 Z" fill="#6E6B63"/>
+  <path d="M70 95 L64 106 L76 106 Z" fill="#6E6B63"/>
+
+  <!-- Function crossing zero -->
+  <path d="M105 305
+           C180 300, 235 285, 295 270
+           C350 256, 385 245, 420 225
+           C475 195, 540 165, 610 140
+           C650 126, 685 116, 715 108"
+        fill="none"
+        stroke="#2F5D50"
+        stroke-width="4"
+        stroke-linecap="round"/>
+
+  <!-- Interval [a,b] -->
+  <line x1="135" y1="355" x2="665" y2="355"
+        stroke="#2F5D50"
+        stroke-width="4"
+        stroke-linecap="round"/>
+
+  <!-- Interval endpoints -->
+  <circle cx="135" cy="355" r="7" fill="#2F5D50"/>
+  <circle cx="665" cy="355" r="7" fill="#2F5D50"/>
+
+  <!-- Midpoint -->
+  <circle cx="400" cy="355" r="7" fill="#2F5D50"/>
+
+  <!-- Vertical midpoint -->
+  <line x1="400" y1="355" x2="400" y2="260"
+        stroke="#6E6B63"
+        stroke-width="2"
+        stroke-dasharray="6 6"/>
+
+  <!-- Root -->
+  <circle cx="400" cy="260" r="7" fill="#2F5D50"/>
+
+  <!-- Labels -->
+  <text x="135" y="382"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">a</text>
+
+  <text x="400" y="382"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">c = (a+b)/2</text>
+
+  <text x="665" y="382"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">b</text>
+
+  <text x="118" y="292"
+        text-anchor="end"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#1C1B17">f(a) &lt; 0</text>
+
+  <text x="682" y="103"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#1C1B17">f(b) &gt; 0</text>
+
+  <text x="415" y="242"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#1C1B17">f(c) = 0</text>
+
+  <text x="400" y="420"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#6E6B63">
+    отрезок с корнем делится пополам
+  </text>
+
+  <text x="720" y="250"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">x</text>
+
+  <text x="60" y="90"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        fill="#1C1B17">f(x)</text>
+</svg>

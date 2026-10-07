@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 800 450"
+     width="800"
+     height="450">
+
+  <!-- Фон -->
+  <rect width="800" height="450" fill="#F4F2EC"/>
+
+  <!-- Сетка -->
+  <g stroke="#9A968C" stroke-width="0.8" opacity="0.25">
+    <!-- Вертикальные линии -->
+    <line x1="140" y1="50" x2="140" y2="400"/>
+    <line x1="220" y1="50" x2="220" y2="400"/>
+    <line x1="300" y1="50" x2="300" y2="400"/>
+    <line x1="380" y1="50" x2="380" y2="400"/>
+    <line x1="460" y1="50" x2="460" y2="400"/>
+    <line x1="540" y1="50" x2="540" y2="400"/>
+    <line x1="620" y1="50" x2="620" y2="400"/>
+    <line x1="700" y1="50" x2="700" y2="400"/>
+
+    <!-- Горизонтальные линии -->
+    <line x1="60" y1="100" x2="740" y2="100"/>
+    <line x1="60" y1="150" x2="740" y2="150"/>
+    <line x1="60" y1="200" x2="740" y2="200"/>
+    <line x1="60" y1="250" x2="740" y2="250"/>
+    <line x1="60" y1="300" x2="740" y2="300"/>
+    <line x1="60" y1="350" x2="740" y2="350"/>
+  </g>
+
+  <!-- Оси координат -->
+  <g stroke="#6E6B63" stroke-width="1.5" fill="none">
+    <!-- X -->
+    <line x1="60" y1="250" x2="735" y2="250"/>
+
+    <!-- Y -->
+    <line x1="380" y1="400" x2="380" y2="50"/>
+  </g>
+
+  <!-- Стрелки осей -->
+  <g fill="#6E6B63">
+    <polygon points="735,250 723,244 723,256"/>
+    <polygon points="380,50 374,62 386,62"/>
+  </g>
+
+  <!-- Деления оси X -->
+  <g stroke="#6E6B63" stroke-width="1.2">
+    <line x1="300" y1="244" x2="300" y2="256"/>
+    <line x1="380" y1="244" x2="380" y2="256"/>
+    <line x1="460" y1="244" x2="460" y2="256"/>
+    <line x1="540" y1="244" x2="540" y2="256"/>
+  </g>
+
+  <!-- Деления оси Y -->
+  <g stroke="#6E6B63" stroke-width="1.2">
+    <line x1="374" y1="200" x2="386" y2="200"/>
+    <line x1="374" y1="150" x2="386" y2="150"/>
+    <line x1="374" y1="100" x2="386" y2="100"/>
+  </g>
+
+  <!-- Подписи осей -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-style="italic">
+    <text x="747" y="256">X</text>
+    <text x="388" y="38">Y</text>
+  </g>
+
+  <!-- Подписи координат -->
+  <g fill="#6E6B63"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="14">
+
+    <text x="292" y="274">−1</text>
+    <text x="375" y="274">0</text>
+    <text x="455" y="274">1</text>
+    <text x="535" y="274">2</text>
+
+    <text x="356" y="205">1</text>
+    <text x="356" y="155">2</text>
+    <text x="356" y="105">3</text>
+  </g>
+
+  <!-- Начало координат -->
+  <text x="391"
+        y="270"
+        fill="#6E6B63"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="14">
+    (0,0)
+  </text>
+
+  <!-- Проекции точки (2,3) -->
+  <g stroke="#2F5D50"
+     stroke-width="1.5"
+     stroke-dasharray="6 5"
+     opacity="0.65">
+    <line x1="540" y1="100" x2="540" y2="250"/>
+    <line x1="380" y1="100" x2="540" y2="100"/>
+  </g>
+
+  <!-- Точка (2,3) -->
+  <circle cx="540"
+          cy="100"
+          r="6"
+          fill="#2F5D50"/>
+
+  <!-- Подпись точки -->
+  <text x="553"
+        y="94"
+        fill="#1C1B17"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="16">
+    (2, 3)
+  </text>
+
+</svg>

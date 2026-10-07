@@ -1,6 +1,11 @@
+import { useState } from 'react'
+import { ColorSwatches } from '../components/ColorSwatches'
+import { IconPicker, TypeIcon } from '../components/TypeIcon'
+import { CATEGORY_LABELS } from '../i18n'
+import { applyPresetToInstances, emptyLibraryPreset, presetColor } from '../model/library'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
-import { uid } from '../lib/ids'
+import type { LibraryPreset } from '../types'
 
 const STATUS_LABELS: Record<string, string> = {
   planned: 'Запланирован',
@@ -11,15 +16,27 @@ const STATUS_LABELS: Record<string, string> = {
 export function ComponentsView() {
   const project = useProjectStore((s) => s.project)
   const mutate = useProjectStore((s) => s.mutate)
-
-  const goToArchitecture = useUiStore((s) => s.goToArchitecture)
-  const select = useUiStore((s) => s.select)
+  const addComponent = useProjectStore((s) => s.addComponent)
+  const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
+  const select = useProjectStore((s) => s.select)
   const setNav = useUiStore((s) => s.setNav)
+  const settings = useUiStore((s) => s.settings)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   if (!project) return null
+  const catalog = project.library_presets.filter((item) => item.category !== 'PROTOCOL')
+  const catalogCategories = Object.keys(CATEGORY_LABELS).filter((id) => id !== 'PROTOCOL')
+  const groupedCatalog = catalogCategories
+    .map((category) => ({
+      category,
+      title: CATEGORY_LABELS[category] || category,
+      items: catalog.filter((item) => item.category === category).sort((a, b) => a.name.localeCompare(b.name, 'ru')),
+    }))
+    .filter((group) => group.items.length > 0)
+  const draft = catalog.find((item) => item.id === editingId)
 
   return (
-    <div className="page">
+    <div className="page catalog-page">
       <section className="settings-card">
         <h2
           style={{
@@ -31,65 +48,21 @@ export function ComponentsView() {
           }}
         >
           <span>Компоненты</span>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'nowrap',
-            }}
+          <button
+            className="btn primary"
+            type="button"
+            style={{ whiteSpace: 'nowrap' }}
+            onClick={() =>
+              addComponent({
+                name: 'Новый компонент',
+                type: 'Свой компонент',
+                category: 'OTHER',
+              })
+            }
           >
-            <button
-              className="btn primary"
-              type="button"
-              style={{ whiteSpace: 'nowrap' }}
-              onClick={() =>
-                mutate((p) =>
-                  p.components.push({
-                    id: uid(),
-                    name: 'Новый компонент',
-                    type: 'Свой компонент',
-                    technology: '',
-                    status: 'planned',
-                    owner: '',
-                    architecture_id: '',
-                  }),
-                )
-              }
-            >
-              Добавить компонент
-            </button>
-
-            <button
-              className="btn primary"
-              type="button"
-              style={{ whiteSpace: 'nowrap' }}
-              onClick={() => {
-                const name = window.prompt('Название типа', 'Шлюз')
-                if (!name) return
-
-                mutate((p) => {
-                  p.custom_types.push({
-                    id: uid(),
-                    category: 'OTHER',
-                    name,
-                    icon: 'box',
-                    built_in: false,
-                  })
-                })
-              }}
-            >
-              Новый тип
-            </button>
-          </div>
+            Добавить на канву
+          </button>
         </h2>
-
-        {project.custom_types.length ? (
-          <p className="hint">
-            Свои типы: {project.custom_types.map((t) => t.name).join(', ')}
-          </p>
-        ) : null}
-
         <table className="table">
           <thead>
             <tr>
@@ -100,7 +73,6 @@ export function ComponentsView() {
               <th>Владелец</th>
             </tr>
           </thead>
-
           <tbody>
             {project.components.map((c) => (
               <tr
@@ -133,67 +105,143 @@ export function ComponentsView() {
           }}
         >
           <span>Каталог железа</span>
-
           <button
             className="btn primary"
             type="button"
             style={{ whiteSpace: 'nowrap' }}
-            onClick={() =>
+            onClick={() => {
+              const next = emptyLibraryPreset()
               mutate((p) => {
-                p.hardware.push({
-                  id: uid(),
-                  name: 'Своё железо',
-                  manufacturer: '',
-                  model: '',
-                  cpu: '',
-                  ram: '',
-                  interfaces: '',
-                  voltage: '',
-                  protocols: '',
-                  os: '',
-                  datasheet: '',
-                  notes: '',
-                  category: 'Своё железо',
-                  built_in: false,
-                })
+                p.library_presets.push(next)
               })
-            }
+              setEditingId(next.id || null)
+            }}
           >
-            Добавить своё железо
+            Добавить компонент
           </button>
         </h2>
-
-        <div className="grid-cards" style={{ marginTop: 16 }}>
-          {project.hardware.map((h) => (
-            <div className="card" key={h.id}>
-              <h3>{h.name}</h3>
-
-              <p>
-                {[h.manufacturer, h.model].filter(Boolean).join(' · ') ||
-                  h.category}
-              </p>
-
-              <p className="hint" style={{ marginTop: 8 }}>
-                {h.cpu} {h.ram}
-              </p>
-
-              {!h.built_in ? (
-                <input
-                  style={{ marginTop: 8, width: '100%' }}
-                  value={h.notes}
-                  placeholder="Заметки"
-                  onChange={(e) =>
-                    mutate((p) => {
-                      const x = p.hardware.find((i) => i.id === h.id)
-                      if (x) x.notes = e.target.value
-                    })
-                  }
-                />
-              ) : null}
+        <p className="hint">Единый каталог канвы. Изменения применяются к библиотеке и к уже добавленным компонентам этого типа.</p>
+        {groupedCatalog.map((group) => (
+          <section key={group.category} className="catalog-group">
+            <h3 className="catalog-group-title">{group.title}</h3>
+            <div className="catalog-grid">
+              {group.items.map((item) => (
+                <button
+                  key={item.id || item.name}
+                  className={`catalog-card ${editingId === item.id ? 'on' : ''}`}
+                  type="button"
+                  onClick={() => setEditingId(item.id || null)}
+                >
+                  <span className="catalog-card-accent" style={{ background: presetColor(item) }} />
+                  <TypeIcon name={item.icon} size={16} />
+                  <span className="catalog-card-body">
+                    <strong>{item.name}</strong>
+                    <span className="hint">
+                      {item.type} · {CATEGORY_LABELS[item.category] || item.category}
+                    </span>
+                  </span>
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </section>
+        ))}
+        {draft ? (
+          <CatalogEditor
+            preset={draft}
+            onChange={(patch) =>
+              mutate((p) => {
+                const row = p.library_presets.find((item) => item.id === draft.id)
+                if (!row) return
+                const previous = { ...row }
+                Object.assign(row, patch)
+                applyPresetToInstances(p, row, previous)
+              })
+            }
+            onDelete={() => {
+              if (settings.confirm_delete && !window.confirm(`Удалить «${draft.name}» из каталога?`)) return
+              mutate((p) => {
+                p.library_presets = p.library_presets.filter((item) => item.id !== draft.id)
+              })
+              setEditingId(null)
+            }}
+            onClose={() => setEditingId(null)}
+          />
+        ) : (
+          <p className="hint" style={{ marginTop: 12 }}>Выберите карточку, чтобы изменить конфигурацию.</p>
+        )}
       </section>
+    </div>
+  )
+}
+
+function CatalogEditor({
+  preset,
+  onChange,
+  onDelete,
+  onClose,
+}: {
+  preset: LibraryPreset
+  onChange: (patch: Partial<LibraryPreset>) => void
+  onDelete: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="catalog-editor">
+      <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
+        <strong>Конфигурация компонента</strong>
+        <button className="btn ghost" type="button" onClick={onClose}>
+          Закрыть
+        </button>
+      </div>
+      <div className="catalog-editor-grid">
+        <div className="field">
+          <label>Название</label>
+          <input value={preset.name} onChange={(e) => onChange({ name: e.target.value })} />
+        </div>
+        <div className="field">
+          <label>Тип</label>
+          <input value={preset.type} onChange={(e) => onChange({ type: e.target.value })} />
+        </div>
+        <div className="field">
+          <label>Класс</label>
+          <select value={preset.category} onChange={(e) => onChange({ category: e.target.value })}>
+            {Object.entries(CATEGORY_LABELS)
+              .filter(([id]) => id !== 'PROTOCOL')
+              .map(([id, label]) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div className="field">
+          <label>Иконка</label>
+          <IconPicker value={preset.icon} onChange={(icon) => onChange({ icon })} />
+        </div>
+        <div className="field">
+          <label>Технология</label>
+          <input value={preset.technology || ''} onChange={(e) => onChange({ technology: e.target.value })} />
+        </div>
+        <div className="field">
+          <label>Вид элемента</label>
+          <select
+            value={preset.entity_kind || 'component'}
+            onChange={(e) => onChange({ entity_kind: e.target.value })}
+          >
+            <option value="component">Компонент</option>
+            <option value="table">Таблица БД</option>
+          </select>
+        </div>
+        <div className="field catalog-editor-color">
+          <label>Цвет боковой линии</label>
+          <ColorSwatches value={presetColor(preset)} onChange={(color) => onChange({ color })} compact={false} />
+        </div>
+      </div>
+      {!preset.built_in ? (
+        <button className="btn danger" type="button" style={{ marginTop: 12 }} onClick={onDelete}>
+          Удалить
+        </button>
+      ) : null}
     </div>
   )
 }

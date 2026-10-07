@@ -1,0 +1,165 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 800 450"
+  width="800"
+  height="450"
+>
+  <!--
+    Функция нескольких переменных:
+    f(x, y) = x² + y²
+
+    Вид сверху.
+    Линии уровня:
+      x² + y² = 1
+      x² + y² = 4
+      x² + y² = 9
+      x² + y² = 16
+  -->
+
+  <rect width="800" height="450" fill="#F4F2EC"/>
+
+  <!-- Coordinate system -->
+  <g
+    fill="none"
+    stroke="#6E6B63"
+    stroke-width="1.5"
+    stroke-linecap="round"
+  >
+    <!-- X axis -->
+    <line x1="90" y1="225" x2="710" y2="225"/>
+
+    <!-- Y axis -->
+    <line x1="400" y1="390" x2="400" y2="60"/>
+
+    <!-- X axis arrow -->
+    <path d="M710 225 L700 219 M710 225 L700 231"/>
+
+    <!-- Y axis arrow -->
+    <path d="M400 60 L394 70 M400 60 L406 70"/>
+  </g>
+
+  <!-- Subtle grid -->
+  <g
+    fill="none"
+    stroke="#9A968C"
+    stroke-width="1"
+    opacity="0.28"
+  >
+    <!-- vertical grid -->
+    <line x1="300" y1="75" x2="300" y2="375"/>
+    <line x1="350" y1="75" x2="350" y2="375"/>
+    <line x1="450" y1="75" x2="450" y2="375"/>
+    <line x1="500" y1="75" x2="500" y2="375"/>
+
+    <!-- horizontal grid -->
+    <line x1="100" y1="125" x2="700" y2="125"/>
+    <line x1="100" y1="175" x2="700" y2="175"/>
+    <line x1="100" y1="275" x2="700" y2="275"/>
+    <line x1="100" y1="325" x2="700" y2="325"/>
+  </g>
+
+  <!-- Level curves -->
+  <g
+    fill="none"
+    stroke="#2F5D50"
+    stroke-linecap="round"
+  >
+    <!-- x² + y² = 16 -->
+    <circle
+      cx="400"
+      cy="225"
+      r="160"
+      stroke-width="3"
+      opacity="0.72"
+    />
+
+    <!-- x² + y² = 9 -->
+    <circle
+      cx="400"
+      cy="225"
+      r="120"
+      stroke-width="3"
+      opacity="0.82"
+    />
+
+    <!-- x² + y² = 4 -->
+    <circle
+      cx="400"
+      cy="225"
+      r="80"
+      stroke-width="3"
+      opacity="0.92"
+    />
+
+    <!-- x² + y² = 1 -->
+    <circle
+      cx="400"
+      cy="225"
+      r="40"
+      stroke-width="3.5"
+    />
+  </g>
+
+  <!-- Minimum point -->
+  <circle
+    cx="400"
+    cy="225"
+    r="7"
+    fill="#2F5D50"
+  />
+
+  <!-- Minimum label -->
+  <text
+    x="418"
+    y="216"
+    fill="#1C1B17"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="18"
+  >
+    (0, 0)
+  </text>
+
+  <!-- Axis labels -->
+  <text
+    x="716"
+    y="218"
+    fill="#1C1B17"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="20"
+  >
+    x
+  </text>
+
+  <text
+    x="410"
+    y="54"
+    fill="#1C1B17"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="20"
+  >
+    y
+  </text>
+
+  <!-- Level labels -->
+  <g
+    fill="#6E6B63"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="15"
+  >
+    <text x="548" y="150">
+      f = 16
+    </text>
+
+    <text x="510" y="166">
+      f = 9
+    </text>
+
+    <text x="470" y="184">
+      f = 4
+    </text>
+
+    <text x="430" y="204">
+      f = 1
+    </text>
+  </g>
+</svg>

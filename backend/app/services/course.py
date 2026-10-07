@@ -2,9 +2,44 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
+from sqlalchemy.orm import Session
+
+from app.db import UserLessonProgressRow
+
 COURSE_DIR = Path(__file__).resolve().parents[2] / "course"
+_NOTES_EXTS = (".svg", ".png", ".webp", ".jpg", ".jpeg")
+
+
+def ensure_notes_folders() -> None:
+    try:
+        for path in COURSE_DIR.iterdir():
+            if not path.is_dir() or path.name.startswith("."):
+                continue
+            notes = path / "notes"
+            notes.mkdir(exist_ok=True)
+            keep = notes / ".gitkeep"
+            if not keep.exists():
+                keep.write_text("", encoding="utf-8")
+    except OSError:
+        return
+
+
+def _notes_url(md_path: Path, lesson_id: str) -> str | None:
+    section = md_path.parent
+    if section.name.lower() in {"lesson", "lessons", "picture"}:
+        section = section.parent
+    notes = section / "notes"
+    stems = [lesson_id, md_path.stem]
+    for stem in stems:
+        for ext in _NOTES_EXTS:
+            candidate = notes / f"{stem}{ext}"
+            if candidate.is_file():
+                rel = candidate.relative_to(COURSE_DIR).as_posix()
+                return f"/course-assets/{rel}"
+    return None
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str]:
@@ -37,10 +72,16 @@ def _lessons() -> list[dict]:
             path.read_text(encoding="utf-8")
         )
 
+        if meta.get("kind") == "module":
+            continue
+
         if not meta.get("id") or not meta.get("title"):
             continue
 
         module_id = meta.get("module_id") or path.parent.name
+        rel_dir = path.parent.relative_to(COURSE_DIR)
+        asset_dir = "" if rel_dir == Path(".") else rel_dir.as_posix()
+        asset_base = f"/course-assets/{asset_dir}/" if asset_dir else "/course-assets/"
 
         items.append(
             {
@@ -51,7 +92,8 @@ def _lessons() -> list[dict]:
                 "module_order": int(meta.get("module_order") or 0),
                 "order": int(meta.get("order") or 0),
                 "content": body,
-                "asset_base": f"/course-assets/{path.parent.name}/",
+                "asset_base": asset_base,
+                "notes_url": _notes_url(path, str(meta["id"])),
             }
         )
 
@@ -66,8 +108,31 @@ def _lessons() -> list[dict]:
     return items
 
 
+def _module_stubs() -> list[dict]:
+    stubs: list[dict] = []
+    COURSE_DIR.mkdir(parents=True, exist_ok=True)
+    for path in COURSE_DIR.rglob("*.md"):
+        meta, _body = _parse_frontmatter(path.read_text(encoding="utf-8"))
+        if meta.get("kind") != "module":
+            continue
+        module_id = meta.get("module_id") or path.parent.name
+        stubs.append(
+            {
+                "id": module_id,
+                "order": int(meta.get("module_order") or 0),
+                "title": meta.get("module_title") or meta.get("title") or path.parent.name,
+                "lessons": [],
+            }
+        )
+    return stubs
+
+
 def course_overview() -> dict:
+    ensure_notes_folders()
     modules: dict[str, dict] = {}
+
+    for stub in _module_stubs():
+        modules[stub["id"]] = stub
 
     for lesson in _lessons():
         mod = modules.setdefault(
@@ -90,7 +155,7 @@ def course_overview() -> dict:
 
     ordered = sorted(
         modules.values(),
-        key=lambda m: m["order"],
+        key=lambda m: (m["order"], 0 if m["lessons"] else 1, m["title"]),
     )
 
     total = sum(
@@ -127,3 +192,22 @@ def course_lesson(lesson_id: str) -> dict | None:
             else None
         ),
     }
+
+
+def mark_lesson_seen(db: Session, user_id: str, lesson_id: str, done: bool = True) -> None:
+    row = db.get(UserLessonProgressRow, (user_id, lesson_id))
+    now = datetime.now(timezone.utc)
+    if row is None:
+        db.add(
+            UserLessonProgressRow(
+                user_id=user_id,
+                lesson_id=lesson_id,
+                theory_done=done,
+                tasks_done="[]",
+                updated_at=now,
+            )
+        )
+    else:
+        row.theory_done = done
+        row.updated_at = now
+    db.commit()

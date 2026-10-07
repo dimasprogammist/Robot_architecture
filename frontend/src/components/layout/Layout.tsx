@@ -9,6 +9,7 @@ import {
   FolderKanban,
   GraduationCap,
   Layers3,
+  ListChecks,
   Redo2,
   Save,
   Search,
@@ -32,6 +33,7 @@ const NAV_ITEMS: { id: NavId; label: string; icon: typeof Layers3 }[] = [
   { id: 'algorithms', label: 'Алгоритмы', icon: Workflow },
   { id: 'documents', label: 'Документы', icon: FileText },
   { id: 'tutorial', label: 'Учебник', icon: GraduationCap },
+  { id: 'exercises', label: 'Задачник', icon: ListChecks },
   { id: 'learning', label: 'Справочник', icon: BookOpen },
   { id: 'export', label: 'Экспорт', icon: Share2 },
   { id: 'settings', label: 'Настройки', icon: Settings },
@@ -43,7 +45,6 @@ export function LeftSidebar() {
   return (
     <nav className="left-nav">
       <div className="nav-section">
-        <div className="nav-label">Рабочая область</div>
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
@@ -137,7 +138,7 @@ export function TopBar() {
   )
 }
 
-function ProfileMenu() {
+export function ProfileMenu({ showSettings = true }: { showSettings?: boolean }) {
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<AuthUser | null>(null)
   const setNav = useUiStore((s) => s.setNav)
@@ -153,15 +154,17 @@ function ProfileMenu() {
         <div className="profile-menu">
           <div className="profile-name">{user?.display_name || 'Профиль'}</div>
           <div className="hint">{user?.email}</div>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false)
-              setNav('settings')
-            }}
-          >
-            Настройки
-          </button>
+          {showSettings ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false)
+                setNav('settings')
+              }}
+            >
+              Настройки
+            </button>
+          ) : null}
           <button type="button" onClick={logoutAndReload}>
             Выйти
           </button>

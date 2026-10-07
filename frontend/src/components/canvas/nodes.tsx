@@ -13,8 +13,58 @@ import {
   type Node,
   type NodeProps,
 } from '@xyflow/react'
+import { FileText, KeyRound, Layers2 } from 'lucide-react'
 import { TypeIcon } from '../TypeIcon'
+import { useProjectStore } from '../../store/useProjectStore'
+import { CATEGORY_LABELS } from '../../i18n'
+import { catalogLook } from '../../model/library'
 import type { Component } from '../../types'
+
+const ARCH_SIDES = [Position.Top, Position.Right, Position.Bottom, Position.Left] as const
+
+const SIDE_ID: Record<Position, string> = {
+  [Position.Top]: 'top',
+  [Position.Right]: 'right',
+  [Position.Bottom]: 'bottom',
+  [Position.Left]: 'left',
+}
+
+function NodePorts({ sides }: { sides: readonly Position[] }) {
+  return (
+    <>
+      {sides.map((position) => {
+        const id = SIDE_ID[position]
+        return (
+          <span key={id}>
+            <Handle type="target" id={`${id}-tgt`} position={position} />
+            <Handle type="source" id={`${id}-src`} position={position} />
+          </span>
+        )
+      })}
+    </>
+  )
+}
+
+function nodeExtra(c: Component) {
+  const extra = c.extra_fields || {}
+  const kind = extra.sensor_kind?.trim()
+  const model = extra.model?.trim()
+  const line = kind || model || c.technology
+  if (!line || line === c.type) return ''
+  return line
+}
+
+function FileBadge({ count }: { count: number }) {
+  if (count < 1) return null
+  return (
+    <span
+      className="node-file-badge"
+      title={count === 1 ? 'Прикреплён 1 файл' : `Прикреплённых файлов: ${count}`}
+    >
+      <FileText size={11} />
+    </span>
+  )
+}
 
 // ---- ArchNode: a software/hardware component box -------------------------------
 
@@ -22,22 +72,39 @@ export type ArchNodeData = { component: Component }
 export type ArchRFNode = Node<ArchNodeData, 'arch'>
 
 export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
-  const c = data.component
+  const presets = useProjectStore((s) => s.project?.library_presets || [])
+  const c = catalogLook(data.component, presets)
+  const extra = nodeExtra(c)
+  const files = c.files?.length ?? 0
+  const nestedId = c.nested_architecture_id
+  const hasNestedContent = useProjectStore((s) =>
+    Boolean(nestedId && s.project?.components.some((item) => item.architecture_id === nestedId)),
+  )
   return (
-    <div className={`arch-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Left} />
-      <Handle type="target" position={Position.Top} />
+    <div
+      className={`arch-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}
+      style={{ borderLeftColor: c.color }}
+    >
+      <NodePorts sides={ARCH_SIDES} />
       <div className="kicker">
-        <span className={`cat-${c.category}`}>{c.type}</span>
-        <span className={`status-dot ${c.status}`} />
+        <span className={`cat-${c.category} node-class`}>
+          <TypeIcon name={c.icon} size={13} />
+          {c.type}
+        </span>
+        <span className="kicker-end">
+          {hasNestedContent ? (
+            <span className="node-nested-badge" title="Элемент содержит внутреннюю архитектуру">
+              <Layers2 size={12} />
+            </span>
+          ) : null}
+          <FileBadge count={files} />
+          <span className={`status-dot ${c.status}`} />
+        </span>
       </div>
       <h4>{c.name}</h4>
       <div className="meta">
-        <TypeIcon name={c.icon} /> {c.technology || c.category.toLowerCase()}
-        {c.nested_architecture_id ? ' · вложенный' : ''}
+        {extra || CATEGORY_LABELS[c.category] || c.category.toLowerCase()}
       </div>
-      <Handle type="source" position={Position.Right} />
-      <Handle type="source" position={Position.Bottom} />
     </div>
   )
 }
@@ -49,21 +116,28 @@ export type TableRFNode = Node<{ component: Component }, 'table'>
 export function TableNode({ data, selected }: NodeProps<TableRFNode>) {
   const c = data.component
   const cols = c.table?.columns || []
+  const files = c.files?.length ?? 0
   return (
     <div className={`table-node handle-hidden ${selected ? 'selected' : ''}`}>
-      <Handle type="target" position={Position.Left} />
-      <header>{c.name}</header>
+      <NodePorts sides={ARCH_SIDES} />
+      <header>
+        {c.name}
+        <FileBadge count={files} />
+      </header>
       {cols.slice(0, 8).map((col) => (
-        <div className="col" key={col.id}>
-          <span>{col.name}</span>
-          <span>
-            {col.primary_key ? 'ключ ' : ''}
-            {col.type}
+        <div className={`col ${col.primary_key ? 'is-key' : ''}`} key={col.id}>
+          <span className="col-name">
+            {col.primary_key ? (
+              <span className="col-key" title="Первичный ключ">
+                <KeyRound size={11} />
+              </span>
+            ) : null}
+            {col.name}
           </span>
+          <span>{col.type}</span>
         </div>
       ))}
       {!cols.length ? <div className="col">нет колонок</div> : null}
-      <Handle type="source" position={Position.Right} />
     </div>
   )
 }

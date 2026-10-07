@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GlobalSettings, NavId } from '../types'
+import { DEFAULT_SETTINGS, type GlobalSettings, type NavId } from '../types'
 
 interface UiState {
   nav: NavId
@@ -8,7 +8,7 @@ interface UiState {
   searchOpen: boolean
   exportOpen: boolean
   libraryCollapsed: boolean
-  docTab: 'requirements' | 'notes' | 'bom'
+  docTab: 'requirements' | 'notes' | 'bom' | 'files'
   inspectorTab: 'overview' | 'docs' | 'algorithm' | 'nested' | 'requirements' | 'mechanics' | 'table' | 'files'
   setNav: (nav: NavId) => void
   setTheme: (theme: 'light' | 'dark') => void
@@ -21,18 +21,16 @@ interface UiState {
   setInspectorTab: (t: UiState['inspectorTab']) => void
 }
 
+function applyChrome(s: GlobalSettings) {
+  document.documentElement.dataset.theme = s.theme
+  document.documentElement.dataset.density = s.ui_density
+  document.documentElement.dataset.motion = s.reduce_motion ? 'reduce' : 'full'
+}
+
 export const useUiStore = create<UiState>((set) => ({
   nav: 'architecture',
   theme: 'light',
-  settings: {
-    theme: 'light',
-    snap_to_grid: true,
-    show_grid: true,
-    grid_size: 20,
-    autosave: true,
-    language: 'ru',
-    display_name: 'Архитектор',
-  },
+  settings: DEFAULT_SETTINGS,
   searchOpen: false,
   exportOpen: false,
   libraryCollapsed: true,
@@ -40,7 +38,11 @@ export const useUiStore = create<UiState>((set) => ({
   inspectorTab: 'overview',
   setNav: (nav) => set({ nav }),
   setTheme: (theme) => set({ theme }),
-  setSettings: (s) => set({ settings: s, theme: s.theme }),
+  setSettings: (s) => {
+    const settings = { ...DEFAULT_SETTINGS, ...s }
+    applyChrome(settings)
+    set({ settings, theme: settings.theme })
+  },
   setSearchOpen: (searchOpen) => set({ searchOpen }),
   setExportOpen: (exportOpen) => set({ exportOpen }),
   toggleLibrary: () => set((s) => ({ libraryCollapsed: !s.libraryCollapsed })),

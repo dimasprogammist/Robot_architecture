@@ -16,6 +16,7 @@ import { DocumentsView } from './views/DocumentsView'
 import { ExportView } from './views/ExportView'
 import { LearningView } from './views/LearningView'
 import { TutorialView } from './views/TutorialView'
+import { ExercisesView } from './views/ExercisesView'
 import { SettingsView } from './views/SettingsView'
 import type { LibraryPreset } from './types'
 
@@ -24,6 +25,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const load = useProjectStore((s) => s.load)
   const project = useProjectStore((s) => s.project)
   const nav = useUiStore((s) => s.nav)
+  const settings = useUiStore((s) => s.settings)
   const deleteSelected = useProjectStore((s) => s.deleteSelected)
   const undo = useProjectStore((s) => s.undo)
   const redo = useProjectStore((s) => s.redo)
@@ -41,8 +43,8 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const [inspectorWidth, setInspectorWidth] = useState(432)
 
   useEffect(() => {
-    if (id) load(id).catch(() => undefined)
-  }, [id, load])
+    if (id) load(id, presets).catch(() => undefined)
+  }, [id, load, presets])
 
   useEffect(() => {
     if (!project) return
@@ -115,6 +117,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
         !(e.target instanceof HTMLInputElement) &&
         !(e.target instanceof HTMLTextAreaElement)
       ) {
+        if (settings.confirm_delete && !window.confirm('Удалить выбранные элементы?')) return
         deleteSelected()
       }
     }
@@ -131,6 +134,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
     redo,
     saveNow,
     setSearchOpen,
+    settings.confirm_delete,
     undo,
   ])
 
@@ -207,7 +211,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
               {nav === 'database' ? <SqlToolbar /> : null}
 
               <LibraryRail
-                presets={presets}
+                presets={project.library_presets?.length ? project.library_presets : presets}
                 filter={libFilter}
               />
 
@@ -246,6 +250,7 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
             {nav === 'documents' ? <DocumentsView /> : null}
             {nav === 'learning' ? <LearningView /> : null}
             {nav === 'tutorial' ? <TutorialView /> : null}
+            {nav === 'exercises' ? <ExercisesView /> : null}
             {nav === 'export' ? <ExportView /> : null}
             {nav === 'settings' ? <SettingsView /> : null}
           </div>

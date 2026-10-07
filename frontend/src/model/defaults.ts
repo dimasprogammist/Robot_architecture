@@ -81,6 +81,8 @@ export function withComponentDefaults(partial: Partial<Component> & { name: stri
     docs: [],
     files: [],
     extra_fields: {},
+    color: '',
+    library_preset_id: null,
     ...cleaned,
   } as Component
 }

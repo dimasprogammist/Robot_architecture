@@ -11,7 +11,9 @@ import type {
   Requirement,
 } from '../types'
 import { emptyMechanical, emptyTable, withComponentDefaults } from '../model/defaults'
-import { definitionFor } from '../model/componentCatalog'
+import { presetColor, seedLibraryPresets } from '../model/library'
+import { definitionFor, componentSupportsAlgorithm, inferManufacturer } from '../model/componentCatalog'
+import { inferSensorKind } from '../model/protocols'
 
 const MAX_HISTORY = 80
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -40,7 +42,7 @@ export interface ProjectState {
   lastSavedAt: string | null
   error: string | null
   clipboard: Component[]
-  load: (id: string) => Promise<void>
+  load: (id: string, builtins?: LibraryPreset[]) => Promise<void>
   setProject: (p: Project, history?: boolean) => void
   mutate: (fn: (p: Project) => void, opts?: { history?: boolean }) => void
   undo: () => void
@@ -53,7 +55,12 @@ export interface ProjectState {
   addFromPreset: (preset: LibraryPreset, position: { x: number; y: number }) => string
   updateComponent: (id: string, patch: Partial<Component>) => void
   deleteSelected: () => void
-  connect: (source: string, target: string, kind?: ConnectionKind) => string
+  connect: (
+    source: string,
+    target: string,
+    kind?: ConnectionKind,
+    handles?: { sourceHandle?: string | null; targetHandle?: string | null },
+  ) => string
   updateConnection: (id: string, patch: Partial<Connection>) => void
   enterComponent: (componentId: string) => void
   goToArchitecture: (id: string) => void
@@ -80,8 +87,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   error: null,
   clipboard: [],
 
-  load: async (id) => {
+  load: async (id, builtins = []) => {
     const project = await api.project(id)
+    const seeded = seedLibraryPresets(project, builtins)
     set({
       project,
       architectureId: project.root_architecture_id,
@@ -89,9 +97,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       selectedConnectionId: null,
       past: [],
       future: [],
-      dirty: false,
+      dirty: seeded,
       error: null,
     })
+    if (seeded) get().scheduleSave()
   },
 
   setProject: (p, history = false) => {
@@ -229,9 +238,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   addFromPreset: (preset, position) =>
     (() => {
+      if (preset.category === 'PROTOCOL') return ''
       const definition = definitionFor({ name: preset.name, type: preset.type, category: preset.category })
       const extra_fields = definition
-        ? Object.fromEntries(definition.fields.map((field) => [field.key, preset.name === 'PostgreSQL' && field.key === 'dbms' ? 'PostgreSQL' : '']))
+        ? Object.fromEntries(
+            definition.fields.map((field) => {
+              if (preset.name === 'PostgreSQL' && field.key === 'dbms') return [field.key, 'PostgreSQL']
+              if (field.key === 'sensor_kind') return [field.key, inferSensorKind(preset.name)]
+              if (field.key === 'manufacturer') {
+                return [field.key, inferManufacturer(preset.name, preset.type, '')]
+              }
+              if (field.options?.includes(preset.name)) return [field.key, preset.name]
+              return [field.key, '']
+            }),
+          )
         : {}
       return get().addComponent(
       {
@@ -244,6 +264,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         protocol_id: preset.protocol_id || null,
         entity_kind: preset.entity_kind,
         extra_fields,
+        color: presetColor(preset),
+        library_preset_id: preset.id || null,
       },
       position,
       )
@@ -273,7 +295,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ selectedIds: [], selectedConnectionId: null })
   },
 
-  connect: (source, target, kind = 'connection') => {
+  connect: (source, target, kind = 'connection', handles) => {
     const id = uid()
     get().mutate((p) => {
       const src = p.components.find((c) => c.id === source)
@@ -306,7 +328,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         target,
         kind,
         protocol_id: null,
-        protocol_name: kind === 'data_flow' ? 'Данные' : '',
+        protocol_name: '',
         direction: 'unidirectional',
         description: '',
         data_format: '',
@@ -319,6 +341,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         cardinality: isTable ? 'one_to_many' : '',
         source_column: isTable ? 'id' : '',
         target_column: targetColumn,
+        source_handle: handles?.sourceHandle || '',
+        target_handle: handles?.targetHandle || '',
       })
     })
     set({ selectedConnectionId: id, selectedIds: [] })
@@ -389,12 +413,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     let alg = project.algorithms.find((a) => a.component_id === componentId)
     if (alg) return alg
     const component = project.components.find((c) => c.id === componentId)
-    const template = component ? definitionFor(component)?.algorithm : undefined
+    if (!component || !componentSupportsAlgorithm(component)) {
+      throw new Error('Алгоритм недоступен для этого компонента')
+    }
+    const template = definitionFor(component)?.algorithm
     const created: Algorithm = {
       id: uid(),
       component_id: componentId,
-      name: `${component?.name || 'Компонент'}: алгоритм`,
+      name: `${component.name}: алгоритм`,
       description: template?.purpose || '',
+      program_name: component.name.replace(/\s+/g, ''),
+      language: /python|бэкенд|fastapi/i.test(`${component.name} ${component.type} ${component.technology}`)
+        ? 'Python'
+        : /плк/i.test(`${component.type} ${component.name}`)
+          ? 'IEC 61131-3'
+          : 'C++',
+      purpose: template?.purpose || '',
       steps: (template?.steps || []).map((text) => ({ id: uid(), kind: 'action', text, condition: '', on_true: '', on_false: '' })),
       inputs: template?.inputs || [],
       outputs: template?.outputs || [],

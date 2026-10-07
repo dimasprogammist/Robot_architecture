@@ -1,0 +1,226 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="800"
+     height="450"
+     viewBox="0 0 800 450">
+
+  <rect x="0" y="0" width="800" height="450" fill="#F4F2EC"/>
+
+  <!-- ===== СЛОЖНЫЙ СИГНАЛ ===== -->
+
+  <text x="200" y="48"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="17"
+        fill="#1C1B17">
+    сложный сигнал
+  </text>
+
+  <!-- оси -->
+  <line x1="55" y1="150" x2="345" y2="150"
+        stroke="#6E6B63" stroke-width="1.5"/>
+  <line x1="55" y1="80" x2="55" y2="220"
+        stroke="#6E6B63" stroke-width="1.5"/>
+
+  <!-- стрелки -->
+  <path d="M345 150 L337 146 L337 154 Z" fill="#6E6B63"/>
+  <path d="M55 80 L51 88 L59 88 Z" fill="#6E6B63"/>
+
+  <!-- нулевая линия -->
+  <line x1="55" y1="150" x2="345" y2="150"
+        stroke="#9A968C"
+        stroke-width="0.8"
+        opacity="0.45"/>
+
+  <!--
+    Сложный сигнал.
+    Он является суммой:
+    sin(t) + 0.5 sin(3t) + 0.3 cos(5t)
+  -->
+  <path
+    d="M55 150
+       C62 126 69 108 76 105
+       C83 102 90 115 97 132
+       C104 149 111 157 118 151
+       C125 145 132 123 139 106
+       C146 89 153 88 160 101
+       C167 114 174 139 181 149
+       C188 159 195 155 202 144
+       C209 133 216 112 223 101
+       C230 90 237 97 244 113
+       C251 129 258 151 265 157
+       C272 163 279 151 286 134
+       C293 117 300 102 307 105
+       C314 108 321 125 328 141
+       C335 157 340 157 345 150"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- ===== РАЗДЕЛИТЕЛЬ ===== -->
+
+  <text x="380" y="155"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="26"
+        fill="#1C1B17">
+    =
+  </text>
+
+  <!-- ===== ПЕРВОЕ КОЛЕБАНИЕ ===== -->
+
+  <text x="505" y="48"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        fill="#1C1B17">
+    простое колебание 1
+  </text>
+
+  <line x1="425" y1="105" x2="585" y2="105"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <line x1="425" y1="75" x2="425" y2="135"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <path
+    d="M425 105
+       C445 72 465 72 485 105
+       C505 138 525 138 545 105
+       C565 72 575 72 585 105"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="2.8"
+    stroke-linecap="round"/>
+
+  <!-- ===== ПЛЮС ===== -->
+
+  <text x="605" y="111"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="23"
+        fill="#1C1B17">
+    +
+  </text>
+
+  <!-- ===== ВТОРОЕ КОЛЕБАНИЕ ===== -->
+
+  <text x="690" y="48"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        fill="#1C1B17">
+    простое колебание 2
+  </text>
+
+  <line x1="625" y1="105" x2="755" y2="105"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <line x1="625" y1="75" x2="625" y2="135"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <path
+    d="M625 105
+       C632 90 639 90 646 105
+       C653 120 660 120 667 105
+       C674 90 681 90 688 105
+       C695 120 702 120 709 105
+       C716 90 723 90 730 105
+       C737 120 744 120 751 105"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="2.8"
+    stroke-linecap="round"/>
+
+  <!-- ===== ТРЕТЬЕ КОЛЕБАНИЕ ===== -->
+
+  <text x="505" y="205"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        fill="#1C1B17">
+    простое колебание 3
+  </text>
+
+  <line x1="425" y1="265" x2="585" y2="265"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <line x1="425" y1="235" x2="425" y2="295"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <path
+    d="M425 245
+       C433 232 441 232 449 265
+       C457 298 465 298 473 265
+       C481 232 489 232 497 265
+       C505 298 513 298 521 265
+       C529 232 537 232 545 265
+       C553 298 561 298 569 265
+       C577 232 581 232 585 245"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="2.8"
+    stroke-linecap="round"/>
+
+  <!-- ===== ПЛЮС ===== -->
+
+  <text x="605" y="271"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="23"
+        fill="#1C1B17">
+    +
+  </text>
+
+  <!-- ===== ЧЕТВЁРТОЕ КОЛЕБАНИЕ ===== -->
+
+  <text x="690" y="205"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        fill="#1C1B17">
+    простое колебание 4
+  </text>
+
+  <line x1="625" y1="265" x2="755" y2="265"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <line x1="625" y1="235" x2="625" y2="295"
+        stroke="#6E6B63" stroke-width="1.2"/>
+
+  <path
+    d="M625 265
+       C630 253 635 253 640 265
+       C645 277 650 277 655 265
+       C660 253 665 253 670 265
+       C675 277 680 277 685 265
+       C690 253 695 253 700 265
+       C705 277 710 277 715 265
+       C720 253 725 253 730 265
+       C735 277 740 277 745 265
+       C750 253 753 253 755 265"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="2.8"
+    stroke-linecap="round"/>
+
+  <!-- ===== НИЖНЯЯ ФОРМУЛА ===== -->
+
+  <text x="400" y="350"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        fill="#6E6B63">
+    разные частоты и амплитуды складываются в один сигнал
+  </text>
+
+  <text x="400" y="395"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="18"
+        fill="#1C1B17">
+    f(t) = sin(t) + 0.5 sin(3t) + 0.3 cos(5t)
+  </text>
+
+</svg>

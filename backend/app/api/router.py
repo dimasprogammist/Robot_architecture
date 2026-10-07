@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
@@ -9,7 +10,7 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db import ProjectRow, SettingsRow, UserRow, UserTemplateRow, get_db, init_db, new_id, utcnow
+from app.db import ProjectRow, SettingsRow, UserLessonProgressRow, UserRow, UserTemplateRow, get_db, init_db, new_id, utcnow
 from app.domain.library import BUILTIN_TYPES, LIBRARY_PRESETS
 from app.domain.schema import (
     PROTOCOL_COLORS,
@@ -23,14 +24,23 @@ from app.domain.schema import (
 from app.services.export import to_ai_prompt, to_markdown, to_semantic_export
 from app.services.templates import TEMPLATES, create_from_template
 from app.services.learning import categories as learning_categories, get_article
-from app.services.course import course_lesson, course_overview
+from app.services.course import course_lesson, course_overview, mark_lesson_seen
 from app.domain.curriculum_schema import CodeCheckRequest, QuizCheckRequest
 from app.services import curriculum as curriculum_service
 from app.services.sqlgen import generate_sql
 from app.services.files import import_json, resolve_path, save_upload
-from app.services.auth import login_user, logout_user, public_user, register_user, require_user
+from app.services.auth import login_user, logout_user, optional_user, public_user, register_user, require_user
 
 router = APIRouter()
+
+AUTH_ILLUSTRATION = Path(__file__).resolve().parents[2] / "AutorizationPic.svg"
+
+
+@router.get("/auth-illustration")
+def auth_illustration():
+    if not AUTH_ILLUSTRATION.is_file():
+        raise HTTPException(404, "Иллюстрация не найдена")
+    return FileResponse(AUTH_ILLUSTRATION, media_type="image/svg+xml")
 
 
 def _row_to_project(row: ProjectRow) -> Project:
@@ -103,14 +113,12 @@ def auth_me(user: UserRow = Depends(require_user)):
 def list_projects(user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
     rows = (
         db.query(ProjectRow)
-        .filter((ProjectRow.user_id == user.id) | (ProjectRow.user_id.is_(None)))
+        .filter(ProjectRow.user_id == user.id)
         .order_by(ProjectRow.updated_at.desc())
         .all()
     )
     out: list[ProjectSummary] = []
     for row in rows:
-        if not row.user_id:
-            row.user_id = user.id
         p = _row_to_project(row)
         out.append(
             ProjectSummary(
@@ -123,7 +131,6 @@ def list_projects(user: UserRow = Depends(require_user), db: Session = Depends(g
                 component_count=len(p.components),
             )
         )
-    db.commit()
     return out
 
 
@@ -281,13 +288,60 @@ def read_course(user: UserRow = Depends(require_user)):
     return course_overview()
 
 
-@router.get("/course/{lesson_id}")
-def read_course_lesson(lesson_id: str, user: UserRow = Depends(require_user)):
-    del user
+@router.get("/course/progress")
+def read_course_progress(user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    overview = course_overview()
+    lesson_ids = {
+        lesson["id"]
+        for mod in overview["modules"]
+        for lesson in mod["lessons"]
+    }
+    rows = (
+        db.query(UserLessonProgressRow)
+        .filter(UserLessonProgressRow.user_id == user.id)
+        .all()
+    )
+    done = sum(1 for row in rows if row.lesson_id in lesson_ids and row.theory_done)
+    return {
+        "course_total": overview["total_lessons"],
+        "course_done": done,
+        "exercises_total": 0,
+        "exercises_done": 0,
+        "completed_ids": [
+            row.lesson_id for row in rows if row.lesson_id in lesson_ids and row.theory_done
+        ],
+    }
+
+
+@router.post("/course/{lesson_id}/seen")
+def mark_course_seen(lesson_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
     lesson = course_lesson(lesson_id)
     if lesson is None:
         raise HTTPException(404, "Урок не найден")
-    return lesson
+    mark_lesson_seen(db, user.id, lesson_id, True)
+    return {"ok": True}
+
+
+@router.post("/course/{lesson_id}/unseen")
+def mark_course_unseen(lesson_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    lesson = course_lesson(lesson_id)
+    if lesson is None:
+        raise HTTPException(404, "Урок не найден")
+    mark_lesson_seen(db, user.id, lesson_id, False)
+    return {"ok": True}
+
+
+@router.get("/course/{lesson_id}")
+def read_course_lesson(
+    lesson_id: str,
+    user: UserRow = Depends(require_user),
+    db: Session = Depends(get_db),
+):
+    lesson = course_lesson(lesson_id)
+    if lesson is None:
+        raise HTTPException(404, "Урок не найден")
+    row = db.get(UserLessonProgressRow, (user.id, lesson_id))
+    return {**lesson, "completed": bool(row and row.theory_done)}
 
 
 @router.get("/learning")
@@ -370,18 +424,19 @@ def download_file(project_id: str, file_id: str, user: UserRow = Depends(require
 
 
 @router.get("/settings", response_model=GlobalSettings)
-def get_settings(db: Session = Depends(get_db)):
-    row = db.get(SettingsRow, "local")
+def get_settings(user: UserRow | None = Depends(optional_user), db: Session = Depends(get_db)):
+    key = user.id if user else "local"
+    row = db.get(SettingsRow, key)
     if not row:
         return GlobalSettings()
     return GlobalSettings.model_validate_json(row.data)
 
 
 @router.put("/settings", response_model=GlobalSettings)
-def put_settings(body: GlobalSettings, db: Session = Depends(get_db)):
-    row = db.get(SettingsRow, "local")
+def put_settings(body: GlobalSettings, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    row = db.get(SettingsRow, user.id)
     if not row:
-        row = SettingsRow(id="local", data=body.model_dump_json())
+        row = SettingsRow(id=user.id, data=body.model_dump_json())
         db.add(row)
     else:
         row.data = body.model_dump_json()

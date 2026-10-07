@@ -1,0 +1,374 @@
+<svg width="900" height="600" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+
+  <rect width="900" height="600" fill="#f4f2ec"/>
+
+  <!-- Заголовок -->
+  <text
+    x="450"
+    y="58"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="28"
+    font-weight="600"
+    fill="#1c1b17">
+    ГДЕ НАХОДЯТСЯ ДАННЫЕ
+  </text>
+
+  <!-- Подзаголовок -->
+  <text
+    x="450"
+    y="88"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    Чем ближе к процессору — тем быстрее доступ, но меньше объём
+  </text>
+
+  <!-- ================= CPU ================= -->
+
+  <rect
+    x="85"
+    y="125"
+    width="210"
+    height="400"
+    rx="14"
+    fill="#fcfbf8"
+    stroke="#9a968c"
+    stroke-width="1.5"/>
+
+  <text
+    x="190"
+    y="157"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="22"
+    font-weight="600"
+    fill="#2F5D50">
+    CPU
+  </text>
+
+  <!-- CPU chip -->
+  <rect
+    x="125"
+    y="190"
+    width="130"
+    height="120"
+    rx="10"
+    fill="#f7f5ef"
+    stroke="#2F5D50"
+    stroke-width="2.5"/>
+
+  <rect
+    x="150"
+    y="215"
+    width="80"
+    height="70"
+    rx="6"
+    fill="#fcfbf8"
+    stroke="#9a968c"
+    stroke-width="1.5"/>
+
+  <text
+    x="190"
+    y="255"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="18"
+    font-weight="600"
+    fill="#2F5D50">
+    CPU
+  </text>
+
+  <!-- pins -->
+  <line x1="125" y1="210" x2="112" y2="210" stroke="#9a968c" stroke-width="2"/>
+  <line x1="125" y1="235" x2="112" y2="235" stroke="#9a968c" stroke-width="2"/>
+  <line x1="125" y1="260" x2="112" y2="260" stroke="#9a968c" stroke-width="2"/>
+  <line x1="125" y1="285" x2="112" y2="285" stroke="#9a968c" stroke-width="2"/>
+
+  <line x1="255" y1="210" x2="268" y2="210" stroke="#9a968c" stroke-width="2"/>
+  <line x1="255" y1="235" x2="268" y2="235" stroke="#9a968c" stroke-width="2"/>
+  <line x1="255" y1="260" x2="268" y2="260" stroke="#9a968c" stroke-width="2"/>
+  <line x1="255" y1="285" x2="268" y2="285" stroke="#9a968c" stroke-width="2"/>
+
+  <!-- CPU explanation -->
+  <text
+    x="190"
+    y="350"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    работает с данными
+  </text>
+
+  <text
+    x="190"
+    y="374"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    из регистров и кэша
+  </text>
+
+  <!-- ================= MEMORY HIERARCHY ================= -->
+
+  <!-- Connector from CPU -->
+  <line
+    x1="295"
+    y1="325"
+    x2="345"
+    y2="325"
+    stroke="#6e6b63"
+    stroke-width="2"/>
+
+  <polygon
+    points="337,317 337,333 349,325"
+    fill="#6e6b63"/>
+
+  <!-- REGISTERS -->
+
+  <rect
+    x="350"
+    y="125"
+    width="245"
+    height="82"
+    rx="11"
+    fill="#fcfbf8"
+    stroke="#2F5D50"
+    stroke-width="2.5"/>
+
+  <text
+    x="375"
+    y="158"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#2F5D50">
+    Регистры
+  </text>
+
+  <text
+    x="375"
+    y="184"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    очень быстро · очень мало
+  </text>
+
+  <!-- CACHE -->
+
+  <rect
+    x="350"
+    y="230"
+    width="245"
+    height="82"
+    rx="11"
+    fill="#fcfbf8"
+    stroke="#2F5D50"
+    stroke-width="2.5"/>
+
+  <text
+    x="375"
+    y="263"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#2F5D50">
+    Кэш
+  </text>
+
+  <text
+    x="375"
+    y="289"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    L1 · L2 · L3
+  </text>
+
+  <!-- RAM -->
+
+  <rect
+    x="350"
+    y="335"
+    width="245"
+    height="82"
+    rx="11"
+    fill="#fcfbf8"
+    stroke="#2F5D50"
+    stroke-width="2.5"/>
+
+  <text
+    x="375"
+    y="368"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#2F5D50">
+    RAM
+  </text>
+
+  <text
+    x="375"
+    y="394"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    рабочая память
+  </text>
+
+  <!-- SSD / HDD -->
+
+  <rect
+    x="350"
+    y="440"
+    width="245"
+    height="82"
+    rx="11"
+    fill="#fcfbf8"
+    stroke="#2F5D50"
+    stroke-width="2.5"/>
+
+  <text
+    x="375"
+    y="473"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#2F5D50">
+    SSD / HDD
+  </text>
+
+  <text
+    x="375"
+    y="499"
+    font-family="Inter, Arial, sans-serif"
+    font-size="15"
+    fill="#6e6b63">
+    долговременное хранение
+  </text>
+
+  <!-- ================= ARROWS BETWEEN LEVELS ================= -->
+
+  <line
+    x1="472"
+    y1="207"
+    x2="472"
+    y2="230"
+    stroke="#9a968c"
+    stroke-width="2"/>
+
+  <line
+    x1="472"
+    y1="312"
+    x2="472"
+    y2="335"
+    stroke="#9a968c"
+    stroke-width="2"/>
+
+  <line
+    x1="472"
+    y1="417"
+    x2="472"
+    y2="440"
+    stroke="#9a968c"
+    stroke-width="2"/>
+
+  <!-- ================= SPEED / CAPACITY SCALE ================= -->
+
+  <text
+    x="650"
+    y="130"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    font-weight="600"
+    fill="#6e6b63">
+    БЫСТРЕЕ
+  </text>
+
+  <line
+    x1="650"
+    y1="145"
+    x2="650"
+    y2="510"
+    stroke="#9a968c"
+    stroke-width="1.5"/>
+
+  <polygon
+    points="644,153 656,153 650,143"
+    fill="#9a968c"/>
+
+  <text
+    x="675"
+    y="170"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#6e6b63">
+    ↑
+  </text>
+
+  <text
+    x="675"
+    y="205"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#6e6b63">
+    меньше объём
+  </text>
+
+  <text
+    x="650"
+    y="530"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    font-weight="600"
+    fill="#6e6b63">
+    БОЛЬШЕ ОБЪЁМ
+  </text>
+
+  <polygon
+    points="644,500 656,500 650,510"
+    fill="#9a968c"/>
+
+  <!-- Divider labels -->
+
+  <text
+    x="720"
+    y="185"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#9a968c">
+    очень мало
+  </text>
+
+  <text
+    x="720"
+    y="290"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#9a968c">
+    больше
+  </text>
+
+  <text
+    x="720"
+    y="395"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#9a968c">
+    ещё больше
+  </text>
+
+  <text
+    x="720"
+    y="500"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#9a968c">
+    много
+  </text>
+
+</svg>

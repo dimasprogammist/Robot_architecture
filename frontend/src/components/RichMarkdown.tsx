@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 import Markdown from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import rehypeRaw from 'rehype-raw'
+import remarkMath from 'remark-math'
+import 'katex/dist/katex.min.css'
 
 const DIAGRAM = /[┌┐└┘├┤│─►◄═]/
 
@@ -62,29 +65,66 @@ function highlight(code: string, lang: string): ReactNode[] {
   return nodes
 }
 
-function resolveCourseAsset(
+const COURSE_ASSET_ROOT = 'course-assets'
+
+function normalizeCourseAssetUrl(parts: string[]): string {
+  const stack: string[] = []
+
+  for (const raw of parts) {
+    if (!raw || raw === '.') continue
+    if (raw === '..') {
+      if (stack.length > 1) stack.pop()
+      continue
+    }
+    stack.push(raw)
+  }
+
+  if (stack[0] !== COURSE_ASSET_ROOT) {
+    stack.unshift(COURSE_ASSET_ROOT)
+  }
+
+  return `/${stack.join('/')}`
+}
+
+export function resolveCourseAsset(
   src: string | undefined,
   assetBase: string,
 ): string | undefined {
   if (!src) return src
 
-  // Внешние изображения и абсолютные URL не трогаем.
   if (
     src.startsWith('http://') ||
     src.startsWith('https://') ||
     src.startsWith('//') ||
-    src.startsWith('data:') ||
-    src.startsWith('/')
+    src.startsWith('data:')
   ) {
     return src
   }
 
-  // Картинка из Markdown:
-  // Pictures/example.png
-  //
-  // превращается в:
-  // /course-assets/01-computer/Pictures/example.png
-  return `${assetBase.replace(/\/+$/, '')}/${src.replace(/^\/+/, '')}`
+  if (src.startsWith('/') && !src.startsWith('/course-assets/')) {
+    return src
+  }
+
+  let relative = src.replace(/\\/g, '/')
+  if (relative.startsWith('/course-assets/')) {
+    return normalizeCourseAssetUrl(relative.slice(1).split('/'))
+  }
+
+  const baseParts = assetBase
+    .replace(/\\/g, '/')
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '')
+    .split('/')
+    .filter(Boolean)
+
+  if (
+    baseParts[baseParts.length - 1] === 'Lesson' &&
+    /^(?:\.\/)?Pictures?\//i.test(relative)
+  ) {
+    relative = `../${relative.replace(/^\.\//, '')}`
+  }
+
+  return normalizeCourseAssetUrl([...baseParts, ...relative.split('/')])
 }
 
 export function RichMarkdown({
@@ -97,7 +137,8 @@ export function RichMarkdown({
   return (
     <div className="md-body">
       <Markdown
-        rehypePlugins={[rehypeRaw]}
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex, rehypeRaw]}
         components={{
           img({ src, alt, ...props }) {
             const resolvedSrc = resolveCourseAsset(src, assetBase)

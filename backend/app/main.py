@@ -6,7 +6,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.router import bootstrap, router
 
-COURSE_DIR = Path(__file__).resolve().parents[1] / "course"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+COURSE_DIR = BACKEND_DIR / "course"
 
 app = FastAPI(title="Architecture Canvas", version="0.1.0")
 

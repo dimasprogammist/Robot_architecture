@@ -22,6 +22,7 @@ export default function App() {
     api.settings().then((s) => {
       setSettings(s)
       setTheme(s.theme)
+      useUiStore.getState().setLibraryCollapsed(!s.library_open)
     }).catch(() => undefined)
     api.library().then((l) => setPresets(l.presets)).catch(() => undefined)
   }, [setSettings, setTheme])

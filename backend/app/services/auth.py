@@ -74,6 +74,15 @@ def user_from_token(db: Session, token: str) -> UserRow | None:
     return db.get(UserRow, row.user_id)
 
 
+def optional_user(
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+) -> UserRow | None:
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return None
+    return user_from_token(db, authorization.split(" ", 1)[1].strip())
+
+
 def require_user(
     authorization: str | None = Header(default=None),
     db: Session = Depends(get_db),

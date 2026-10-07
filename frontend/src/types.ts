@@ -12,6 +12,7 @@ export type NavId =
   | 'documents'
   | 'learning'
   | 'tutorial'
+  | 'exercises'
   | 'mechanics'
   | 'database'
   | 'bom'
@@ -96,6 +97,7 @@ export interface DocumentationItem {
   description: string
   component_id: string | null
   protocol_id: string | null
+  starred?: boolean
 }
 
 export interface AttachedFile {
@@ -198,6 +200,9 @@ export interface Algorithm {
   component_id: string
   name: string
   description: string
+  program_name: string
+  language: string
+  purpose: string
   steps: AlgorithmStep[]
   inputs: string[]
   outputs: string[]
@@ -230,6 +235,8 @@ export interface Connection {
   cardinality: string
   source_column: string
   target_column: string
+  source_handle?: string
+  target_handle?: string
 }
 
 export interface Component {
@@ -262,6 +269,8 @@ export interface Component {
   docs: DocumentationItem[]
   files: AttachedFile[]
   extra_fields: Record<string, string>
+  color: string
+  library_preset_id?: string | null
 }
 
 export interface Architecture {
@@ -292,6 +301,7 @@ export interface Document {
   kind: string
   url: string
   description: string
+  starred?: boolean
 }
 
 export interface ArchitectureVersion {
@@ -327,6 +337,7 @@ export interface Project {
   requirements: Requirement[]
   documents: Document[]
   custom_types: ComponentTypeDef[]
+  library_presets: LibraryPreset[]
   versions: ArchitectureVersion[]
   settings: UserSettings
   databases: DatabaseInfo[]
@@ -343,6 +354,7 @@ export interface ProjectSummary {
 }
 
 export interface LibraryPreset {
+  id?: string
   name: string
   type: string
   category: string
@@ -351,6 +363,8 @@ export interface LibraryPreset {
   hardware_id?: string
   protocol_id?: string
   entity_kind?: string
+  color?: string
+  built_in?: boolean
 }
 
 export interface LibraryResponse {
@@ -374,6 +388,40 @@ export interface GlobalSettings {
   autosave: boolean
   language: string
   display_name: string
+  ui_density: 'comfortable' | 'compact'
+  reduce_motion: boolean
+  show_minimap: boolean
+  show_edge_labels: boolean
+  confirm_delete: boolean
+  confirm_delete_project: boolean
+  loose_connections: boolean
+  default_template_id: string
+  library_open: boolean
+  lesson_font_scale: number
+  auto_mark_lesson: boolean
+  show_course_progress: boolean
+}
+
+export const DEFAULT_SETTINGS: GlobalSettings = {
+  theme: 'light',
+  snap_to_grid: true,
+  show_grid: true,
+  grid_size: 20,
+  autosave: true,
+  language: 'ru',
+  display_name: 'Архитектор',
+  ui_density: 'comfortable',
+  reduce_motion: false,
+  show_minimap: true,
+  show_edge_labels: true,
+  confirm_delete: true,
+  confirm_delete_project: true,
+  loose_connections: true,
+  default_template_id: 'robot',
+  library_open: false,
+  lesson_font_scale: 1,
+  auto_mark_lesson: true,
+  show_course_progress: true,
 }
 
 export const emptyDocumentation = (): Documentation => ({

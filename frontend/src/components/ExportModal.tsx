@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Toggle } from './Toggle'
 import { api, type AiExportBody } from '../lib/api'
 import { download } from '../lib/ids'
 import { useProjectStore } from '../store/useProjectStore'
@@ -93,14 +94,12 @@ export function ExportModal() {
               ['include_sql', 'SQL-схема'],
             ] as const
           ).map(([key, label]) => (
-            <label key={key} className="hint">
-              <input
-                type="checkbox"
-                checked={opts[key]}
-                onChange={(e) => setOpts((o) => ({ ...o, [key]: e.target.checked }))}
-              />{' '}
-              {label}
-            </label>
+            <Toggle
+              key={key}
+              label={label}
+              checked={opts[key]}
+              onChange={(v) => setOpts((o) => ({ ...o, [key]: v }))}
+            />
           ))}
         </div>
         <button className="btn primary" type="button" onClick={generate} style={{ margin: '8px 0 12px' }}>

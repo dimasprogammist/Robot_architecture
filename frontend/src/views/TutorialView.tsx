@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, PanelRightClose, PanelRightOpen } from 'lucide-react'
+import { SearchField } from '../components/SearchField'
 import { RichMarkdown } from '../components/RichMarkdown'
-import { api, type CourseLesson, type CourseOverview } from '../lib/api'
+import { Tip } from '../components/Tip'
+import { api, type CourseLesson, type CourseLessonSummary, type CourseOverview } from '../lib/api'
+import { useUiStore } from '../store/useUiStore'
 
 type CourseGroup = {
   title: string
@@ -40,6 +43,7 @@ const COURSE_GROUPS: CourseGroup[] = [
     title: 'III. Данные и разработка',
     moduleIds: [
       'sql',
+      'nosql',
       'backend',
       'fastapi',
       'websocket',
@@ -120,6 +124,11 @@ const CPP_BLOCKS: CourseBlock[] = [
     from: 76,
     to: 80,
   },
+  {
+    title: 'X. Архитектура, качество, производительность',
+    from: 81,
+    to: 99,
+  },
 ]
 
 const STORAGE_KEYS = {
@@ -166,10 +175,15 @@ function writeStorageState(
 }
 
 export function TutorialView() {
+  const settings = useUiStore((s) => s.settings)
   const [overview, setOverview] = useState<CourseOverview | null>(null)
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
+  const [emptyModule, setEmptyModule] = useState<{ id: string; title: string } | null>(null)
   const [lesson, setLesson] = useState<CourseLesson | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [progressDone, setProgressDone] = useState(0)
+  const [completedIds, setCompletedIds] = useState<string[]>([])
+  const [notesOpen, setNotesOpen] = useState(false)
 
   const [openModules, setOpenModules] = useState<Record<string, boolean>>(
     () => readStorageState(STORAGE_KEYS.openModules),
@@ -192,7 +206,7 @@ export function TutorialView() {
         setOverview(data)
         setError(null)
 
-        const first = data.modules[0]?.lessons[0]
+        const first = data.modules.find((mod) => mod.lessons.length)?.lessons[0]
 
         if (first && !activeLessonId) {
           setActiveLessonId(first.id)
@@ -256,10 +270,22 @@ export function TutorialView() {
       .courseLesson(activeLessonId)
       .then((data) => {
         setLesson(data)
+        setEmptyModule(null)
         setError(null)
+        setNotesOpen(false)
+        if (data.completed) {
+          setCompletedIds((ids) => (ids.includes(data.id) ? ids : [...ids, data.id]))
+        }
       })
       .catch(() => setError('Не удалось загрузить урок.'))
   }, [activeLessonId])
+
+  useEffect(() => {
+    api.courseProgress().then((p) => {
+      setProgressDone(p.course_done)
+      if (p.completed_ids) setCompletedIds(p.completed_ids)
+    }).catch(() => undefined)
+  }, [settings.show_course_progress])
 
   useEffect(() => {
     writeStorageState(STORAGE_KEYS.openGroups, openGroups)
@@ -288,7 +314,7 @@ export function TutorialView() {
             item.title.toLowerCase().includes(search),
           ),
         }))
-        .filter((mod) => mod.lessons.length) || []
+        .filter((mod) => (search ? mod.lessons.length : true)) || []
     )
   }, [overview, q])
 
@@ -356,14 +382,17 @@ export function TutorialView() {
     }))
   }
 
-  const renderLesson = (item: CourseLesson) => (
+  const renderLesson = (item: CourseLessonSummary) => (
     <button
       key={item.id}
       className={`nav-item ${
         activeLessonId === item.id ? 'active' : ''
-      }`}
+      } ${completedIds.includes(item.id) ? 'done' : ''}`}
       type="button"
-      onClick={() => setActiveLessonId(item.id)}
+      onClick={() => {
+        setEmptyModule(null)
+        setActiveLessonId(item.id)
+      }}
     >
       <span>{item.title}</span>
     </button>
@@ -425,16 +454,17 @@ export function TutorialView() {
       <aside className="learning-nav">
         <h1>Учебник</h1>
 
-        <input
-          className="lib-search"
+        <SearchField
           placeholder="Поиск по учебнику"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={setQ}
         />
 
         {overview ? (
           <p className="hint">
-            {overview.total_lessons} уроков в {overview.modules.length} разделах
+            {settings.show_course_progress
+              ? `${progressDone} / ${overview.total_lessons} уроков · ${overview.modules.length} разделов`
+              : `${overview.total_lessons} уроков в ${overview.modules.length} разделах`}
           </p>
         ) : null}
 
@@ -469,6 +499,7 @@ export function TutorialView() {
               {groupOpen ? (
                 <div className="learning-group-content">
                   {group.modules.map((mod) => {
+                    if (!mod) return null
                     const open = q
                       ? true
                       : openModules[mod.id] !== false
@@ -481,9 +512,14 @@ export function TutorialView() {
                         <button
                           className="learning-cat-btn tutorial-module-title"
                           type="button"
-                          onClick={() =>
+                          onClick={() => {
                             toggleModule(mod.id)
-                          }
+                            if (!mod.lessons.length) {
+                              setActiveLessonId(null)
+                              setLesson(null)
+                              setEmptyModule({ id: mod.id, title: mod.title })
+                            }
+                          }}
                           aria-expanded={open}
                         >
                           <ChevronDown
@@ -507,7 +543,13 @@ export function TutorialView() {
                             renderCppBlocks(mod)
                           ) : (
                             <div className="learning-sec">
-                              {mod.lessons.map(renderLesson)}
+                              {mod.lessons.length
+                                ? mod.lessons.map(renderLesson)
+                                : (
+                                  <p className="hint" style={{ padding: '4px 8px' }}>
+                                    Уроков пока нет
+                                  </p>
+                                )}
                             </div>
                           )
                         ) : null}
@@ -521,8 +563,17 @@ export function TutorialView() {
         })}
       </aside>
 
-      <article className="learning-article tutorial-article">
-        {lesson ? (
+      <article
+        className="learning-article tutorial-article"
+        style={{ ['--lesson-scale' as string]: String(settings.lesson_font_scale) }}
+      >
+        <div className="tutorial-scroll">
+        {emptyModule ? (
+          <div className="empty" style={{ minHeight: 240 }}>
+            <h2>{emptyModule.title}</h2>
+            <p>В этом разделе пока нет уроков.</p>
+          </div>
+        ) : lesson ? (
           <>
             <p className="hint">
               {lesson.module_title} · урок {lesson.order}
@@ -532,39 +583,96 @@ export function TutorialView() {
               {lesson.content}
             </RichMarkdown>
 
-            <div className="tutorial-nav-buttons">
-              {lesson.prev_lesson_id ? (
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() =>
-                    setActiveLessonId(lesson.prev_lesson_id)
-                  }
-                >
-                  <ChevronLeft size={15} />
-                  Предыдущий урок
-                </button>
-              ) : (
-                <span />
-              )}
-
-              {lesson.next_lesson_id ? (
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() =>
-                    setActiveLessonId(lesson.next_lesson_id)
-                  }
-                >
-                  Следующий урок
-                  <ChevronRight size={15} />
-                </button>
-              ) : null}
-            </div>
+            <button
+              className="btn primary tutorial-complete-btn"
+              type="button"
+              onClick={() => {
+                const done = Boolean(lesson.completed || completedIds.includes(lesson.id))
+                const req = done ? api.courseUnseen(lesson.id) : api.courseSeen(lesson.id)
+                req
+                  .then(() => {
+                    setLesson({ ...lesson, completed: !done })
+                    setCompletedIds((ids) =>
+                      done ? ids.filter((id) => id !== lesson.id) : ids.includes(lesson.id) ? ids : [...ids, lesson.id],
+                    )
+                    api.courseProgress().then((p) => {
+                      setProgressDone(p.course_done)
+                      if (p.completed_ids) setCompletedIds(p.completed_ids)
+                    }).catch(() => undefined)
+                  })
+                  .catch(() => undefined)
+              }}
+            >
+              {lesson.completed || completedIds.includes(lesson.id)
+                ? 'Снять отметку'
+                : 'Отметить урок как пройденный'}
+            </button>
           </>
         ) : (
           <p className="lede">Загрузка курса…</p>
         )}
+        </div>
+
+        {lesson ? (
+          <div className="tutorial-dock">
+            <Tip label="Перейти к предыдущему уроку">
+              <button
+                className="float-btn"
+                type="button"
+                disabled={!lesson.prev_lesson_id}
+                onClick={() => lesson.prev_lesson_id && setActiveLessonId(lesson.prev_lesson_id)}
+              >
+                <ChevronLeft size={18} />
+              </button>
+            </Tip>
+            <Tip label="Перейти к следующему уроку">
+              <button
+                className="float-btn"
+                type="button"
+                disabled={!lesson.next_lesson_id}
+                onClick={() => lesson.next_lesson_id && setActiveLessonId(lesson.next_lesson_id)}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </Tip>
+          </div>
+        ) : null}
+
+        {lesson && !notesOpen ? (
+          <Tip label="Открыть краткий конспект урока">
+            <button
+              className="inspector-show"
+              type="button"
+              title="Открыть конспект"
+              aria-label="Открыть конспект"
+              onClick={() => setNotesOpen(true)}
+            >
+              <PanelRightOpen size={17} />
+            </button>
+          </Tip>
+        ) : null}
+
+        {notesOpen && lesson ? (
+          <div className="notes-drawer" role="dialog" aria-label="Конспект урока">
+            <div className="inspector-heading">
+              <h2>Конспект</h2>
+              <button
+                className="icon-btn"
+                type="button"
+                title="Скрыть конспект"
+                aria-label="Скрыть конспект"
+                onClick={() => setNotesOpen(false)}
+              >
+                <PanelRightClose size={16} />
+              </button>
+            </div>
+            {lesson.notes_url ? (
+              <img className="notes-img" src={lesson.notes_url} alt="Конспект урока" />
+            ) : (
+              <p className="hint">Конспект для этого урока пока не добавлен.</p>
+            )}
+          </div>
+        ) : null}
       </article>
     </div>
   )

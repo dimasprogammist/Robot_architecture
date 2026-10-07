@@ -1,0 +1,233 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 800 300"
+     width="800"
+     height="300"
+     role="img"
+     aria-labelledby="title desc">
+
+  <title id="title">Операции над множествами</title>
+  <desc id="desc">
+    Три диаграммы Венна: объединение множеств A и B,
+    пересечение множеств A и B и разность A без B.
+  </desc>
+
+  <defs>
+    <!-- Clip paths for exact set-operation regions -->
+    <clipPath id="union-left">
+      <circle cx="115" cy="120" r="58"/>
+    </clipPath>
+
+    <clipPath id="union-right">
+      <circle cx="165" cy="120" r="58"/>
+    </clipPath>
+
+    <clipPath id="intersection-left">
+      <circle cx="390" cy="120" r="58"/>
+    </clipPath>
+
+    <clipPath id="difference-left">
+      <circle cx="665" cy="120" r="58"/>
+    </clipPath>
+
+    <!-- Hatch pattern for highlighted regions -->
+    <pattern id="hatch"
+             patternUnits="userSpaceOnUse"
+             width="8"
+             height="8"
+             patternTransform="rotate(45)">
+      <rect width="8"
+            height="8"
+            fill="#2F5D50"
+            opacity="0.16"/>
+      <line x1="0"
+            y1="0"
+            x2="0"
+            y2="8"
+            stroke="#2F5D50"
+            stroke-width="2"
+            opacity="0.45"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800"
+        height="300"
+        fill="#F4F2EC"/>
+
+
+  <!-- ================================================= -->
+  <!-- UNION: A ∪ B                                     -->
+  <!-- ================================================= -->
+
+  <!-- Highlight A -->
+  <circle cx="115"
+          cy="120"
+          r="58"
+          fill="url(#hatch)"/>
+
+  <!-- Highlight B -->
+  <circle cx="165"
+          cy="120"
+          r="58"
+          fill="url(#hatch)"/>
+
+  <!-- Set outlines -->
+  <circle cx="115"
+          cy="120"
+          r="58"
+          fill="none"
+          stroke="#6E6B63"
+          stroke-width="2.5"/>
+
+  <circle cx="165"
+          cy="120"
+          r="58"
+          fill="none"
+          stroke="#6E6B63"
+          stroke-width="2.5"/>
+
+  <!-- Labels -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-weight="600">
+
+    <text x="95" y="48">A</text>
+    <text x="174" y="48">B</text>
+  </g>
+
+  <text x="140"
+        y="235"
+        text-anchor="middle"
+        fill="#1C1B17"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18">
+    A ∪ B
+  </text>
+
+  <text x="140"
+        y="260"
+        text-anchor="middle"
+        fill="#6E6B63"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="15">
+    объединение
+  </text>
+
+
+  <!-- ================================================= -->
+  <!-- INTERSECTION: A ∩ B                              -->
+  <!-- ================================================= -->
+
+  <!-- Highlight only the intersection -->
+  <g clip-path="url(#intersection-left)">
+    <circle cx="440"
+            cy="120"
+            r="58"
+            fill="url(#hatch)"/>
+  </g>
+
+  <!-- Set outlines -->
+  <circle cx="390"
+          cy="120"
+          r="58"
+          fill="none"
+          stroke="#6E6B63"
+          stroke-width="2.5"/>
+
+  <circle cx="440"
+          cy="120"
+          r="58"
+          fill="none"
+          stroke="#6E6B63"
+          stroke-width="2.5"/>
+
+  <!-- Labels -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-weight="600">
+
+    <text x="370" y="48">A</text>
+    <text x="449" y="48">B</text>
+  </g>
+
+  <text x="415"
+        y="235"
+        text-anchor="middle"
+        fill="#1C1B17"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18">
+    A ∩ B
+  </text>
+
+  <text x="415"
+        y="260"
+        text-anchor="middle"
+        fill="#6E6B63"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="15">
+    пересечение
+  </text>
+
+
+  <!-- ================================================= -->
+  <!-- DIFFERENCE: A \ B                                -->
+  <!-- ================================================= -->
+
+  <!-- Highlight A -->
+  <circle cx="665"
+          cy="120"
+          r="58"
+          fill="url(#hatch)"/>
+
+  <!-- Remove the part belonging to B -->
+  <circle cx="715"
+          cy="120"
+          r="58"
+          fill="#F4F2EC"/>
+
+  <!-- Set outlines -->
+  <circle cx="665"
+          cy="120"
+          r="58"
+          fill="none"
+          stroke="#6E6B63"
+          stroke-width="2.5"/>
+
+  <circle cx="715"
+          cy="120"
+          r="58"
+          fill="none"
+          stroke="#6E6B63"
+          stroke-width="2.5"/>
+
+  <!-- Labels -->
+  <g fill="#1C1B17"
+     font-family="Arial, Helvetica, sans-serif"
+     font-size="18"
+     font-weight="600">
+
+    <text x="645" y="48">A</text>
+    <text x="724" y="48">B</text>
+  </g>
+
+  <text x="690"
+        y="235"
+        text-anchor="middle"
+        fill="#1C1B17"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18">
+    A \ B
+  </text>
+
+  <text x="690"
+        y="260"
+        text-anchor="middle"
+        fill="#6E6B63"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="15">
+    разность
+  </text>
+
+</svg>

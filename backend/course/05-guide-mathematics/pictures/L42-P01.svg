@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#f4f2ec"/>
+
+  <!-- Заголовок -->
+  <text x="400" y="42"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="22"
+        fill="#1c1b17">
+    Локальный и глобальный минимум
+  </text>
+
+  <!-- Область графика -->
+  <g>
+    <!-- Сетка -->
+    <g stroke="#9a968c" stroke-width="1" opacity="0.18">
+      <line x1="90" y1="100" x2="750" y2="100"/>
+      <line x1="90" y1="150" x2="750" y2="150"/>
+      <line x1="90" y1="200" x2="750" y2="200"/>
+      <line x1="90" y1="250" x2="750" y2="250"/>
+      <line x1="90" y1="300" x2="750" y2="300"/>
+      <line x1="90" y1="350" x2="750" y2="350"/>
+    </g>
+
+    <!-- Оси -->
+    <g stroke="#6e6b63" stroke-width="1.8" fill="none">
+      <line x1="90" y1="360" x2="750" y2="360"/>
+      <line x1="90" y1="360" x2="90" y2="85"/>
+
+      <!-- стрелка X -->
+      <path d="M750 360 L740 355 M750 360 L740 365"/>
+
+      <!-- стрелка Y -->
+      <path d="M90 85 L85 95 M90 85 L95 95"/>
+    </g>
+
+    <!-- Подписи осей -->
+    <text x="760" y="366"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="16"
+          fill="#6e6b63">x</text>
+
+    <text x="80" y="78"
+          text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="16"
+          fill="#6e6b63">f(x)</text>
+
+    <!-- Функция -->
+    <path
+      d="
+        M 110 205
+
+        C 145 185, 170 115, 210 105
+        C 245 95, 270 155, 305 275
+
+        C 335 330, 365 325, 400 170
+        C 430 120, 455 145, 485 210
+
+        C 520 285, 565 335, 610 345
+        C 635 350, 660 348, 680 325
+
+        C 710 295, 730 250, 750 225
+      "
+      fill="none"
+      stroke="#2f5d50"
+      stroke-width="4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    <!-- Локальный минимум -->
+    <circle cx="305" cy="275" r="7" fill="#2f5d50"/>
+
+    <!-- Глобальный минимум -->
+    <circle cx="610" cy="345" r="7" fill="#2f5d50"/>
+
+    <!-- Вертикальные направляющие -->
+    <line x1="305" y1="275" x2="305" y2="360"
+          stroke="#9a968c"
+          stroke-width="1.5"
+          stroke-dasharray="5 5"/>
+
+    <line x1="610" y1="345" x2="610" y2="360"
+          stroke="#9a968c"
+          stroke-width="1.5"
+          stroke-dasharray="5 5"/>
+
+    <!-- Подпись локального минимума -->
+    <text x="305" y="315"
+          text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="16"
+          fill="#1c1b17">
+      локальный минимум
+    </text>
+
+    <!-- Подпись глобального минимума -->
+    <text x="610" y="390"
+          text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="16"
+          fill="#1c1b17">
+      глобальный минимум
+    </text>
+
+    <!-- Дополнительные обозначения -->
+    <text x="305" y="295"
+          text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="13"
+          fill="#6e6b63">
+      выше
+    </text>
+
+    <text x="610" y="325"
+          text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="13"
+          fill="#6e6b63">
+      ниже
+    </text>
+  </g>
+</svg>

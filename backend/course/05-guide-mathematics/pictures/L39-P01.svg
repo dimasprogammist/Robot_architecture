@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#F4F2EC"/>
+
+  <text x="400" y="42"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="24"
+        fill="#1C1B17">
+    Линейная регрессия
+  </text>
+
+  <!-- Grid -->
+  <g stroke="#9A968C" stroke-width="1" opacity="0.28">
+    <line x1="120" y1="100" x2="120" y2="355"/>
+    <line x1="220" y1="100" x2="220" y2="355"/>
+    <line x1="320" y1="100" x2="320" y2="355"/>
+    <line x1="420" y1="100" x2="420" y2="355"/>
+    <line x1="520" y1="100" x2="520" y2="355"/>
+    <line x1="620" y1="100" x2="620" y2="355"/>
+
+    <line x1="70" y1="305" x2="700" y2="305"/>
+    <line x1="70" y1="255" x2="700" y2="255"/>
+    <line x1="70" y1="205" x2="700" y2="205"/>
+    <line x1="70" y1="155" x2="700" y2="155"/>
+  </g>
+
+  <!-- Axes -->
+  <g stroke="#6E6B63" stroke-width="2" fill="none">
+    <line x1="70" y1="355" x2="715" y2="355"/>
+    <line x1="70" y1="370" x2="70" y2="80"/>
+  </g>
+
+  <!-- Axis arrows -->
+  <path d="M715 355 L704 349 L704 361 Z" fill="#6E6B63"/>
+  <path d="M70 80 L64 91 L76 91 Z" fill="#6E6B63"/>
+
+  <!-- Regression line -->
+  <line x1="95" y1="315" x2="680" y2="115"
+        stroke="#2F5D50"
+        stroke-width="5"
+        stroke-linecap="round"/>
+
+  <!-- Data points -->
+  <g fill="#2F5D50">
+    <circle cx="125" cy="305" r="7"/>
+    <circle cx="185" cy="275" r="7"/>
+    <circle cx="245" cy="280" r="7"/>
+    <circle cx="305" cy="235" r="7"/>
+    <circle cx="365" cy="245" r="7"/>
+    <circle cx="425" cy="190" r="7"/>
+    <circle cx="485" cy="205" r="7"/>
+    <circle cx="545" cy="155" r="7"/>
+    <circle cx="605" cy="165" r="7"/>
+    <circle cx="665" cy="120" r="7"/>
+  </g>
+
+  <!-- Example residuals -->
+  <g stroke="#6E6B63" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.8">
+    <line x1="245" y1="280" x2="245" y2="263"/>
+    <line x1="365" y1="245" x2="365" y2="222"/>
+    <line x1="485" y1="205" x2="485" y2="181"/>
+    <line x1="605" y1="165" x2="605" y2="140"/>
+  </g>
+
+  <!-- Labels -->
+  <text x="725" y="361"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20"
+        fill="#1C1B17">x</text>
+
+  <text x="61" y="70"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20"
+        fill="#1C1B17">y</text>
+
+  <text x="400" y="405"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="17"
+        fill="#6E6B63">
+    прямая, которая лучше всего описывает точки
+  </text>
+</svg>

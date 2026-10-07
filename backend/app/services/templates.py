@@ -3,12 +3,13 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from app.domain.library import BUILTIN_HARDWARE, BUILTIN_PROTOCOLS
+from app.domain.library import BUILTIN_HARDWARE, BUILTIN_PROTOCOLS, LIBRARY_PRESETS
 from app.domain.schema import (
     Architecture,
     Component,
     Connection,
     Documentation,
+    LibraryPreset,
     Position,
     Project,
     Protocol,
@@ -72,6 +73,7 @@ def empty_project(name: str, description: str = "") -> Project:
         architectures=[root],
         protocols=[p.model_copy() for p in BUILTIN_PROTOCOLS],
         hardware=[h.model_copy() for h in BUILTIN_HARDWARE],
+        library_presets=[LibraryPreset.model_validate(item) for item in LIBRARY_PRESETS],
         documents=[],
     )
 
@@ -98,14 +100,12 @@ def robot(name: str, description: str = "") -> Project:
     ctrl = _comp(aid, "Контроллер", "SBC", "HARDWARE", 420, 40, technology="Raspberry Pi", icon="board", hardware_id="hw-rpi")
     sensors = _comp(aid, "Датчики", "Датчик", "HARDWARE", 80, 220, icon="sensor")
     actuators = _comp(aid, "Исполнители", "Исполнитель", "HARDWARE", 760, 220, icon="motor")
-    comm = _comp(aid, "Связь", "MQTT", "PROTOCOL", 420, 220, icon="protocol", protocol_id="proto-mqtt")
     backend = _comp(aid, "Бэкенд", "Бэкенд", "SOFTWARE", 420, 400, technology="Python", icon="server")
-    p.components = [ctrl, sensors, actuators, comm, backend]
+    p.components = [ctrl, sensors, actuators, backend]
     p.connections = [
         _conn(aid, sensors.id, ctrl.id, "UART", data_format="Float32"),
         _conn(aid, ctrl.id, actuators.id, "CAN", data_format="Frames"),
-        _conn(aid, ctrl.id, comm.id, "MQTT", data_format="JSON"),
-        _conn(aid, comm.id, backend.id, "MQTT", data_format="JSON"),
+        _conn(aid, ctrl.id, backend.id, "MQTT", data_format="JSON"),
     ]
     return p
 
@@ -114,7 +114,7 @@ def iot(name: str, description: str = "") -> Project:
     p = empty_project(name or "IoT-система", description)
     aid = p.root_architecture_id
     device = _comp(aid, "Устройство", "MCU", "HARDWARE", 80, 180, technology="ESP32", icon="chip", hardware_id="hw-esp32")
-    mqtt = _comp(aid, "MQTT-брокер", "MQTT", "PROTOCOL", 400, 180, icon="protocol", protocol_id="proto-mqtt")
+    mqtt = _comp(aid, "MQTT-брокер", "Сервис", "SOFTWARE", 400, 180, technology="MQTT", icon="server")
     backend = _comp(aid, "Бэкенд", "Бэкенд", "SOFTWARE", 700, 80, technology="Python", icon="server")
     db = _comp(aid, "База данных", "PostgreSQL", "DATA", 980, 80, icon="db")
     dash = _comp(aid, "Панель", "Фронтенд", "SOFTWARE", 700, 280, technology="React", icon="layout")
@@ -134,7 +134,7 @@ def industrial(name: str, description: str = "") -> Project:
     plc = _comp(aid, "ПЛК", "ПЛК", "HARDWARE", 80, 180, icon="factory", hardware_id="hw-siemens-plc")
     hmi = _comp(aid, "HMI", "Приложение", "SOFTWARE", 400, 60, icon="layout")
     scada = _comp(aid, "SCADA", "Приложение", "SOFTWARE", 400, 220, icon="app")
-    opc = _comp(aid, "OPC UA", "OPC UA", "PROTOCOL", 700, 180, icon="protocol", protocol_id="proto-opcua")
+    opc = _comp(aid, "OPC-сервер", "Сервис", "SOFTWARE", 700, 180, technology="OPC UA", icon="server")
     db = _comp(aid, "База данных", "PostgreSQL", "DATA", 980, 180, icon="db")
     p.components = [plc, hmi, scada, opc, db]
     p.connections = [

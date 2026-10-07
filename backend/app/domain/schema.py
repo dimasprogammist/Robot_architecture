@@ -38,6 +38,20 @@ class ComponentTypeDef(BaseModel):
     built_in: bool = True
 
 
+class LibraryPreset(BaseModel):
+    id: str = ""
+    name: str
+    type: str
+    category: str
+    icon: str = "box"
+    technology: str = ""
+    hardware_id: str | None = None
+    protocol_id: str | None = None
+    entity_kind: str = "component"
+    color: str = ""
+    built_in: bool = True
+
+
 class Protocol(BaseModel):
     id: str
     name: str
@@ -111,6 +125,9 @@ class Algorithm(BaseModel):
     component_id: str
     name: str = "Algorithm"
     description: str = ""
+    program_name: str = ""
+    language: str = ""
+    purpose: str = ""
     steps: list[AlgorithmStep] = Field(default_factory=list)
     inputs: list[str] = Field(default_factory=list)
     outputs: list[str] = Field(default_factory=list)
@@ -156,6 +173,7 @@ class DocumentationItem(BaseModel):
     description: str = ""
     component_id: str | None = None
     protocol_id: str | None = None
+    starred: bool = False
 
 
 class AttachedFile(BaseModel):
@@ -236,6 +254,8 @@ class Connection(BaseModel):
     cardinality: str = ""
     source_column: str = ""
     target_column: str = ""
+    source_handle: str = ""
+    target_handle: str = ""
 
 
 class Component(BaseModel):
@@ -268,6 +288,8 @@ class Component(BaseModel):
     docs: list[DocumentationItem] = Field(default_factory=list)
     files: list[AttachedFile] = Field(default_factory=list)
     extra_fields: dict[str, str] = Field(default_factory=dict)
+    color: str = ""
+    library_preset_id: str | None = None
 
 
 class Architecture(BaseModel):
@@ -298,6 +320,7 @@ class Document(BaseModel):
     kind: str = "markdown"
     url: str = ""
     description: str = ""
+    starred: bool = False
 
 
 class ArchitectureVersion(BaseModel):
@@ -322,6 +345,7 @@ class Project(BaseModel):
     description: str = ""
     created_at: str
     updated_at: str
+    current_version_label: str = "черновик"
     root_architecture_id: str
     architectures: list[Architecture] = Field(default_factory=list)
     components: list[Component] = Field(default_factory=list)
@@ -332,6 +356,7 @@ class Project(BaseModel):
     requirements: list[Requirement] = Field(default_factory=list)
     documents: list[Document] = Field(default_factory=list)
     custom_types: list[ComponentTypeDef] = Field(default_factory=list)
+    library_presets: list[LibraryPreset] = Field(default_factory=list)
     versions: list[ArchitectureVersion] = Field(default_factory=list)
     settings: UserSettings = Field(default_factory=UserSettings)
     databases: list[DatabaseInfo] = Field(default_factory=list)
@@ -385,6 +410,7 @@ class ProjectSummary(BaseModel):
     description: str = ""
     created_at: str
     updated_at: str
+    current_version_label: str = "черновик"
     component_count: int = 0
 
 
@@ -396,6 +422,18 @@ class GlobalSettings(BaseModel):
     autosave: bool = True
     language: str = "ru"
     display_name: str = "Архитектор"
+    ui_density: Literal["comfortable", "compact"] = "comfortable"
+    reduce_motion: bool = False
+    show_minimap: bool = True
+    show_edge_labels: bool = True
+    confirm_delete: bool = True
+    confirm_delete_project: bool = True
+    loose_connections: bool = True
+    default_template_id: str = "robot"
+    library_open: bool = False
+    lesson_font_scale: float = 1.0
+    auto_mark_lesson: bool = True
+    show_course_progress: bool = True
 
 
 # ---- protocol colors (merged from the former domain/colors.py) -----------------
@@ -422,6 +460,13 @@ PROTOCOL_COLORS: dict[str, str] = {
     "Wi-Fi": "#4e5f78",
     "OPC UA": "#5c5872",
     "OPC DA": "#6a5c72",
+    "EtherCAT": "#5a6e62",
+    "PROFINET": "#6a5c4e",
+    "CANopen": "#6a4e58",
+    "ROS 2": "#4e6270",
+    "DDS": "#5a6878",
+    "REST": "#5d6f7c",
+    "TCP/IP": "#6a6e62",
     "Custom Protocol": "#6e6a62",
     "Свой протокол": "#6e6a62",
 }
