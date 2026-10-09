@@ -1,0 +1,484 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1400"
+     height="760"
+     viewBox="0 0 1400 760">
+
+  <style>
+    .block {
+      fill: #FCFBF8;
+      stroke: #2F5D50;
+      stroke-width: 3;
+    }
+
+    .soft {
+      fill: #F7F5EF;
+      stroke: #6E6B63;
+      stroke-width: 2;
+    }
+
+    .title {
+      fill: #1C1B17;
+      font-family: Arial, sans-serif;
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    .text {
+      fill: #1C1B17;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+    }
+
+    .small {
+      fill: #6E6B63;
+      font-family: Arial, sans-serif;
+      font-size: 17px;
+    }
+
+    .accent {
+      fill: #2F5D50;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .arrow {
+      fill: none;
+      stroke: #2F5D50;
+      stroke-width: 3;
+      marker-end: url(#arrow);
+    }
+
+    .muted-arrow {
+      fill: none;
+      stroke: #6E6B63;
+      stroke-width: 2;
+      marker-end: url(#arrow-muted);
+    }
+  </style>
+
+  <defs>
+    <!-- Smaller arrowheads -->
+    <marker id="arrow"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z"
+            fill="#2F5D50"/>
+    </marker>
+
+    <marker id="arrow-muted"
+            markerWidth="6"
+            markerHeight="6"
+            refX="5"
+            refY="3"
+            orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z"
+            fill="#6E6B63"/>
+    </marker>
+  </defs>
+
+
+  <!-- ===================================================== -->
+  <!-- MEMORY -->
+  <!-- ===================================================== -->
+
+  <text x="225"
+        y="48"
+        text-anchor="middle"
+        class="accent">
+    ПАМЯТЬ
+  </text>
+
+
+  <rect x="55" y="70"
+        width="340"
+        height="120"
+        rx="12"
+        class="block"/>
+
+  <text x="225"
+        y="118"
+        text-anchor="middle"
+        class="title">
+    SSD / NVMe
+  </text>
+
+  <text x="225"
+        y="151"
+        text-anchor="middle"
+        class="small">
+    большая ёмкость · медленно
+  </text>
+
+
+  <rect x="55" y="215"
+        width="340"
+        height="120"
+        rx="12"
+        class="block"/>
+
+  <text x="225"
+        y="263"
+        text-anchor="middle"
+        class="title">
+    RAM
+  </text>
+
+  <text x="225"
+        y="296"
+        text-anchor="middle"
+        class="small">
+    рабочие данные программ
+  </text>
+
+
+  <rect x="55" y="360"
+        width="340"
+        height="120"
+        rx="12"
+        class="block"/>
+
+  <text x="225"
+        y="408"
+        text-anchor="middle"
+        class="title">
+    Cache
+  </text>
+
+  <text x="225"
+        y="441"
+        text-anchor="middle"
+        class="small">
+    часто используемые данные
+  </text>
+
+
+  <rect x="55" y="505"
+        width="340"
+        height="120"
+        rx="12"
+        class="block"/>
+
+  <text x="225"
+        y="553"
+        text-anchor="middle"
+        class="title">
+    Регистры
+  </text>
+
+  <text x="225"
+        y="586"
+        text-anchor="middle"
+        class="small">
+    данные прямо внутри CPU
+  </text>
+
+
+  <!-- Vertical arrows: gap remains between blocks -->
+
+  <path d="M225 190 L225 207"
+        class="muted-arrow"/>
+
+  <path d="M225 335 L225 352"
+        class="muted-arrow"/>
+
+  <path d="M225 480 L225 497"
+        class="muted-arrow"/>
+
+
+  <!-- ===================================================== -->
+  <!-- CPU -->
+  <!-- ===================================================== -->
+
+  <text x="690"
+        y="48"
+        text-anchor="middle"
+        class="accent">
+    CPU
+  </text>
+
+
+  <rect x="465" y="70"
+        width="450"
+        height="555"
+        rx="16"
+        class="block"/>
+
+
+  <text x="690"
+        y="116"
+        text-anchor="middle"
+        class="title">
+    Несколько ядер
+  </text>
+
+  <text x="690"
+        y="147"
+        text-anchor="middle"
+        class="small">
+    независимые исполнители
+  </text>
+
+
+  <!-- CORE 1 -->
+
+  <rect x="505" y="180"
+        width="180"
+        height="135"
+        rx="10"
+        class="soft"/>
+
+  <text x="595"
+        y="223"
+        text-anchor="middle"
+        class="title">
+    Ядро 1
+  </text>
+
+  <text x="595"
+        y="259"
+        text-anchor="middle"
+        class="small">
+    инструкция
+  </text>
+
+  <text x="595"
+        y="288"
+        text-anchor="middle"
+        class="small">
+    → операция
+  </text>
+
+
+  <!-- CORE 2 -->
+
+  <rect x="695" y="180"
+        width="180"
+        height="135"
+        rx="10"
+        class="soft"/>
+
+  <text x="785"
+        y="223"
+        text-anchor="middle"
+        class="title">
+    Ядро 2
+  </text>
+
+  <text x="785"
+        y="259"
+        text-anchor="middle"
+        class="small">
+    инструкция
+  </text>
+
+  <text x="785"
+        y="288"
+        text-anchor="middle"
+        class="small">
+    → операция
+  </text>
+
+
+  <!-- CORE 3 -->
+
+  <rect x="505" y="340"
+        width="180"
+        height="135"
+        rx="10"
+        class="soft"/>
+
+  <text x="595"
+        y="383"
+        text-anchor="middle"
+        class="title">
+    Ядро 3
+  </text>
+
+  <text x="595"
+        y="419"
+        text-anchor="middle"
+        class="small">
+    инструкция
+  </text>
+
+  <text x="595"
+        y="448"
+        text-anchor="middle"
+        class="small">
+    → операция
+  </text>
+
+
+  <!-- CORE 4 -->
+
+  <rect x="695" y="340"
+        width="180"
+        height="135"
+        rx="10"
+        class="soft"/>
+
+  <text x="785"
+        y="383"
+        text-anchor="middle"
+        class="title">
+    Ядро 4
+  </text>
+
+  <text x="785"
+        y="419"
+        text-anchor="middle"
+        class="small">
+    инструкция
+  </text>
+
+  <text x="785"
+        y="448"
+        text-anchor="middle"
+        class="small">
+    → операция
+  </text>
+
+
+  <text x="690"
+        y="530"
+        text-anchor="middle"
+        class="small">
+    несколько независимых задач
+  </text>
+
+  <text x="690"
+        y="557"
+        text-anchor="middle"
+        class="small">
+    могут выполняться одновременно
+  </text>
+
+
+  <!-- Memory → CPU -->
+  <!-- 395 = block edge, 455 = arrow end, 465 = CPU edge -->
+
+  <path d="M405 565 L455 565"
+        class="arrow"/>
+
+
+  <!-- ===================================================== -->
+  <!-- PIPELINE -->
+  <!-- ===================================================== -->
+
+  <text x="1140"
+        y="48"
+        text-anchor="middle"
+        class="accent">
+    КОНВЕЙЕР
+  </text>
+
+
+  <rect x="955" y="70"
+        width="370"
+        height="330"
+        rx="16"
+        class="block"/>
+
+
+  <text x="1140"
+        y="116"
+        text-anchor="middle"
+        class="title">
+    Выполнение инструкций
+  </text>
+
+
+  <rect x="990" y="150"
+        width="300"
+        height="55"
+        rx="8"
+        class="soft"/>
+
+  <text x="1140"
+        y="185"
+        text-anchor="middle"
+        class="text">
+    получить данные
+  </text>
+
+
+  <rect x="990" y="220"
+        width="300"
+        height="55"
+        rx="8"
+        class="soft"/>
+
+  <text x="1140"
+        y="255"
+        text-anchor="middle"
+        class="text">
+    выполнить операцию
+  </text>
+
+
+  <rect x="990" y="290"
+        width="300"
+        height="55"
+        rx="8"
+        class="soft"/>
+
+  <text x="1140"
+        y="325"
+        text-anchor="middle"
+        class="text">
+    сохранить результат
+  </text>
+
+
+  <!-- CPU → pipeline -->
+  <!-- CPU edge 915, arrow ends 945, pipeline edge 955 -->
+
+  <path d="M925 235 L945 235"
+        class="arrow"/>
+
+
+  <!-- ===================================================== -->
+  <!-- CLOCK / IPC -->
+  <!-- ===================================================== -->
+
+  <rect x="955" y="435"
+        width="370"
+        height="190"
+        rx="16"
+        class="block"/>
+
+
+  <text x="1140"
+        y="480"
+        text-anchor="middle"
+        class="title">
+    Частота и IPC
+  </text>
+
+  <text x="1140"
+        y="518"
+        text-anchor="middle"
+        class="text">
+    3 ГГц ≈ 3 млрд тактов/с
+  </text>
+
+  <text x="1140"
+        y="556"
+        text-anchor="middle"
+        class="small">
+    IPC показывает работу за такт
+  </text>
+
+  <text x="1140"
+        y="584"
+        text-anchor="middle"
+        class="small">
+    частота — не единственный фактор
+  </text>
+
+
+</svg>

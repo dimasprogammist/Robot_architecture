@@ -17,6 +17,27 @@ export function projectFileUrl(projectId: string, fileId: string) {
   return `/api/projects/${projectId}/files/${fileId}`
 }
 
+const INLINE_EXTS = new Set(['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'txt', 'md', 'json', 'csv'])
+
+export async function openAttachedFile(projectId: string, file: AttachedFile, onPreview?: (url: string) => void) {
+  const ext = fileExt(file.filename).toLowerCase()
+  const blob = await api.fileBlob(projectId, file.id)
+  const url = URL.createObjectURL(blob)
+  if ((file.kind === 'stl' || ext === 'stl') && onPreview) {
+    onPreview(url)
+    return
+  }
+  if (file.kind === 'pdf' || INLINE_EXTS.has(ext) || blob.type.startsWith('image/') || blob.type === 'application/pdf') {
+    window.open(url, '_blank', 'noopener,noreferrer')
+    return
+  }
+  const link = document.createElement('a')
+  link.href = url
+  link.download = file.filename
+  link.click()
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+}
+
 export function DocsPanel({ component }: { component: Component }) {
   const updateComponent = useProjectStore((s) => s.updateComponent)
   const add = (kind: string) => {
@@ -135,7 +156,32 @@ export function TablePanel({ component }: { component: Component }) {
   const active = table.columns.find((c) => c.id === activeId) || null
   const patchCol = (id: string, patch: Partial<TableColumn>) =>
     set({ ...table, columns: table.columns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
-  const types = ['TEXT', 'INTEGER', 'BIGINT', 'BOOLEAN', 'REAL', 'TIMESTAMP', 'UUID', 'JSON']
+  const types = [
+    'INT',
+    'INTEGER',
+    'BIGINT',
+    'SMALLINT',
+    'TINYINT',
+    'DECIMAL',
+    'NUMERIC',
+    'FLOAT',
+    'REAL',
+    'DOUBLE',
+    'BOOLEAN',
+    'BIT',
+    'CHAR',
+    'VARCHAR',
+    'TEXT',
+    'DATE',
+    'TIME',
+    'DATETIME',
+    'TIMESTAMP',
+    'BINARY',
+    'VARBINARY',
+    'BLOB',
+    'JSON',
+    'UUID',
+  ]
   return (
     <div className="table-inspector">
       <div className="field">
@@ -246,7 +292,7 @@ export function FilesPanel({ component }: { component: Component }) {
           onPreview={setPreview}
         />
       ))}
-      {preview ? <StlPreview url={projectFileUrl(project.id, preview)} /> : null}
+      {preview ? <StlPreview url={preview} /> : null}
     </div>
   )
 }
@@ -270,8 +316,9 @@ export function AttachedFileRow({
         type="button"
         title={file.filename}
         onClick={() => {
-          if (file.kind === 'stl' && onPreview) onPreview(file.id)
-          else window.open(projectFileUrl(projectId, file.id), '_blank')
+          void openAttachedFile(projectId, file, onPreview).catch((error) => {
+            window.alert(error instanceof Error ? error.message : 'Не удалось открыть файл')
+          })
         }}
       >
         <span className="attached-file-name">{file.filename}</span>

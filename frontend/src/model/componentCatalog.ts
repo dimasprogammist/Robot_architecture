@@ -9,6 +9,17 @@ import {
 
 export const OTHER_VALUE = 'Другое'
 
+export const POWER_OPTIONS = [
+  '5 V DC',
+  '12 V DC',
+  '24 V DC',
+  '48 V DC',
+  '110 V AC',
+  '220 V AC',
+  '380 V AC',
+  OTHER_VALUE,
+]
+
 export interface ComponentField {
   key: string
   label: string
@@ -18,6 +29,7 @@ export interface ComponentField {
   multiline?: boolean
   auto?: boolean
   section?: 'main' | 'tech' | 'io'
+  visibleWhen?: { key: string; values: string[] }
 }
 
 export interface ComponentDefinition {
@@ -32,6 +44,49 @@ export interface ComponentDefinition {
 }
 
 const f = (...items: ComponentField[]) => items
+
+const powerField: ComponentField = {
+  key: 'power',
+  label: 'Питание',
+  options: POWER_OPTIONS,
+  allowOther: true,
+  section: 'io',
+}
+
+export const SIGNAL_TYPES = ['аналоговый', 'дискретный', 'ШИМ', 'DI', 'DO']
+export const ANALOG_RANGES = ['0–10 В', '0–5 В', '±10 В', '4–20 мА', '0–20 мА']
+export const DISCRETE_KINDS = ['DI', 'DO']
+
+const signalFields: ComponentField[] = [
+  { key: 'signal_type', label: 'Тип сигнала', options: SIGNAL_TYPES, allowOther: true, section: 'io' },
+  {
+    key: 'analog_range',
+    label: 'Диапазон',
+    options: ANALOG_RANGES,
+    allowOther: true,
+    section: 'io',
+    visibleWhen: { key: 'signal_type', values: ['аналоговый'] },
+  },
+  {
+    key: 'discrete_kind',
+    label: 'Дискретный канал',
+    options: DISCRETE_KINDS,
+    section: 'io',
+    visibleWhen: { key: 'signal_type', values: ['дискретный', 'DI', 'DO'] },
+  },
+  {
+    key: 'pwm_freq',
+    label: 'Частота ШИМ',
+    section: 'io',
+    visibleWhen: { key: 'signal_type', values: ['ШИМ', 'PWM'] },
+  },
+  {
+    key: 'pwm_duty',
+    label: 'Коэффициент заполнения',
+    section: 'io',
+    visibleWhen: { key: 'signal_type', values: ['ШИМ', 'PWM'] },
+  },
+]
 
 const protoOpts = [...CONNECTION_PROTOCOLS]
 const sensorOpts = [...SENSOR_KINDS]
@@ -145,7 +200,8 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       { key: 'resolution', label: 'Разрешение', section: 'tech' },
       { key: 'fps', label: 'FPS', section: 'tech' },
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
-      { key: 'power', label: 'Питание', section: 'io' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: { ...algoSense, purpose: 'Снимает изображение и отдаёт кадры подсистеме восприятия.' },
   },
@@ -158,6 +214,8 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'range', label: 'Дальность', section: 'tech' },
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: { ...algoSense, purpose: 'Строит облако точек и передаёт его в perception / SLAM.' },
   },
@@ -170,6 +228,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       { key: 'model', label: 'Модель', section: 'main' },
       { key: 'io_count', label: 'Количество I/O', section: 'tech' },
       { key: 'protocols', label: 'Протоколы', options: protoOpts, allowOther: true, section: 'io' },
+      powerField,
     ),
     algorithm: { ...algoCtrl, purpose: 'Исполняет цикловую логику управления и обменивается с полевыми устройствами.' },
   },
@@ -182,6 +241,8 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
       { key: 'sample_rate', label: 'Частота', section: 'tech' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: algoSense,
   },
@@ -194,6 +255,8 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'type', label: 'Тип', options: ['инкрементальный', 'абсолютный', OTHER_VALUE], allowOther: true, section: 'tech' },
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: algoSense,
   },
@@ -206,18 +269,22 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'range', label: 'Диапазон', section: 'tech' },
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: algoSense,
   },
   {
     id: 'position-sensor',
-    names: ['Датчик положения', 'Концевой выключатель', 'Датчик'],
+    names: ['Датчик положения', 'Концевой выключатель', 'Датчик', 'GNSS'],
     inspector: { connection: false, extra: false },
     fields: f(
       sensorKind,
       ...hwModel(),
       { key: 'logic', label: 'Тип выхода', options: ['цифровой', 'аналоговый', 'шина', OTHER_VALUE], allowOther: true, section: 'tech' },
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: algoSense,
   },
@@ -230,6 +297,8 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'range', label: 'Диапазон', section: 'tech' },
       { key: 'interface', label: 'Интерфейс', options: iface, allowOther: true, section: 'io' },
+      powerField,
+      ...signalFields,
     ),
     algorithm: algoSense,
   },
@@ -241,18 +310,20 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'memory', label: 'Память', section: 'tech' },
       { key: 'purpose', label: 'Назначение', section: 'tech' },
+      powerField,
     ),
     algorithm: { ...algoSoft, purpose: 'Выполняет тяжёлые вычисления восприятия и моделей.' },
   },
   {
     id: 'ipc',
-    names: ['IPC', 'Промышленный ПК'],
+    names: ['IPC', 'Промышленный ПК', 'HMI'],
     inspector: { connection: true, extra: false },
     fields: f(
       ...hwModel(),
       { key: 'cpu', label: 'CPU', section: 'tech' },
       { key: 'ram', label: 'RAM', section: 'tech' },
       { key: 'os', label: 'ОС', options: osOpts, allowOther: true, section: 'tech' },
+      powerField,
     ),
     algorithm: algoCtrl,
   },
@@ -264,7 +335,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(SBC_MODELS),
       { key: 'os', label: 'ОС', options: osOpts, allowOther: true, section: 'tech' },
       { key: 'ram', label: 'RAM', section: 'tech' },
-      { key: 'power', label: 'Питание', section: 'io' },
+      powerField,
     ),
     algorithm: algoCtrl,
   },
@@ -275,7 +346,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
     fields: f(
       ...hwModel(MCU_MODELS),
       { key: 'interfaces', label: 'Интерфейсы', section: 'io' },
-      { key: 'power', label: 'Питание', section: 'io' },
+      powerField,
     ),
     algorithm: algoCtrl,
   },
@@ -286,7 +357,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
     fields: f(
       ...hwModel(),
       { key: 'control', label: 'Управляющий сигнал', options: CONTROL_OPTIONS, allowOther: true, section: 'io' },
-      { key: 'power', label: 'Питание', section: 'io' },
+      powerField,
     ),
     algorithm: {
       purpose: 'Преобразует команду в безопасное воздействие на привод.',
@@ -302,20 +373,30 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
     inspector: { connection: false, extra: false },
     fields: f(
       ...hwModel(),
-      { key: 'torque', label: 'Момент', section: 'tech' },
+      { key: 'rated_current', label: 'Номинальный ток, А', section: 'tech' },
+      { key: 'rated_torque', label: 'Номинальный момент, Н·м', section: 'tech' },
+      { key: 'rated_voltage', label: 'Номинальное напряжение, В', section: 'tech' },
+      { key: 'rpm', label: 'Скорость вращения, об/мин', section: 'tech' },
+      { key: 'phases', label: 'Количество фаз', options: ['1', '2', '3'], section: 'tech' },
       { key: 'control', label: 'Управляющий сигнал', options: CONTROL_OPTIONS, allowOther: true, section: 'io' },
-      { key: 'power', label: 'Питание', section: 'io' },
+      powerField,
     ),
     algorithm: algoAct,
   },
   {
     id: 'motor',
-    names: ['Двигатель', 'Привод'],
+    names: ['Двигатель', 'Привод', 'ДПТ', 'АД', 'СД', 'Шаговый', 'Шаговый двигатель'],
     inspector: { connection: false, extra: false },
     fields: f(
       ...hwModel(),
+      { key: 'rated_current', label: 'Номинальный ток, А', section: 'tech' },
+      { key: 'rated_torque', label: 'Номинальный момент, Н·м', section: 'tech' },
+      { key: 'rated_voltage', label: 'Номинальное напряжение, В', section: 'tech' },
+      { key: 'rpm', label: 'Скорость вращения, об/мин', section: 'tech' },
+      { key: 'phases', label: 'Количество фаз', options: ['1', '2', '3'], section: 'tech' },
+      { key: 'steps_per_rev', label: 'Шагов на оборот', section: 'tech' },
       { key: 'control', label: 'Управляющий сигнал', options: CONTROL_OPTIONS, allowOther: true, section: 'io' },
-      { key: 'power', label: 'Питание', section: 'io' },
+      powerField,
     ),
     algorithm: algoAct,
   },
@@ -327,12 +408,13 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       ...hwModel(),
       { key: 'dof', label: 'Степени свободы', section: 'tech' },
       { key: 'payload', label: 'Грузоподъёмность', section: 'tech' },
+      powerField,
     ),
     algorithm: algoAct,
   },
   {
     id: 'network-box',
-    names: ['Шлюз', 'Маршрутизатор', 'Коммутатор', 'Сетевое устройство'],
+    names: ['Шлюз', 'Маршрутизатор', 'Коммутатор', 'Сетевое устройство', 'LoRa', 'BLE', 'LTE-модем', 'EtherNet/IP'],
     inspector: { connection: true, extra: false },
     fields: f(
       ...hwModel(),
@@ -353,6 +435,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       'Ethernet', 'TCP', 'TCP/IP', 'UDP', 'HTTP', 'HTTPS', 'REST',
       'WebSocket', 'MQTT', 'OPC UA', 'Modbus TCP', 'Modbus RTU',
       'CAN', 'CANopen', 'EtherCAT', 'PROFINET', 'ROS 2', 'DDS',
+      'Электрическое подключение',
     ],
     inspector: { connection: false, extra: false },
     fields: f(
@@ -374,7 +457,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
   },
   {
     id: 'lang',
-    names: ['C++', 'C#'],
+    names: ['C++', 'C#', 'Java', 'Go', 'JavaScript', 'TypeScript', 'Rust'],
     fields: f(
       { key: 'standard', label: 'Стандарт / версия' },
       { key: 'runtime', label: 'Среда выполнения' },
@@ -441,7 +524,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
   },
   {
     id: 'db',
-    names: ['PostgreSQL', 'MySQL', 'MongoDB', 'SQLite', 'Redis', 'Kafka'],
+    names: ['PostgreSQL', 'MySQL', 'MongoDB', 'SQLite', 'Redis', 'Kafka', 'InfluxDB', 'TimescaleDB', 'ClickHouse', 'Protobuf'],
     fields: f(
       { key: 'dbms', label: 'СУБД / брокер' },
       { key: 'db_version', label: 'Версия' },
@@ -460,7 +543,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
   },
   {
     id: 'soft-generic',
-    names: ['Бэкенд', 'Фронтенд', 'Сервис', 'Приложение', 'Модуль', 'API', 'Библиотека', 'MQTT-брокер', 'OPC-сервер'],
+    names: ['Бэкенд', 'Фронтенд', 'Сервис', 'Приложение', 'Модуль', 'API', 'Библиотека', 'MQTT-брокер', 'OPC-сервер', 'Nginx', 'Node-RED', 'Grafana', 'ПО', 'Kubernetes', 'Prometheus', 'FreeRTOS', 'Zephyr', 'gRPC', 'NATS', 'OpenCV', 'Gazebo'],
     fields: f(
       { key: 'runtime', label: 'Среда выполнения' },
       { key: 'os', label: 'ОС', options: osOpts },
@@ -480,13 +563,156 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
     ),
     algorithm: algoAct,
   },
+  {
+    id: 'battery',
+    names: ['Аккумулятор'],
+    inspector: { connection: false, extra: false },
+    fields: f(
+      { key: 'chemistry', label: 'Тип', options: ['Li-ion', 'LiFePO4', 'свинцово-кислотный', OTHER_VALUE], allowOther: true, section: 'tech' },
+      { key: 'capacity', label: 'Ёмкость', section: 'tech' },
+      powerField,
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'divider',
+    names: ['Делитель напряжения'],
+    inspector: { connection: false, extra: false },
+    fields: f(
+      { key: 'r1', label: 'R1', section: 'tech' },
+      { key: 'r2', label: 'R2', section: 'tech' },
+      { key: 'vout', label: 'Uвых расчётное', section: 'tech' },
+      powerField,
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'psu',
+    names: ['Блок питания'],
+    inspector: { connection: false, extra: false },
+    fields: f(
+      { key: 'output', label: 'Выход', section: 'tech' },
+      { key: 'power_w', label: 'Мощность', section: 'tech' },
+      powerField,
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'relay',
+    names: ['Реле'],
+    inspector: { connection: false, extra: false },
+    fields: f(
+      { key: 'coil_voltage', label: 'Напряжение катушки', section: 'tech' },
+      { key: 'contacts', label: 'Контакты', section: 'tech' },
+      powerField,
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'fuse',
+    names: ['Предохранитель', 'Автоматический выключатель'],
+    inspector: { connection: false, extra: false },
+    fields: f(
+      { key: 'current', label: 'Номинальный ток', section: 'tech' },
+      { key: 'curve', label: 'Характеристика', options: ['B', 'C', 'D', 'gG', OTHER_VALUE], allowOther: true, section: 'tech' },
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'terminal-block',
+    names: ['Клеммник'],
+    inspector: { connection: false, extra: false },
+    fields: f(
+      { key: 'terminal_inputs', label: 'Входы', section: 'io' },
+      { key: 'terminal_outputs', label: 'Выходы', section: 'io' },
+      { key: 'rating', label: 'Номинал', section: 'tech' },
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'resistor',
+    names: ['Резистор'],
+    fields: f({ key: 'resistance', label: 'Сопротивление', section: 'tech' }, { key: 'power_w', label: 'Мощность', section: 'tech' }),
+    algorithm: algoAct,
+  },
+  {
+    id: 'capacitor',
+    names: ['Конденсатор'],
+    fields: f({ key: 'capacitance', label: 'Ёмкость', section: 'tech' }, { key: 'voltage', label: 'Напряжение', section: 'tech' }),
+    algorithm: algoAct,
+  },
+  {
+    id: 'inductor',
+    names: ['Катушка индуктивности'],
+    fields: f({ key: 'inductance', label: 'Индуктивность', section: 'tech' }),
+    algorithm: algoAct,
+  },
+  {
+    id: 'diode',
+    names: ['Диод', 'Светодиод'],
+    fields: f(
+      { key: 'diode_type', label: 'Тип', options: ['выпрямительный', 'Шоттки', 'стабилитрон', 'светодиод', OTHER_VALUE], allowOther: true, section: 'tech' },
+      { key: 'vf', label: 'Прямое напряжение', section: 'tech' },
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'transistor',
+    names: ['Транзистор'],
+    fields: f(
+      { key: 'tr_type', label: 'Тип', options: ['NPN', 'PNP', 'N-MOSFET', 'P-MOSFET', OTHER_VALUE], allowOther: true, section: 'tech' },
+      { key: 'pinout', label: 'Распиновка', section: 'tech' },
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'transformer',
+    names: ['Трансформатор'],
+    fields: f(
+      { key: 'windings', label: 'Обмотки', section: 'tech' },
+      { key: 'ratio', label: 'Коэффициент', section: 'tech' },
+      powerField,
+    ),
+    algorithm: algoAct,
+  },
+  {
+    id: 'lamp',
+    names: ['Лампа'],
+    fields: f({ key: 'lamp_power', label: 'Мощность', section: 'tech' }, { key: 'lamp_voltage', label: 'Напряжение', section: 'tech' }),
+    algorithm: algoAct,
+  },
+  {
+    id: 'button',
+    names: ['Кнопка', 'Переключатель'],
+    fields: f({ key: 'contacts', label: 'Контакты', options: ['NO', 'NC', 'перекидной', OTHER_VALUE], allowOther: true, section: 'tech' }),
+    algorithm: algoAct,
+  },
+  {
+    id: 'opamp',
+    names: ['Операционный усилитель'],
+    fields: f({ key: 'supply', label: 'Питание', section: 'tech' }, { key: 'gain', label: 'Усиление', section: 'tech' }),
+    algorithm: algoAct,
+  },
+  {
+    id: 'connector',
+    names: ['Электрический разъём'],
+    fields: f({ key: 'pins', label: 'Контакты', section: 'tech' }, { key: 'gender', label: 'Тип', options: ['вилка', 'розетка', OTHER_VALUE], allowOther: true, section: 'tech' }),
+    algorithm: algoAct,
+  },
 ]
 
 export function definitionFor(component: Pick<Component, 'type' | 'name' | 'category'>) {
-  return (
-    COMPONENT_CATALOG.find((entry) => entry.names.includes(component.name)) ||
-    COMPONENT_CATALOG.find((entry) => entry.names.includes(component.type))
-  )
+  const byName = COMPONENT_CATALOG.find((entry) => entry.names.includes(component.name))
+  if (byName) return byName
+  const byType = COMPONENT_CATALOG.find((entry) => entry.names.includes(component.type))
+  if (byType) return byType
+  if (component.category === 'SOFTWARE') return COMPONENT_CATALOG.find((entry) => entry.id === 'soft-generic')
+  if (component.category === 'DATA') return COMPONENT_CATALOG.find((entry) => entry.id === 'db')
+  if (component.category === 'NETWORK') return COMPONENT_CATALOG.find((entry) => entry.id === 'network-box')
+  if (component.category === 'ELECTRICAL') return COMPONENT_CATALOG.find((entry) => entry.id === 'psu')
+  if (component.category === 'MECHANICS') return COMPONENT_CATALOG.find((entry) => entry.id === 'mech')
+  if (component.category === 'HARDWARE') return COMPONENT_CATALOG.find((entry) => entry.id === 'mcu')
+  return undefined
 }
 
 export function componentFields(component: Component) {
@@ -514,10 +740,15 @@ export function groupedComponentFields(component: Component) {
     { id: 'tech', title: 'Характеристики' },
     { id: 'io', title: 'Подключение' },
   ]
+  const extra = component.extra_fields || {}
   return order
     .map((group) => ({
       ...group,
-      fields: fields.filter((field) => (field.section || 'tech') === group.id),
+      fields: fields.filter((field) => {
+        if ((field.section || 'tech') !== group.id) return false
+        if (!field.visibleWhen) return true
+        return field.visibleWhen.values.includes(extra[field.visibleWhen.key] || '')
+      }),
     }))
     .filter((group) => group.fields.length)
 }
@@ -538,8 +769,9 @@ const PROGRAMMABLE_IDS = new Set([
 ])
 
 export function componentSupportsAlgorithm(component: Pick<Component, 'type' | 'name' | 'category'>) {
-  if (component.category === 'PROTOCOL') return false
+  if (component.category === 'PROTOCOL' || component.category === 'ELECTRICAL') return false
+  if (component.category === 'SOFTWARE' || component.category === 'DATA') return true
   const definition = definitionFor(component)
-  if (definition) return PROGRAMMABLE_IDS.has(definition.id)
-  return ['MCU', 'SBC', 'ПЛК', 'IPC', 'CPU', 'GPU', 'Контроллер двигателя', 'Контроллер'].includes(component.type)
+  if (definition) return PROGRAMMABLE_IDS.has(definition.id) || definition.id === 'docker' || definition.id === 'os-sw'
+  return ['MCU', 'SBC', 'ПЛК', 'IPC', 'CPU', 'GPU', 'Контроллер двигателя', 'Контроллер', 'HMI'].includes(component.type)
 }

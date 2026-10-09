@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from app.db import UserLessonProgressRow
 
 COURSE_DIR = Path(__file__).resolve().parents[2] / "course"
 _NOTES_EXTS = (".svg", ".png", ".webp", ".jpg", ".jpeg")
+_NUM_PREFIX = re.compile(r"^(\d+)")
 
 
 def ensure_notes_folders() -> None:
@@ -27,13 +29,28 @@ def ensure_notes_folders() -> None:
         return
 
 
-def _notes_url(md_path: Path, lesson_id: str) -> str | None:
+def _notes_url(md_path: Path, lesson_id: str, order: int = 0) -> str | None:
     section = md_path.parent
-    if section.name.lower() in {"lesson", "lessons", "picture"}:
+    if section.name.lower() in {"lesson", "lessons", "picture", "pictures"}:
         section = section.parent
     notes = section / "notes"
-    stems = [lesson_id, md_path.stem]
+    if not notes.is_dir():
+        return None
+    stems: list[str] = []
+    numbers: list[int] = []
+    if order:
+        numbers.append(int(order))
+    match = _NUM_PREFIX.match(md_path.stem)
+    if match:
+        numbers.append(int(match.group(1)))
+    for num in numbers:
+        stems.extend([f"L{num:02d}", f"L{num}", f"{num:02d}", str(num)])
+    stems.extend([lesson_id, md_path.stem])
+    seen: set[str] = set()
     for stem in stems:
+        if not stem or stem in seen:
+            continue
+        seen.add(stem)
         for ext in _NOTES_EXTS:
             candidate = notes / f"{stem}{ext}"
             if candidate.is_file():
@@ -93,7 +110,7 @@ def _lessons() -> list[dict]:
                 "order": int(meta.get("order") or 0),
                 "content": body,
                 "asset_base": asset_base,
-                "notes_url": _notes_url(path, str(meta["id"])),
+                "notes_url": _notes_url(path, str(meta["id"]), int(meta.get("order") or 0)),
             }
         )
 

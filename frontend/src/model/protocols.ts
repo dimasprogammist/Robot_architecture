@@ -14,6 +14,7 @@ export const CONNECTION_PROTOCOLS = [
   'DDS',
   'WebSocket',
   'HTTP / REST',
+  'Электрическое подключение',
 ] as const
 
 export const SENSOR_KINDS = [
@@ -69,6 +70,17 @@ export const PROGRAM_LANGUAGES = [
   'Rust',
   'Go',
 ]
+
+export function protocolLabel(name: string) {
+  if (name === 'Электрическое подключение') return 'Эл. подкл.'
+  return name
+}
+
+export function clampStrokeWidth(value: number | string | undefined) {
+  const n = typeof value === 'number' ? value : Number.parseFloat(String(value || ''))
+  if (!Number.isFinite(n)) return 2
+  return Math.min(8, Math.max(1, Math.round(n * 10) / 10))
+}
 
 export function protocolSelectOptions(projectNames: string[]) {
   const seen = new Set<string>()

@@ -1,0 +1,388 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1400"
+     height="760"
+     viewBox="0 0 1400 760">
+
+  <style>
+    .block {
+      fill: #FCFBF8;
+      stroke: #2F5D50;
+      stroke-width: 3;
+    }
+
+    .soft {
+      fill: #F7F5EF;
+      stroke: #6E6B63;
+      stroke-width: 2;
+    }
+
+    .title {
+      fill: #1C1B17;
+      font-family: Arial, sans-serif;
+      font-size: 25px;
+      font-weight: 600;
+    }
+
+    .text {
+      fill: #1C1B17;
+      font-family: Arial, sans-serif;
+      font-size: 19px;
+    }
+
+    .small {
+      fill: #6E6B63;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    .accent {
+      fill: #2F5D50;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .arrow {
+      fill: none;
+      stroke: #2F5D50;
+      stroke-width: 3;
+      marker-end: url(#arrow);
+    }
+  </style>
+
+  <defs>
+    <!-- Smaller arrowheads -->
+    <marker id="arrow"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z"
+            fill="#2F5D50"/>
+    </marker>
+  </defs>
+
+
+  <!-- ===================================================== -->
+  <!-- COMPUTE UNITS -->
+  <!-- ===================================================== -->
+
+  <text x="700"
+        y="48"
+        text-anchor="middle"
+        class="accent">
+    РАЗНЫЕ ЗАДАЧИ — РАЗНЫЕ ВЫЧИСЛИТЕЛИ
+  </text>
+
+
+  <!-- CPU -->
+
+  <rect x="55" y="75"
+        width="390"
+        height="220"
+        rx="16"
+        class="block"/>
+
+  <text x="250"
+        y="125"
+        text-anchor="middle"
+        class="title">
+    CPU
+  </text>
+
+  <text x="250"
+        y="163"
+        text-anchor="middle"
+        class="text">
+    Универсальные задачи
+  </text>
+
+  <text x="250"
+        y="204"
+        text-anchor="middle"
+        class="small">
+    управление программой
+  </text>
+
+  <text x="250"
+        y="233"
+        text-anchor="middle"
+        class="small">
+    принятие решений
+  </text>
+
+  <text x="250"
+        y="262"
+        text-anchor="middle"
+        class="small">
+    последовательные операции
+  </text>
+
+
+  <!-- GPU -->
+
+  <rect x="505" y="75"
+        width="390"
+        height="220"
+        rx="16"
+        class="block"/>
+
+  <text x="700"
+        y="125"
+        text-anchor="middle"
+        class="title">
+    GPU
+  </text>
+
+  <text x="700"
+        y="163"
+        text-anchor="middle"
+        class="text">
+    Массовый параллелизм
+  </text>
+
+  <text x="700"
+        y="204"
+        text-anchor="middle"
+        class="small">
+    много одинаковых операций
+  </text>
+
+  <text x="700"
+        y="233"
+        text-anchor="middle"
+        class="small">
+    изображения и матрицы
+  </text>
+
+  <text x="700"
+        y="262"
+        text-anchor="middle"
+        class="small">
+    высокая параллельная нагрузка
+  </text>
+
+
+  <!-- NPU -->
+
+  <rect x="955" y="75"
+        width="390"
+        height="220"
+        rx="16"
+        class="block"/>
+
+  <text x="1150"
+        y="125"
+        text-anchor="middle"
+        class="title">
+    NPU
+  </text>
+
+  <text x="1150"
+        y="163"
+        text-anchor="middle"
+        class="text">
+    Задачи AI / ML
+  </text>
+
+  <text x="1150"
+        y="204"
+        text-anchor="middle"
+        class="small">
+    операции нейросетей
+  </text>
+
+  <text x="1150"
+        y="233"
+        text-anchor="middle"
+        class="small">
+    матричные вычисления
+  </text>
+
+  <text x="1150"
+        y="262"
+        text-anchor="middle"
+        class="small">
+    эффективная обработка AI
+  </text>
+
+
+  <!-- ===================================================== -->
+  <!-- ROBOT PIPELINE -->
+  <!-- ===================================================== -->
+
+  <text x="700"
+        y="355"
+        text-anchor="middle"
+        class="accent">
+    ПРИМЕР: ОБРАБОТКА КАМЕРЫ В РОБОТЕ
+  </text>
+
+
+  <!-- Camera -->
+
+  <rect x="40" y="405"
+        width="210"
+        height="130"
+        rx="14"
+        class="block"/>
+
+  <text x="145"
+        y="455"
+        text-anchor="middle"
+        class="title">
+    Камера
+  </text>
+
+  <text x="145"
+        y="492"
+        text-anchor="middle"
+        class="small">
+    изображение
+  </text>
+
+
+  <!-- GPU / NPU -->
+
+  <rect x="295" y="405"
+        width="230"
+        height="130"
+        rx="14"
+        class="block"/>
+
+  <text x="410"
+        y="455"
+        text-anchor="middle"
+        class="title">
+    GPU / NPU
+  </text>
+
+  <text x="410"
+        y="492"
+        text-anchor="middle"
+        class="small">
+    анализ изображения
+  </text>
+
+
+  <!-- CPU -->
+
+  <rect x="570" y="405"
+        width="230"
+        height="130"
+        rx="14"
+        class="block"/>
+
+  <text x="685"
+        y="455"
+        text-anchor="middle"
+        class="title">
+    CPU
+  </text>
+
+  <text x="685"
+        y="492"
+        text-anchor="middle"
+        class="small">
+    принимает решение
+  </text>
+
+
+  <!-- MCU -->
+
+  <rect x="845" y="405"
+        width="210"
+        height="130"
+        rx="14"
+        class="block"/>
+
+  <text x="950"
+        y="455"
+        text-anchor="middle"
+        class="title">
+    MCU
+  </text>
+
+  <text x="950"
+        y="492"
+        text-anchor="middle"
+        class="small">
+    управление
+  </text>
+
+
+  <!-- Motors -->
+
+  <rect x="1100" y="405"
+        width="260"
+        height="130"
+        rx="14"
+        class="block"/>
+
+  <text x="1230"
+        y="455"
+        text-anchor="middle"
+        class="title">
+    Моторы
+  </text>
+
+  <text x="1230"
+        y="492"
+        text-anchor="middle"
+        class="small">
+    движение робота
+  </text>
+
+
+  <!-- ===================================================== -->
+  <!-- FLOW -->
+  <!-- arrows end just before blocks -->
+  <!-- ===================================================== -->
+
+  <path d="M260 470 L285 470"
+        class="arrow"/>
+
+  <path d="M535 470 L560 470"
+        class="arrow"/>
+
+  <path d="M810 470 L835 470"
+        class="arrow"/>
+
+  <path d="M1065 470 L1090 470"
+        class="arrow"/>
+
+
+  <!-- ===================================================== -->
+  <!-- BOTTOM PRINCIPLE -->
+  <!-- ===================================================== -->
+
+  <rect x="250" y="590"
+        width="900"
+        height="120"
+        rx="14"
+        class="soft"/>
+
+  <text x="700"
+        y="632"
+        text-anchor="middle"
+        class="title">
+    CPU, GPU и NPU дополняют друг друга
+  </text>
+
+  <text x="700"
+        y="668"
+        text-anchor="middle"
+        class="small">
+    каждый выполняет тот тип работы,
+  </text>
+
+  <text x="700"
+        y="693"
+        text-anchor="middle"
+        class="small">
+    для которого подходит лучше
+  </text>
+
+
+</svg>

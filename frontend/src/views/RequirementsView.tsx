@@ -78,6 +78,7 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
                 </select>
               </td>
               <td>
+                <div className="req-links-cell">
                 {r.component_ids.map((id) => {
                   const c = project.components.find((x) => x.id === id)
                   return (
@@ -111,6 +112,7 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
                     </option>
                   ))}
                 </select>
+                </div>
               </td>
               <td>
                 <button className="btn danger" type="button" onClick={() => deleteRequirement(r.id)}>

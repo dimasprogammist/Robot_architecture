@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react'
-import { PanelRightOpen } from 'lucide-react'
+import { PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 import { ArchitectureCanvas } from './components/canvas/ArchitectureCanvas'
 import { LibraryRail } from './components/canvas/LibraryRail'
@@ -18,6 +18,7 @@ import { LearningView } from './views/LearningView'
 import { TutorialView } from './views/TutorialView'
 import { ExercisesView } from './views/ExercisesView'
 import { SettingsView } from './views/SettingsView'
+import { MechanicsView } from './views/mechanics/MechanicsView'
 import type { LibraryPreset } from './types'
 
 export function Workspace({ presets }: { presets: LibraryPreset[] }) {
@@ -53,12 +54,16 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
       ensureKindArchitecture('database', 'База данных')
     }
 
+    if (nav === 'power') {
+      ensureKindArchitecture('power', 'Схема питания')
+    }
+
     if (nav === 'architecture') {
       const current = project.architectures.find(
         (a) => a.id === architectureId,
       )
 
-      if (current?.kind === 'database' && !current.parent_component_id) {
+      if ((current?.kind === 'database' || current?.kind === 'power') && !current.parent_component_id) {
         goToArchitecture(project.root_architecture_id)
       }
     }
@@ -146,8 +151,8 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
     )
   }
 
-  const canvasNav = nav === 'architecture' || nav === 'database'
-  const libFilter = nav === 'database' ? 'table' : undefined
+  const canvasNav = nav === 'architecture' || nav === 'database' || nav === 'power'
+  const libFilter = nav === 'database' ? 'table' : nav === 'power' ? 'power' : undefined
 
   const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
     event.preventDefault()
@@ -218,6 +223,16 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
               <ArchitectureCanvas />
             </div>
 
+            <button
+              className="panel-toggle"
+              type="button"
+              title={inspectorOpen ? 'Скрыть свойства' : 'Показать свойства'}
+              aria-label={inspectorOpen ? 'Скрыть свойства' : 'Показать свойства'}
+              onClick={() => setInspectorOpen((open) => !open)}
+            >
+              {inspectorOpen ? <PanelRightClose size={17} /> : <PanelRightOpen size={17} />}
+            </button>
+
             {inspectorOpen ? (
               <div className="inspector-shell">
                 <div
@@ -228,24 +243,13 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
                   aria-orientation="vertical"
                 />
 
-                <Inspector
-                  onClose={() => setInspectorOpen(false)}
-                />
+                <Inspector />
               </div>
-            ) : (
-              <button
-                className="inspector-show"
-                type="button"
-                title="Показать свойства"
-                aria-label="Показать свойства"
-                onClick={() => setInspectorOpen(true)}
-              >
-                <PanelRightOpen size={17} />
-              </button>
-            )}
+            ) : null}
           </>
         ) : (
           <div className="workspace-page">
+            {nav === 'mechanics' ? <MechanicsView /> : null}
             {nav === 'algorithms' ? <AlgorithmsView /> : null}
             {nav === 'documents' ? <DocumentsView /> : null}
             {nav === 'learning' ? <LearningView /> : null}

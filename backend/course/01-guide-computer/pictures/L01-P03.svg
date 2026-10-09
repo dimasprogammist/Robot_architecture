@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 800 450"
+     width="800"
+     height="450">
+
+  <rect width="800" height="450" fill="#F4F2EC"/>
+
+  <!-- Память -->
+  <rect
+    x="220"
+    y="55"
+    width="360"
+    height="75"
+    rx="8"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+
+  <text
+    x="400"
+    y="86"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#1C1B17">
+    Память
+  </text>
+
+  <text
+    x="400"
+    y="111"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="16"
+    fill="#6E6B63">
+    инструкции + данные
+  </text>
+
+  <!-- Память → CPU -->
+  <line
+    x1="400"
+    y1="130"
+    x2="400"
+    y2="180"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M394 170 L400 182 L406 170"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <text
+    x="420"
+    y="157"
+    font-family="Inter, Arial, sans-serif"
+    font-size="14"
+    fill="#6E6B63">
+    чтение / запись
+  </text>
+
+  <!-- CPU -->
+  <rect
+    x="220"
+    y="180"
+    width="360"
+    height="75"
+    rx="8"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+
+  <text
+    x="400"
+    y="211"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#1C1B17">
+    Процессор (CPU)
+  </text>
+
+  <text
+    x="400"
+    y="236"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="16"
+    fill="#6E6B63">
+    выполнение инструкций
+  </text>
+
+  <!-- CPU → Ввод-вывод -->
+  <line
+    x1="400"
+    y1="255"
+    x2="400"
+    y2="305"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M394 295 L400 307 L406 295"
+    fill="none"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Ввод-вывод -->
+  <rect
+    x="220"
+    y="305"
+    width="360"
+    height="75"
+    rx="8"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+
+  <text
+    x="400"
+    y="350"
+    text-anchor="middle"
+    font-family="Inter, Arial, sans-serif"
+    font-size="21"
+    font-weight="600"
+    fill="#1C1B17">
+    Ввод-вывод
+  </text>
+
+</svg>

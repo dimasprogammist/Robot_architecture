@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from pydantic import BaseModel
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from app.db import ProjectRow, SettingsRow, UserLessonProgressRow, UserRow, UserTemplateRow, get_db, init_db, new_id, utcnow
+from app.db import ProjectMemberRow, ProjectRow, SettingsRow, UserLessonProgressRow, UserRow, UserTemplateRow, get_db, init_db, new_id, utcnow
 from app.domain.library import BUILTIN_TYPES, LIBRARY_PRESETS
 from app.domain.schema import (
     PROTOCOL_COLORS,
@@ -29,7 +31,19 @@ from app.domain.curriculum_schema import CodeCheckRequest, QuizCheckRequest
 from app.services import curriculum as curriculum_service
 from app.services.sqlgen import generate_sql
 from app.services.files import import_json, resolve_path, save_upload
-from app.services.auth import login_user, logout_user, optional_user, public_user, register_user, require_user
+from app.services.access import add_member, can_access, ensure_share_code, generate_share_code
+from app.services.auth import (
+    list_user_sessions,
+    login_user,
+    logout_user,
+    optional_user,
+    public_user,
+    register_user,
+    request_password_reset,
+    require_admin,
+    require_user,
+    reset_password,
+)
 
 router = APIRouter()
 
@@ -49,9 +63,11 @@ def _row_to_project(row: ProjectRow) -> Project:
 
 def _save(db: Session, project: Project, row: ProjectRow | None = None, user_id: str | None = None) -> Project:
     project.updated_at = datetime.now(timezone.utc).isoformat()
-    payload = project.model_dump_json()
     if row is None:
         row = db.get(ProjectRow, project.id)
+    share = project.share_code or (row.share_code if row else "") or generate_share_code(db)
+    project.share_code = share
+    payload = project.model_dump_json()
     if row is None:
         row = ProjectRow(
             id=project.id,
@@ -59,6 +75,7 @@ def _save(db: Session, project: Project, row: ProjectRow | None = None, user_id:
             description=project.description,
             data=payload,
             user_id=user_id,
+            share_code=share,
             created_at=datetime.fromisoformat(project.created_at),
             updated_at=utcnow(),
         )
@@ -70,6 +87,7 @@ def _save(db: Session, project: Project, row: ProjectRow | None = None, user_id:
         row.description = project.description
         row.data = payload
         row.updated_at = utcnow()
+        row.share_code = share
     db.commit()
     return project
 
@@ -81,7 +99,26 @@ def _owned_row(db: Session, project_id: str, user: UserRow) -> ProjectRow:
     if not row.user_id:
         row.user_id = user.id
         db.commit()
+    ensure_share_code(db, row)
     return row
+
+
+def _accessible_row(db: Session, project_id: str, user: UserRow) -> ProjectRow:
+    row = db.get(ProjectRow, project_id)
+    if not can_access(db, row, user):
+        raise HTTPException(404, "Проект не найден")
+    assert row is not None
+    if not row.user_id:
+        row.user_id = user.id
+        db.commit()
+    ensure_share_code(db, row)
+    return row
+
+
+def _with_share(project: Project, row: ProjectRow) -> Project:
+    if row.share_code:
+        project.share_code = row.share_code
+    return project
 
 
 @router.post("/auth/register")
@@ -109,17 +146,52 @@ def auth_me(user: UserRow = Depends(require_user)):
     return public_user(user)
 
 
+@router.get("/admin/user-sessions")
+def admin_user_sessions(user_id: str | None = None, admin: UserRow = Depends(require_admin), db: Session = Depends(get_db)):
+    del admin
+    rows = list_user_sessions(db, user_id)
+    return [
+        {
+            "id": row.id,
+            "user_id": row.user_id,
+            "login_at": row.login_at.isoformat() if row.login_at else None,
+            "logout_at": row.logout_at.isoformat() if row.logout_at else None,
+        }
+        for row in rows
+    ]
+
+
+@router.post("/auth/forgot-password")
+def auth_forgot_password(body: dict, request: Request, db: Session = Depends(get_db)):
+    forwarded = request.headers.get("x-forwarded-for")
+    client_ip = (forwarded.split(",")[0].strip() if forwarded else "") or (request.client.host if request.client else "")
+    return request_password_reset(db, str(body.get("email") or ""), client_ip)
+
+
+@router.post("/auth/reset-password")
+def auth_reset_password(body: dict, db: Session = Depends(get_db)):
+    reset_password(
+        db,
+        str(body.get("token") or ""),
+        str(body.get("password") or ""),
+        str(body.get("password_repeat") or body.get("password2") or ""),
+    )
+    return {"ok": True, "message": "Пароль обновлён. Можно войти с новым паролем."}
+
+
 @router.get("/projects", response_model=list[ProjectSummary])
 def list_projects(user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    member_ids = [m.project_id for m in db.query(ProjectMemberRow).filter(ProjectMemberRow.user_id == user.id)]
     rows = (
         db.query(ProjectRow)
-        .filter(ProjectRow.user_id == user.id)
+        .filter(or_(ProjectRow.user_id == user.id, ProjectRow.id.in_(member_ids or ["__none__"])))
         .order_by(ProjectRow.updated_at.desc())
         .all()
     )
     out: list[ProjectSummary] = []
     for row in rows:
-        p = _row_to_project(row)
+        ensure_share_code(db, row)
+        p = _with_share(_row_to_project(row), row)
         out.append(
             ProjectSummary(
                 id=p.id,
@@ -128,10 +200,28 @@ def list_projects(user: UserRow = Depends(require_user), db: Session = Depends(g
                 created_at=p.created_at,
                 updated_at=p.updated_at,
                 current_version_label=p.current_version_label,
+                share_code=row.share_code or "",
+                role="owner" if row.user_id == user.id else "member",
                 component_count=len(p.components),
             )
         )
     return out
+
+
+class JoinProjectBody(BaseModel):
+    code: str
+
+
+@router.post("/projects/join", response_model=Project)
+def join_project(body: JoinProjectBody, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    code = (body.code or "").strip().upper()
+    row = db.query(ProjectRow).filter(ProjectRow.share_code == code).first()
+    if row is None:
+        raise HTTPException(404, "Проект с таким ID не найден")
+    if row.user_id == user.id:
+        return _with_share(_row_to_project(row), row)
+    add_member(db, row.id, user.id)
+    return _with_share(_row_to_project(row), row)
 
 
 @router.post("/projects", response_model=Project)
@@ -142,12 +232,13 @@ def create_project(body: ProjectCreate, user: UserRow = Depends(require_user), d
 
 @router.get("/projects/{project_id}", response_model=Project)
 def get_project(project_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    return _row_to_project(_owned_row(db, project_id, user))
+    row = _accessible_row(db, project_id, user)
+    return _with_share(_row_to_project(row), row)
 
 
 @router.put("/projects/{project_id}", response_model=Project)
 def update_project(project_id: str, body: Project, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    row = _owned_row(db, project_id, user)
+    row = _accessible_row(db, project_id, user)
     body.id = project_id
     return _save(db, body, row, user_id=user.id)
 
@@ -162,7 +253,7 @@ def delete_project(project_id: str, user: UserRow = Depends(require_user), db: S
 
 @router.post("/projects/{project_id}/duplicate", response_model=Project)
 def duplicate_project(project_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    row = _owned_row(db, project_id, user)
+    row = _accessible_row(db, project_id, user)
     project = _row_to_project(row)
     project.id = new_id()
     project.name = f"{project.name} (копия)"
@@ -177,7 +268,7 @@ class VersionCreate(BaseModel):
 
 @router.post("/projects/{project_id}/versions", response_model=Project)
 def save_version(project_id: str, body: VersionCreate, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    row = _owned_row(db, project_id, user)
+    row = _accessible_row(db, project_id, user)
     project = _row_to_project(row)
     n = len(project.versions) + 2
     label = body.label or f"v{n}"
@@ -197,17 +288,17 @@ def save_version(project_id: str, body: VersionCreate, user: UserRow = Depends(r
 
 @router.get("/projects/{project_id}/export.json")
 def export_json(project_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    return to_semantic_export(_row_to_project(_owned_row(db, project_id, user)))
+    return to_semantic_export(_row_to_project(_accessible_row(db, project_id, user)))
 
 
 @router.get("/projects/{project_id}/export.md", response_class=PlainTextResponse)
 def export_md(project_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    return to_markdown(_row_to_project(_owned_row(db, project_id, user)))
+    return to_markdown(_row_to_project(_accessible_row(db, project_id, user)))
 
 
 @router.post("/projects/{project_id}/export/ai", response_class=PlainTextResponse)
 def export_ai(project_id: str, body: AiExportRequest, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    return to_ai_prompt(_row_to_project(_owned_row(db, project_id, user)), body.task, body.rules or None, body)
+    return to_ai_prompt(_row_to_project(_accessible_row(db, project_id, user)), body.task, body.rules or None, body)
 
 
 @router.post("/projects/import", response_model=Project)
@@ -227,7 +318,7 @@ def list_templates(user: UserRow = Depends(require_user), db: Session = Depends(
     custom = [
         {"id": r.id, "name": r.name, "description": r.description, "kind": "custom"}
         for r in db.query(UserTemplateRow)
-        .filter((UserTemplateRow.user_id == user.id) | (UserTemplateRow.user_id.is_(None)))
+        .filter(UserTemplateRow.user_id == user.id)
         .order_by(UserTemplateRow.created_at.desc())
         .all()
     ]
@@ -241,7 +332,7 @@ class SaveTemplateBody(BaseModel):
 
 @router.post("/projects/{project_id}/save-template")
 def save_template(project_id: str, body: SaveTemplateBody, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    row = _owned_row(db, project_id, user)
+    row = _accessible_row(db, project_id, user)
     tpl = UserTemplateRow(
         id=new_id(),
         name=body.name,
@@ -258,8 +349,8 @@ def save_template(project_id: str, body: SaveTemplateBody, user: UserRow = Depen
 @router.post("/templates/{template_id}/create", response_model=Project)
 def create_from_user_template(template_id: str, body: ProjectCreate, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
     row = db.get(UserTemplateRow, template_id)
-    if row and row.user_id and row.user_id != user.id:
-        row = None
+    if row and row.user_id != user.id:
+        raise HTTPException(404, "Шаблон не найден")
     if row:
         data = json.loads(row.snapshot)
         project = Project.model_validate(data)
@@ -396,7 +487,7 @@ def curriculum_check_code(lesson_id: str, task_id: str, body: CodeCheckRequest, 
 
 @router.get("/projects/{project_id}/export.sql", response_class=PlainTextResponse)
 def export_sql(project_id: str, dialect: str = "postgresql", user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    return generate_sql(_row_to_project(_owned_row(db, project_id, user)), dialect)
+    return generate_sql(_row_to_project(_accessible_row(db, project_id, user)), dialect)
 
 
 @router.post("/projects/{project_id}/files")
@@ -407,7 +498,7 @@ async def upload_file(
     user: UserRow = Depends(require_user),
     db: Session = Depends(get_db),
 ):
-    _owned_row(db, project_id, user)
+    _accessible_row(db, project_id, user)
     content = await file.read()
     meta = save_upload(project_id, file.filename or "file.bin", content)
     meta["component_id"] = component_id or None
@@ -416,7 +507,7 @@ async def upload_file(
 
 @router.get("/projects/{project_id}/files/{file_id}")
 def download_file(project_id: str, file_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
-    _owned_row(db, project_id, user)
+    _accessible_row(db, project_id, user)
     path = resolve_path(project_id, file_id)
     if not path:
         raise HTTPException(404, "Файл не найден")

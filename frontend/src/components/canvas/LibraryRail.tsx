@@ -3,43 +3,8 @@ import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react'
 import { SearchField } from '../SearchField'
 import { useUiStore } from '../../store/useUiStore'
 import { useProjectStore as useP } from '../../store/useProjectStore'
+import { PRESET_GROUPS } from '../../model/presetGroups'
 import type { LibraryPreset } from '../../types'
-
-interface PresetGroup {
-  id: string
-  title: string
-  match: (preset: LibraryPreset) => boolean
-}
-
-const PRESET_GROUPS: PresetGroup[] = [
-  { id: 'custom', title: 'Свои', match: (p) => p.built_in === false },
-  { id: 'soft', title: 'Софт', match: (p) => p.category === 'SOFTWARE' && p.built_in !== false },
-  {
-    id: 'ctrl',
-    title: 'Контроллеры',
-    match: (p) =>
-      p.category === 'HARDWARE' &&
-      ['MCU', 'SBC', 'ПЛК', 'CPU', 'IPC', 'GPU', 'Контроллер двигателя', 'Контроллер'].includes(p.type),
-  },
-  {
-    id: 'sense',
-    title: 'Датчики',
-    match: (p) =>
-      p.category === 'HARDWARE' &&
-      /камера|lidar|imu|энкодер|датчик|дальномер|концевой/i.test(`${p.name} ${p.type}`),
-  },
-  {
-    id: 'act',
-    title: 'Приводы',
-    match: (p) =>
-      p.category === 'HARDWARE' &&
-      /двигатель|серво|привод|манипулятор|робот/i.test(`${p.name} ${p.type}`) &&
-      p.type !== 'Контроллер двигателя',
-  },
-  { id: 'mech', title: 'Механика', match: (p) => p.category === 'MECHANICS' },
-  { id: 'data', title: 'Данные', match: (p) => p.category === 'DATA' },
-  { id: 'net', title: 'Сеть', match: (p) => p.category === 'NETWORK' },
-]
 
 export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; filter?: string }) {
   const collapsed = useUiStore((s) => s.libraryCollapsed)
@@ -55,6 +20,8 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
     data: true,
     net: true,
     proto: true,
+    motors: true,
+    elec: true,
   })
   const addFromPreset = useP((s) => s.addFromPreset)
   const project = useP((s) => s.project)
@@ -69,10 +36,17 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
   }, [project, architectureId])
   const filtered = useMemo(() => {
     const byCat = !filter
-      ? presets.filter((p) => p.category !== 'PROTOCOL')
+      ? presets.filter((p) => p.category !== 'PROTOCOL' && p.category !== 'ELECTRICAL')
       : filter === 'table'
         ? presets.filter((p) => p.entity_kind === 'table' || p.type === 'Таблица')
-        : presets.filter((p) => p.category === filter && p.category !== 'PROTOCOL')
+        : filter === 'power'
+          ? presets.filter(
+              (p) =>
+                p.category === 'ELECTRICAL' ||
+                (p.category === 'HARDWARE' &&
+                  /датчик|двигател|дпт|ад|сд|шагов|серво|плк|mcu|аккумулятор|реле|hmi|gnss/i.test(`${p.name} ${p.type}`)),
+            )
+          : presets.filter((p) => p.category === filter && p.category !== 'PROTOCOL')
     return byCat.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()) || p.type.toLowerCase().includes(q.toLowerCase()))
   }, [presets, q, filter])
   const grouped = PRESET_GROUPS.map((group) => ({
@@ -84,6 +58,9 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
   return (
     <>
       <div className="lib-tools">
+        <button className="lib-add" type="button" onClick={toggleLibrary} aria-label="Добавить компонент" title="Компоненты">
+          +
+        </button>
         {parentArchitectureId ? (
           <button
             className="lib-add"
@@ -95,9 +72,6 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
             <ArrowLeft size={16} />
           </button>
         ) : null}
-        <button className="lib-add" type="button" onClick={toggleLibrary} aria-label="Добавить компонент" title="Компоненты">
-          +
-        </button>
       </div>
       {collapsed ? null : (
         <aside className="library-rail">
@@ -124,9 +98,21 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
               </section>
             )
           })}
-          {rest.map((preset) => (
-            <PresetRow key={preset.name + preset.type} preset={preset} onAdd={() => addFromPreset(preset, { x: 120 + Math.random() * 80, y: 120 + Math.random() * 80 })} />
-          ))}
+          {rest.length ? (
+            <section className="lib-group">
+              <button className="lib-group-btn" type="button">
+                <span>Прочее</span>
+                <span className="hint">{rest.length}</span>
+              </button>
+              {rest.map((preset) => (
+                <PresetRow
+                  key={preset.name + preset.type}
+                  preset={preset}
+                  onAdd={() => addFromPreset(preset, { x: 120 + Math.random() * 80, y: 120 + Math.random() * 80 })}
+                />
+              ))}
+            </section>
+          ) : null}
           <p className="hint">Протокол задаётся на стрелке между компонентами.</p>
         </aside>
       )}

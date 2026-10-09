@@ -168,6 +168,10 @@ export function SettingsView() {
                   <label>Описание</label>
                   <textarea value={project.description} onChange={(e) => mutate((p) => { p.description = e.target.value })} />
                 </div>
+                <div className="field">
+                  <label>ID проекта</label>
+                  <input readOnly value={project.share_code || '—'} />
+                </div>
               </>
             ) : null}
           </div>

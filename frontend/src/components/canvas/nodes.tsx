@@ -7,6 +7,7 @@ import {
   EdgeLabelRenderer,
   getSmoothStepPath,
   Handle,
+  NodeResizer,
   Position,
   type Edge,
   type EdgeProps,
@@ -17,8 +18,10 @@ import { FileText, KeyRound, Layers2 } from 'lucide-react'
 import { TypeIcon } from '../TypeIcon'
 import { useProjectStore } from '../../store/useProjectStore'
 import { CATEGORY_LABELS } from '../../i18n'
-import { catalogLook } from '../../model/library'
-import type { Component } from '../../types'
+import { catalogLook, presetColor } from '../../model/library'
+import { clampStripeWidth, typeDefaultSize } from '../../model/cardSize'
+import { handleOffsetStyle, rfTerminalHandleIds, terminalClass, terminalTooltip, terminalsFor } from '../../model/terminals'
+import type { Component, LibraryPreset } from '../../types'
 
 const ARCH_SIDES = [Position.Top, Position.Right, Position.Bottom, Position.Left] as const
 
@@ -36,8 +39,22 @@ function NodePorts({ sides }: { sides: readonly Position[] }) {
         const id = SIDE_ID[position]
         return (
           <span key={id}>
-            <Handle type="target" id={`${id}-tgt`} position={position} />
-            <Handle type="source" id={`${id}-src`} position={position} />
+            <Handle
+              type="target"
+              id={`${id}-tgt`}
+              position={position}
+              className="nodrag nopan"
+              isConnectableStart
+              isConnectableEnd
+            />
+            <Handle
+              type="source"
+              id={`${id}-src`}
+              position={position}
+              className="nodrag nopan"
+              isConnectableStart
+              isConnectableEnd
+            />
           </span>
         )
       })}
@@ -45,11 +62,25 @@ function NodePorts({ sides }: { sides: readonly Position[] }) {
   )
 }
 
+function signalBadge(c: Component) {
+  const extra = c.extra_fields || {}
+  const signal = extra.signal_type?.trim()
+  if (signal === 'аналоговый' && extra.analog_range) return extra.analog_range
+  if (signal === 'дискретный') return extra.discrete_kind || 'DI'
+  if (signal === 'ШИМ' || signal === 'PWM') return 'PWM'
+  if (signal === 'DI' || signal === 'DO') return signal
+  return ''
+}
+
+function powerBadge(c: Component) {
+  return (c.extra_fields || {}).power?.trim() || ''
+}
+
 function nodeExtra(c: Component) {
   const extra = c.extra_fields || {}
   const kind = extra.sensor_kind?.trim()
   const model = extra.model?.trim()
-  const line = kind || model || c.technology
+  const line = [kind || model || c.technology, signalBadge(c), powerBadge(c)].filter(Boolean).join(' · ')
   if (!line || line === c.type) return ''
   return line
 }
@@ -71,6 +102,15 @@ function FileBadge({ count }: { count: number }) {
 export type ArchNodeData = { component: Component }
 export type ArchRFNode = Node<ArchNodeData, 'arch'>
 
+function stripeStyle(c: Component, presets: LibraryPreset[]) {
+  const preset = presets.find((item) => item.id === c.library_preset_id)
+  const color = c.color || (preset ? presetColor(preset) : '') || c.color
+  return {
+    borderLeftColor: color,
+    borderLeftWidth: clampStripeWidth(preset?.stripe_width),
+  }
+}
+
 export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
   const presets = useProjectStore((s) => s.project?.library_presets || [])
   const c = catalogLook(data.component, presets)
@@ -83,7 +123,7 @@ export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
   return (
     <div
       className={`arch-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}
-      style={{ borderLeftColor: c.color }}
+      style={stripeStyle(c, presets)}
     >
       <NodePorts sides={ARCH_SIDES} />
       <div className="kicker">
@@ -105,6 +145,76 @@ export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
       <div className="meta">
         {extra || CATEGORY_LABELS[c.category] || c.category.toLowerCase()}
       </div>
+    </div>
+  )
+}
+
+export type PowerRFNode = Node<ArchNodeData, 'power'>
+
+export function PowerNode({ data, selected }: NodeProps<PowerRFNode>) {
+  const presets = useProjectStore((s) => s.project?.library_presets || [])
+  const c = catalogLook(data.component, presets)
+  const extra = nodeExtra(c)
+  const terminals = terminalsFor(c)
+  const min = typeDefaultSize(c)
+  return (
+    <div
+      className={`arch-node power-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}
+      style={{
+        ...stripeStyle(c, presets),
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      <NodeResizer
+        isVisible={selected}
+        minWidth={min.width}
+        minHeight={min.height}
+        maxWidth={720}
+        maxHeight={520}
+        lineStyle={{ borderColor: 'var(--accent)' }}
+        handleStyle={{ width: 10, height: 10, background: 'var(--accent)', zIndex: 40 }}
+      />
+      {terminals.map((term) => {
+        const offset = handleOffsetStyle(term)
+        const tip = terminalTooltip(term)
+        const handles = rfTerminalHandleIds(term.id)
+        return (
+          <span key={term.id}>
+            <Handle
+              type="target"
+              id={handles.target}
+              position={term.position}
+              className={`nodrag nopan ${terminalClass(term.kind)}`}
+              style={offset}
+              title={tip}
+              isConnectableStart
+              isConnectableEnd
+            />
+            <Handle
+              type="source"
+              id={handles.source}
+              position={term.position}
+              className={`nodrag nopan ${terminalClass(term.kind)}`}
+              style={offset}
+              title={tip}
+              isConnectableStart
+              isConnectableEnd
+            />
+            <span className={`term-label term-${term.position}`} style={offset} title={tip}>
+              {term.label}
+            </span>
+          </span>
+        )
+      })}
+      <div className="kicker">
+        <span className={`cat-${c.category} node-class`}>
+          <TypeIcon name={c.icon} size={13} />
+          {c.type}
+        </span>
+      </div>
+      <h4>{c.name}</h4>
+      <div className="meta">{extra || CATEGORY_LABELS[c.category] || ''}</div>
     </div>
   )
 }

@@ -638,16 +638,16 @@ export function TutorialView() {
           </div>
         ) : null}
 
-        {lesson && !notesOpen ? (
-          <Tip label="Открыть краткий конспект урока">
+        {lesson?.notes_url ? (
+          <Tip label={notesOpen ? 'Закрыть конспект' : 'Открыть краткий конспект урока'}>
             <button
-              className="inspector-show"
+              className="panel-toggle notes-toggle"
               type="button"
-              title="Открыть конспект"
-              aria-label="Открыть конспект"
-              onClick={() => setNotesOpen(true)}
+              title={notesOpen ? 'Закрыть конспект' : 'Открыть конспект'}
+              aria-label={notesOpen ? 'Закрыть конспект' : 'Открыть конспект'}
+              onClick={() => setNotesOpen((open) => !open)}
             >
-              <PanelRightOpen size={17} />
+              {notesOpen ? <PanelRightClose size={17} /> : <PanelRightOpen size={17} />}
             </button>
           </Tip>
         ) : null}
@@ -656,15 +656,6 @@ export function TutorialView() {
           <div className="notes-drawer" role="dialog" aria-label="Конспект урока">
             <div className="inspector-heading">
               <h2>Конспект</h2>
-              <button
-                className="icon-btn"
-                type="button"
-                title="Скрыть конспект"
-                aria-label="Скрыть конспект"
-                onClick={() => setNotesOpen(false)}
-              >
-                <PanelRightClose size={16} />
-              </button>
             </div>
             {lesson.notes_url ? (
               <img className="notes-img" src={lesson.notes_url} alt="Конспект урока" />

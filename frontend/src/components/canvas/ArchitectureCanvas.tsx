@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -15,14 +15,19 @@ import {
   type OnConnect,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { ArchNode, TableNode, LabeledEdge } from './nodes'
+import { ArchNode, TableNode, PowerNode, LabeledEdge } from './nodes'
+import { findTerminal, terminalCompatibility } from '../../model/terminals'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useUiStore } from '../../store/useUiStore'
 import { emptyTable, protocolColor } from '../../model/defaults'
+import { clampStrokeWidth, protocolLabel } from '../../model/protocols'
+import { clampCardSize, resolvedCardSize } from '../../model/cardSize'
+import { restoreConnectionHandles } from '../../model/connections'
+import { catalogLook, presetColor } from '../../model/library'
 import { uid } from '../../lib/ids'
-import type { LibraryPreset } from '../../types'
+import type { Component, LibraryPreset } from '../../types'
 
-const nodeTypes = { arch: ArchNode, table: TableNode }
+const nodeTypes = { arch: ArchNode, table: TableNode, power: PowerNode }
 const edgeTypes = { labeled: LabeledEdge }
 
 export function ArchitectureCanvas() {
@@ -60,8 +65,12 @@ function ArchitectureCanvasInner() {
   const setInspectorTab = useUiStore((s) => s.setInspectorTab)
   const updateComponent = useProjectStore((s) => s.updateComponent)
   const deleteSelected = useProjectStore((s) => s.deleteSelected)
-  const [menu, setMenu] = useState<{ x: number; y: number; id: string } | null>(null)
+  const duplicateComponent = useProjectStore((s) => s.duplicateComponent)
+  const [menu, setMenu] = useState<{ x: number; y: number; id: string; kind: 'table' | 'arch' } | null>(null)
   const [linkFrom, setLinkFrom] = useState<string | null>(null)
+  const connectingRef = useRef(false)
+
+  const canvasKind = project?.architectures.find((a) => a.id === architectureId)?.kind || 'system'
 
   const nodes = useMemo(() => {
     if (!project || !architectureId) return []
@@ -69,12 +78,25 @@ function ArchitectureCanvasInner() {
       .filter((c) => c.architecture_id === architectureId)
       .map((c) => ({
         id: c.id,
-        type: c.entity_kind === 'table' ? ('table' as const) : ('arch' as const),
+        type:
+          canvasKind === 'power'
+            ? ('power' as const)
+            : c.entity_kind === 'table'
+              ? ('table' as const)
+              : ('arch' as const),
         position: c.position,
         selected: selectedIds.includes(c.id),
         data: { component: c },
+        ...(canvasKind === 'power'
+          ? (() => {
+              const size = resolvedCardSize(c)
+              return { style: { width: size.width, height: size.height }, width: size.width, height: size.height }
+            })()
+          : c.width && c.height
+            ? { style: { width: c.width, height: c.height }, width: c.width, height: c.height }
+            : {}),
       }))
-  }, [project, architectureId, selectedIds])
+  }, [project, architectureId, selectedIds, canvasKind])
 
   const edges = useMemo(() => {
     if (!project || !architectureId) return []
@@ -84,8 +106,7 @@ function ArchitectureCanvasInner() {
         id: c.id,
         source: c.source,
         target: c.target,
-        sourceHandle: c.source_handle || undefined,
-        targetHandle: c.target_handle || undefined,
+        ...restoreConnectionHandles(c),
         type: 'labeled' as const,
         selected: selectedConnectionId === c.id,
         markerEnd: { type: 'arrowclosed' as const },
@@ -96,11 +117,12 @@ function ArchitectureCanvasInner() {
             c.color || project.protocols.find((p) => p.name === c.protocol_name)?.color,
             settings.theme,
           ),
+          strokeWidth: clampStrokeWidth(project.protocols.find((p) => p.name === c.protocol_name)?.stroke_width),
           strokeDasharray: c.kind === 'data_flow' ? '6 4' : undefined,
         },
         data: {
           label: settings.show_edge_labels
-            ? c.protocol_name ||
+            ? protocolLabel(c.protocol_name) ||
               ({ one_to_one: 'один к одному', one_to_many: 'один ко многим', many_to_many: 'многие ко многим' } as Record<string, string>)[c.cardinality] ||
               ''
             : '',
@@ -113,27 +135,36 @@ function ArchitectureCanvasInner() {
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       const pos = changes.filter((c) => c.type === 'position' && 'position' in c && c.position)
-      const selectChanges = changes.filter((c) => c.type === 'select')
-      if (selectChanges.length) {
-        const selected = new Set(selectedIds)
-        for (const c of selectChanges) {
-          if (c.type === 'select') {
-            if (c.selected) selected.add(c.id)
-            else selected.delete(c.id)
-          }
-        }
-        select([...selected])
+      const dims = changes.filter(
+        (c) =>
+          c.type === 'dimensions' &&
+          'dimensions' in c &&
+          c.dimensions &&
+          'resizing' in c &&
+          c.resizing !== undefined,
+      )
+      if (connectingRef.current) {
+        if (!pos.length) return
       }
-      if (!pos.length) return
+      if (!pos.length && !dims.length) return
       mutate((p) => {
         for (const c of pos) {
           if (c.type !== 'position' || !c.position) continue
           const node = p.components.find((x) => x.id === c.id)
           if (node) node.position = { x: c.position.x, y: c.position.y }
         }
-      }, { history: pos.some((c) => c.type === 'position' && c.dragging === false) })
+        if (connectingRef.current) return
+        for (const c of dims) {
+          if (c.type !== 'dimensions' || !c.dimensions) continue
+          const node = p.components.find((x) => x.id === c.id)
+          if (!node) continue
+          const size = clampCardSize(node, c.dimensions.width, c.dimensions.height)
+          node.width = size.width
+          node.height = size.height
+        }
+      }, { history: pos.some((c) => c.type === 'position' && c.dragging === false) || dims.some((c) => c.type === 'dimensions' && c.resizing === false) })
     },
-    [mutate, select, selectedIds],
+    [mutate],
   )
 
   const onEdgesChange = useCallback(
@@ -154,13 +185,29 @@ function ArchitectureCanvasInner() {
   const onConnect: OnConnect = useCallback(
     (params: Connection) => {
       if (!params.source || !params.target) return
+      if (canvasKind === 'power' && project) {
+        const src = project.components.find((c) => c.id === params.source)
+        const tgt = project.components.find((c) => c.id === params.target)
+        const srcTerm = src ? findTerminal(src, params.sourceHandle) : undefined
+        const tgtTerm = tgt ? findTerminal(tgt, params.targetHandle) : undefined
+        if (srcTerm && tgtTerm) {
+          const check = terminalCompatibility(srcTerm, tgtTerm)
+          if (!check.allowed) {
+            window.alert(check.warning || 'Эти выводы несовместимы.')
+            return
+          }
+          if (check.warning && !window.confirm(`${check.warning}\n\nСоздать соединение всё равно?`)) {
+            return
+          }
+        }
+      }
       connect(params.source, params.target, 'connection', {
         sourceHandle: params.sourceHandle,
         targetHandle: params.targetHandle,
       })
       addEdge(params, [])
     },
-    [connect],
+    [connect, canvasKind, project],
   )
 
   const onDrop = useCallback(
@@ -186,20 +233,38 @@ function ArchitectureCanvasInner() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onConnectStart={() => {
+          connectingRef.current = true
+        }}
+        onConnectEnd={() => {
+          connectingRef.current = false
+        }}
+        connectionRadius={28}
         onPaneClick={() => {
           select([])
           setMenu(null)
         }}
-        onNodeClick={(_, node) => {
-          if (!linkFrom || linkFrom === node.id) return
-          connect(linkFrom, node.id)
-          setLinkFrom(null)
+        onNodeClick={(event, node) => {
+          const target = event.target as HTMLElement | null
+          if (target?.closest('.react-flow__handle')) return
+          if (connectingRef.current) return
+          if (linkFrom && linkFrom !== node.id) {
+            connect(linkFrom, node.id)
+            setLinkFrom(null)
+            return
+          }
+          select([node.id])
         }}
         onNodeContextMenu={(event, node) => {
           const comp = project?.components.find((c) => c.id === node.id)
-          if (comp?.entity_kind !== 'table') return
+          if (!comp) return
           event.preventDefault()
-          setMenu({ x: event.clientX, y: event.clientY, id: node.id })
+          setMenu({
+            x: event.clientX,
+            y: event.clientY,
+            id: node.id,
+            kind: comp.entity_kind === 'table' ? 'table' : 'arch',
+          })
         }}
         onNodeDoubleClick={(_, node) => {
           const comp = project?.components.find((c) => c.id === node.id)
@@ -215,6 +280,9 @@ function ArchitectureCanvasInner() {
         }}
         onEdgeClick={(_, edge) => select([], edge.id)}
         connectionMode={ConnectionMode.Loose}
+        connectOnClick
+        nodesConnectable
+        selectNodesOnDrag={false}
         snapToGrid={settings.snap_to_grid}
         snapGrid={[settings.grid_size, settings.grid_size]}
         fitView
@@ -224,6 +292,8 @@ function ArchitectureCanvasInner() {
         panOnScroll
         selectionOnDrag
         panOnDrag={[1, 2]}
+        noPanClassName="nopan"
+        noDragClassName="nodrag"
       >
         <FitViewOnData count={nodes.length} />
         {settings.show_grid ? (
@@ -236,10 +306,26 @@ function ArchitectureCanvasInner() {
           />
         ) : null}
         <Controls showInteractive={false} />
-        {settings.show_minimap ? <MiniMap pannable zoomable /> : null}
+        {settings.show_minimap ? (
+          <MiniMap
+            pannable
+            zoomable
+            nodeStrokeWidth={2}
+            nodeColor={(node) => {
+              const component = (node.data as { component?: Component } | undefined)?.component
+              if (component) {
+                const looked = catalogLook(component, project?.library_presets || [])
+                return looked.color || presetColor({ category: looked.category, color: looked.color })
+              }
+              if (node.type === 'table') return '#2a7aa8'
+              if (node.type === 'power') return '#c47a2e'
+              return '#2f8a6a'
+            }}
+          />
+        ) : null}
       </ReactFlow>
       {linkFrom ? <p className="hint" style={{ position: 'absolute', top: 56, left: 56 }}>Выберите вторую таблицу, чтобы создать связь.</p> : null}
-      {menu ? (
+      {menu?.kind === 'table' ? (
         <TableMenu
           x={menu.x}
           y={menu.y}
@@ -289,6 +375,71 @@ function ArchitectureCanvasInner() {
           }}
         />
       ) : null}
+      {menu?.kind === 'arch' ? (
+        <ArchMenu
+          x={menu.x}
+          y={menu.y}
+          onProperties={() => {
+            select([menu.id])
+            setInspectorTab('overview')
+            setMenu(null)
+          }}
+          onRename={() => {
+            const current = project?.components.find((c) => c.id === menu.id)
+            const name = window.prompt('Новое имя элемента', current?.name || '')
+            if (name && name.trim()) updateComponent(menu.id, { name: name.trim() })
+            setMenu(null)
+          }}
+          onDuplicate={() => {
+            duplicateComponent(menu.id)
+            setMenu(null)
+          }}
+          onNested={() => {
+            enterComponent(menu.id)
+            setMenu(null)
+          }}
+          onDelete={() => {
+            if (
+              useUiStore.getState().settings.confirm_delete &&
+              !window.confirm('Удалить выбранный элемент?')
+            ) {
+              setMenu(null)
+              return
+            }
+            select([menu.id])
+            deleteSelected()
+            setMenu(null)
+          }}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function ArchMenu({
+  x,
+  y,
+  onProperties,
+  onRename,
+  onDuplicate,
+  onNested,
+  onDelete,
+}: {
+  x: number
+  y: number
+  onProperties: () => void
+  onRename: () => void
+  onDuplicate: () => void
+  onNested: () => void
+  onDelete: () => void
+}) {
+  return (
+    <div className="ctx-menu" style={{ left: x, top: y }}>
+      <button type="button" onClick={onProperties}>Открыть свойства</button>
+      <button type="button" onClick={onRename}>Изменить</button>
+      <button type="button" onClick={onDuplicate}>Дублировать</button>
+      <button type="button" onClick={onNested}>Открыть внутреннюю архитектуру</button>
+      <button type="button" className="danger" onClick={onDelete}>Удалить</button>
     </div>
   )
 }

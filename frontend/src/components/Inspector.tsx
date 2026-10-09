@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ColorSwatches } from './ColorSwatches'
-import { PanelRightClose } from 'lucide-react'
+import { ColorSwatches, PROTOCOL_PALETTE } from './ColorSwatches'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
 import { FilesPanel, MechPanel, TablePanel } from './InspectorExtras'
@@ -15,9 +14,60 @@ import {
   inspectorChrome,
 } from '../model/componentCatalog'
 import { catalogLook } from '../model/library'
-import { PROGRAM_LANGUAGES, RELIABILITY_OPTIONS, protocolSelectOptions } from '../model/protocols'
+import { applyCardSize, parseCardDimension, resolvedCardSize } from '../model/cardSize'
+import { defaultMotorPhases } from '../model/terminals'
+import { PROGRAM_LANGUAGES, RELIABILITY_OPTIONS, protocolLabel, protocolSelectOptions } from '../model/protocols'
 
 const STATUSES = ['planned', 'in-progress', 'ready', 'deprecated']
+
+function CardSizeField({
+  label,
+  dim,
+  component,
+}: {
+  label: string
+  dim: 'width' | 'height'
+  component: Component
+}) {
+  const updateComponent = useProjectStore((s) => s.updateComponent)
+  const committed = resolvedCardSize(component)[dim]
+  const [draft, setDraft] = useState(String(committed))
+
+  useEffect(() => {
+    setDraft(String(committed))
+  }, [committed, component.id])
+
+  const commit = (raw = draft) => {
+    const current = resolvedCardSize(component)
+    const parsed = parseCardDimension(raw, current[dim])
+    const size = applyCardSize(
+      component,
+      dim === 'width' ? parsed : current.width,
+      dim === 'height' ? parsed : current.height,
+    )
+    setDraft(String(size[dim]))
+    if (size.width !== current.width || size.height !== current.height) {
+      updateComponent(component.id, size)
+    }
+  }
+
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={label}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={(e) => commit(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+        }}
+      />
+    </div>
+  )
+}
 
 function EditableName({
   value,
@@ -73,7 +123,7 @@ function EditableName({
   )
 }
 
-export function Inspector({ onClose }: { onClose?: () => void }) {
+export function Inspector() {
   const project = useProjectStore((s) => s.project)
   const selectedIds = useProjectStore((s) => s.selectedIds)
   const selectedConnectionId = useProjectStore((s) => s.selectedConnectionId)
@@ -109,17 +159,6 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
       <aside className="inspector">
         <div className="inspector-heading">
           <h2>Свойства</h2>
-          {onClose ? (
-            <button
-              className="icon-btn"
-              type="button"
-              title="Скрыть свойства"
-              aria-label="Скрыть свойства"
-              onClick={onClose}
-            >
-              <PanelRightClose size={16} />
-            </button>
-          ) : null}
         </div>
 
         <p className="sub">Выберите блок или связь.</p>
@@ -135,17 +174,6 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
             value={component.name}
             onSave={(name) => updateComponent(component.id, { name })}
           />
-          {onClose ? (
-            <button
-              className="icon-btn"
-              type="button"
-              title="Скрыть свойства"
-              aria-label="Скрыть свойства"
-              onClick={onClose}
-            >
-              <PanelRightClose size={16} />
-            </button>
-          ) : null}
         </div>
         <p className="sub">Таблица</p>
 
@@ -188,18 +216,6 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
             {(component.extra_fields?.sensor_kind || appearance.type)} · {CATEGORY_LABELS[appearance.category] || appearance.category}
           </span>
         </div>
-
-        {onClose ? (
-          <button
-            className="icon-btn"
-            type="button"
-            title="Скрыть свойства"
-            aria-label="Скрыть свойства"
-            onClick={onClose}
-          >
-            <PanelRightClose size={16} />
-          </button>
-        ) : null}
       </div>
 
       <div className="tabs">
@@ -221,9 +237,32 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
             const groups = groupedComponentFields(appearance)
             const mainFields = groups.find((group) => group.id === 'main')?.fields || []
             const otherGroups = groups.filter((group) => group.id !== 'main')
+            const dropHandles = (doomed: string[]) => {
+              const uses = (handle?: string) => doomed.some((id) => handle === id || (handle || '').startsWith(`${id}-`))
+              const used = project.connections.filter(
+                (link) =>
+                  (link.source === component.id && uses(link.source_handle)) ||
+                  (link.target === component.id && uses(link.target_handle)),
+              )
+              if (
+                used.length &&
+                !window.confirm(`У выводов, которые будут удалены, есть ${used.length} соединений. Они будут сняты. Продолжить?`)
+              ) {
+                return false
+              }
+              if (used.length) {
+                useProjectStore.getState().mutate((p) => {
+                  p.connections = p.connections.filter((link) => !used.some((u) => u.id === link.id))
+                })
+              }
+              return true
+            }
             const renderExtra = (field: (typeof mainFields)[number]) => {
               const extra = component.extra_fields || {}
-              const raw = extra[field.key] || ''
+              if (field.key === 'steps_per_rev' && !/шагов/i.test(`${component.type} ${component.name}`)) return null
+              const raw =
+                extra[field.key] ||
+                (field.key === 'phases' ? String(defaultMotorPhases(component)) : '')
               const guessed =
                 field.auto && field.key === 'manufacturer'
                   ? inferManufacturer(component.name, component.type, extra.model || '')
@@ -246,6 +285,41 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
                           model: v,
                           ...(maker ? { manufacturer: maker } : {}),
                         },
+                      })
+                      return
+                    }
+                    if (field.key === 'terminal_inputs' || field.key === 'terminal_outputs') {
+                      const nextCount = Math.min(16, Math.max(1, Number.parseInt(v, 10) || 1))
+                      const current = Number.parseInt(extra[field.key] || '2', 10) || 2
+                      const prefix = field.key === 'terminal_inputs' ? 'in-' : 'out-'
+                      if (nextCount < current) {
+                        const doomed = Array.from({ length: current - nextCount }, (_, i) => `${prefix}${nextCount + i + 1}`)
+                        if (!dropHandles(doomed)) return
+                      }
+                      updateComponent(component.id, {
+                        extra_fields: { ...extra, [field.key]: String(nextCount) },
+                      })
+                      return
+                    }
+                    if (field.key === 'phases') {
+                      const nextCount = Math.min(3, Math.max(1, Number.parseInt(v, 10) || 1))
+                      const current = Number.parseInt(extra.phases || String(defaultMotorPhases(component)), 10) || 1
+                      if (nextCount < current) {
+                        const doomed = Array.from({ length: current - nextCount }, (_, i) => `phase-${nextCount + i + 1}`)
+                        if (current > 1 && nextCount <= 1) doomed.push('neutral')
+                        if (!dropHandles(doomed)) return
+                      }
+                      updateComponent(component.id, {
+                        extra_fields: { ...extra, phases: String(nextCount) },
+                      })
+                      return
+                    }
+                    if (['rated_current', 'rated_torque', 'rated_voltage', 'rpm', 'steps_per_rev'].includes(field.key)) {
+                      const n = Number.parseFloat(v.replace(',', '.'))
+                      if (v !== '' && (!Number.isFinite(n) || n < 0)) return
+                      if (field.key === 'steps_per_rev' && v !== '' && (!Number.isInteger(n) || n < 1)) return
+                      updateComponent(component.id, {
+                        extra_fields: { ...extra, [field.key]: v },
                       })
                       return
                     }
@@ -272,6 +346,20 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
                     </select>
                   </div>
                   {mainFields.map(renderExtra)}
+                  <div className="field">
+                    <label>Цвет</label>
+                    <ColorSwatches
+                      layout="row"
+                      value={component.color || appearance.color || ''}
+                      onChange={(color) => updateComponent(component.id, { color })}
+                    />
+                  </div>
+                  {project.architectures.find((a) => a.id === component.architecture_id)?.kind === 'power' ? (
+                    <>
+                      <CardSizeField label="Ширина элемента" dim="width" component={component} />
+                      <CardSizeField label="Высота элемента" dim="height" component={component} />
+                    </>
+                  ) : null}
                 </div>
                 {otherGroups.map((group) => (
                   <div className="prop-group" key={group.id}>
@@ -310,11 +398,12 @@ export function Inspector({ onClose }: { onClose?: () => void }) {
               onChange={(v) => updateComponent(component.id, { description: v })}
               multiline
             />
+            {project.architectures.find((a) => a.id === component.architecture_id)?.kind !== 'power' ? (
+              <button className="btn nested-arch-btn" type="button" onClick={() => enterComponent(component.id)}>
+                Внутренняя архитектура
+              </button>
+            ) : null}
           </div>
-
-          <button className="btn" type="button" onClick={() => enterComponent(component.id)}>
-            Внутренняя архитектура
-          </button>
         </>
       )}
 
@@ -424,11 +513,37 @@ function ConnectionInspector({
           <option value="">Без протокола</option>
           {names.map((name) => (
             <option key={name} value={name}>
-              {name}
+              {protocolLabel(name)}
             </option>
           ))}
         </select>
       </div>
+
+      {connection.protocol_name === 'Электрическое подключение' ? (
+        <>
+          <Field
+            label="Напряжение / диапазон"
+            value={(connection.extra_fields || {}).voltage || ''}
+            onChange={(v) =>
+              onChange({ extra_fields: { ...(connection.extra_fields || {}), voltage: v } })
+            }
+          />
+          <Field
+            label="Ток"
+            value={(connection.extra_fields || {}).current || ''}
+            onChange={(v) =>
+              onChange({ extra_fields: { ...(connection.extra_fields || {}), current: v } })
+            }
+          />
+          <Field
+            label="Полярность / провод"
+            value={(connection.extra_fields || {}).polarity || ''}
+            onChange={(v) =>
+              onChange({ extra_fields: { ...(connection.extra_fields || {}), polarity: v } })
+            }
+          />
+        </>
+      ) : null}
 
       <div className="field">
         <label>Направление</label>
@@ -449,6 +564,8 @@ function ConnectionInspector({
       <div className="field">
         <label>Цвет линии</label>
         <ColorSwatches
+          layout="grid"
+          colors={PROTOCOL_PALETTE}
           value={connection.color}
           onChange={(color) => onChange({ color })}
         />
@@ -641,7 +758,7 @@ function AlgorithmEditor({
   const algorithm = useProjectStore(
     (s) => s.project?.algorithms.find((a) => a.id === algorithmId),
   )
-  const [stepsOpen, setStepsOpen] = useState(true)
+  const [stepsOpen, setStepsOpen] = useState(false)
 
   if (!algorithm) {
     return (
@@ -732,6 +849,7 @@ function AlgorithmEditor({
 
         {algorithm.steps.map((step, i) => (
           <div className="step-row" key={step.id}>
+            <span className="step-num">{i + 1}</span>
             <select
               value={step.kind}
               onChange={(e) => {

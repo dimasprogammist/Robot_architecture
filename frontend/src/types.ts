@@ -15,6 +15,7 @@ export type NavId =
   | 'exercises'
   | 'mechanics'
   | 'database'
+  | 'power'
   | 'bom'
   | 'export'
   | 'settings'
@@ -62,6 +63,7 @@ export interface Protocol {
   notes: string
   built_in: boolean
   color: string
+  stroke_width?: number
 }
 
 export interface PrintSettings {
@@ -237,6 +239,7 @@ export interface Connection {
   target_column: string
   source_handle?: string
   target_handle?: string
+  extra_fields?: Record<string, string>
 }
 
 export interface Component {
@@ -271,6 +274,8 @@ export interface Component {
   extra_fields: Record<string, string>
   color: string
   library_preset_id?: string | null
+  width?: number
+  height?: number
 }
 
 export interface Architecture {
@@ -327,6 +332,7 @@ export interface Project {
   created_at: string
   updated_at: string
   current_version_label: string
+  share_code?: string
   root_architecture_id: string
   architectures: Architecture[]
   components: Component[]
@@ -341,6 +347,68 @@ export interface Project {
   versions: ArchitectureVersion[]
   settings: UserSettings
   databases: DatabaseInfo[]
+  mechanics?: MechanicsModel
+}
+
+export type MechKind =
+  | 'base'
+  | 'link'
+  | 'wheel'
+  | 'caster'
+  | 'motor'
+  | 'gearbox'
+  | 'gripper'
+  | 'chassis'
+
+export type MechJointKind = 'fixed' | 'revolute' | 'prismatic'
+
+export interface MechAnchor {
+  id: string
+  name: string
+  x: number
+  y: number
+}
+
+export interface MechElement {
+  id: string
+  kind: MechKind
+  name: string
+  x: number
+  y: number
+  theta: number
+  mass: number | null
+  catalog_component_id: string | null
+  params: Record<string, number | string | boolean | null>
+  anchors: MechAnchor[]
+}
+
+export interface MechJoint {
+  id: string
+  kind: MechJointKind
+  parent_id: string
+  child_id: string
+  parent_anchor: string
+  child_anchor: string
+  q: number
+  q_min: number | null
+  q_max: number | null
+  driven: boolean
+  motor_id: string | null
+}
+
+export interface MechanicsModel {
+  id: string
+  name: string
+  elements: MechElement[]
+  joints: MechJoint[]
+  ee_id: string | null
+  elbow: 'up' | 'down'
+  trail: { x: number; y: number }[]
+  trail_on: boolean
+  load_mass: number | null
+  load_lever: number | null
+  show_axes: boolean
+  show_dims: boolean
 }
 
 export interface ProjectSummary {
@@ -350,6 +418,8 @@ export interface ProjectSummary {
   created_at: string
   updated_at: string
   current_version_label: string
+  share_code?: string
+  role?: string
   component_count: number
 }
 
@@ -365,6 +435,7 @@ export interface LibraryPreset {
   entity_kind?: string
   color?: string
   built_in?: boolean
+  stripe_width?: number
 }
 
 export interface LibraryResponse {

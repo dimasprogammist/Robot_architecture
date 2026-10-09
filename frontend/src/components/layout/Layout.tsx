@@ -5,6 +5,7 @@ import { api, type AuthUser } from '../../lib/api'
 import {
   BookOpen,
   Database,
+  DraftingCompass,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -18,7 +19,9 @@ import {
   Undo2,
   User,
   Workflow,
+  Zap,
 } from 'lucide-react'
+import { sortedVersions } from '../../lib/versions'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useUiStore } from '../../store/useUiStore'
 import type { NavId } from '../../types'
@@ -30,6 +33,8 @@ import type { NavId } from '../../types'
 const NAV_ITEMS: { id: NavId; label: string; icon: typeof Layers3 }[] = [
   { id: 'architecture', label: 'Архитектура', icon: Layers3 },
   { id: 'database', label: 'База данных', icon: Database },
+  { id: 'power', label: 'Схема питания', icon: Zap },
+  { id: 'mechanics', label: 'Механика и кинематика', icon: DraftingCompass },
   { id: 'algorithms', label: 'Алгоритмы', icon: Workflow },
   { id: 'documents', label: 'Документы', icon: FileText },
   { id: 'tutorial', label: 'Учебник', icon: GraduationCap },
@@ -74,21 +79,32 @@ export function TopBar() {
   const saveNow = useProjectStore((s) => s.saveNow)
   const undo = useProjectStore((s) => s.undo)
   const redo = useProjectStore((s) => s.redo)
+  const versionPreviewId = useProjectStore((s) => s.versionPreviewId)
+  const previewVersion = useProjectStore((s) => s.previewVersion)
+  const exitVersionPreview = useProjectStore((s) => s.exitVersionPreview)
+  const liveBackup = useProjectStore((s) => s.liveBackup)
+  const versions = sortedVersions(liveBackup?.versions ?? project?.versions)
+  const liveLabel = liveBackup?.current_version_label || project?.current_version_label || 'текущая'
   const setSearchOpen = useUiStore((s) => s.setSearchOpen)
   const setExportOpen = useUiStore((s) => s.setExportOpen)
+  const nav = useUiStore((s) => s.nav)
   const crumbs = (() => {
-    if (!project || !architectureId) return []
-    const path: { id: string; name: string }[] = []
-    let current = project.architectures.find((a) => a.id === architectureId)
-    while (current) {
-      const arch = current
-      path.unshift({ id: arch.id, name: arch.name })
-      if (!arch.parent_component_id) break
-      const parentComp = project.components.find((c) => c.id === arch.parent_component_id)
-      const parentArch = parentComp
-        ? project.architectures.find((a) => a.id === parentComp.architecture_id)
-        : undefined
-      current = parentArch
+    if (!project) return []
+    const section = NAV_ITEMS.find((item) => item.id === nav)?.label || ''
+    const path: { id: string; name: string }[] = [{ id: 'project', name: project.name }]
+    if (section) path.push({ id: `nav-${nav}`, name: section })
+    if ((nav === 'architecture' || nav === 'power') && architectureId) {
+      const nested: { id: string; name: string }[] = []
+      let current = project.architectures.find((a) => a.id === architectureId)
+      while (current?.parent_component_id) {
+        nested.unshift({ id: current.id, name: current.name })
+        const parentComp = project.components.find((c) => c.id === current?.parent_component_id)
+        const parentArch = parentComp
+          ? project.architectures.find((a) => a.id === parentComp.architecture_id)
+          : undefined
+        current = parentArch
+      }
+      path.push(...nested)
     }
     return path
   })()
@@ -98,13 +114,38 @@ export function TopBar() {
       <div className="brand">
         <div className="brand-mark" />
         Architecture Canvas
-        {project ? <span>{project.current_version_label}</span> : null}
+        {project ? (
+          <select
+            className="version-select"
+            value={versionPreviewId || 'live'}
+            title="Версия проекта"
+            onChange={(e) => {
+              const next = e.target.value
+              if (next === 'live') exitVersionPreview()
+              else previewVersion(next)
+            }}
+          >
+            <option value="live">{versionPreviewId ? `${liveLabel} (текущая)` : liveLabel}</option>
+            {versions.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label} · {new Date(v.created_at).toLocaleString('ru-RU')}
+              </option>
+            ))}
+          </select>
+        ) : null}
       </div>
       <div className="crumbs">
         {crumbs.map((c, i) => (
           <span key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {i > 0 ? <span className="sep">/</span> : null}
-            <button className={c.id === architectureId ? 'active' : ''} type="button" onClick={() => goToArchitecture(c.id)}>
+            <button
+              className={c.id === architectureId ? 'active' : ''}
+              type="button"
+              onClick={() => {
+                if (c.id === 'project' || c.id.startsWith('nav-')) return
+                goToArchitecture(c.id)
+              }}
+            >
               {c.name}
             </button>
           </span>

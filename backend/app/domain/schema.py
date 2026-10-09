@@ -50,6 +50,7 @@ class LibraryPreset(BaseModel):
     entity_kind: str = "component"
     color: str = ""
     built_in: bool = True
+    stripe_width: float = 3
 
 
 class Protocol(BaseModel):
@@ -70,6 +71,7 @@ class Protocol(BaseModel):
     notes: str = ""
     built_in: bool = False
     color: str = ""
+    stroke_width: float = 2
 
 
 class HardwareComponent(BaseModel):
@@ -256,6 +258,7 @@ class Connection(BaseModel):
     target_column: str = ""
     source_handle: str = ""
     target_handle: str = ""
+    extra_fields: dict[str, str] = Field(default_factory=dict)
 
 
 class Component(BaseModel):
@@ -290,6 +293,8 @@ class Component(BaseModel):
     extra_fields: dict[str, str] = Field(default_factory=dict)
     color: str = ""
     library_preset_id: str | None = None
+    width: float | None = None
+    height: float | None = None
 
 
 class Architecture(BaseModel):
@@ -330,6 +335,55 @@ class ArchitectureVersion(BaseModel):
     snapshot: dict[str, Any] = Field(default_factory=dict)
 
 
+class MechAnchor(BaseModel):
+    id: str
+    name: str = ""
+    x: float = 0
+    y: float = 0
+
+
+class MechElement(BaseModel):
+    id: str
+    kind: str
+    name: str
+    x: float = 0
+    y: float = 0
+    theta: float = 0
+    mass: float | None = None
+    catalog_component_id: str | None = None
+    params: dict[str, Any] = Field(default_factory=dict)
+    anchors: list[MechAnchor] = Field(default_factory=list)
+
+
+class MechJoint(BaseModel):
+    id: str
+    kind: str
+    parent_id: str
+    child_id: str
+    parent_anchor: str = "a"
+    child_anchor: str = "a"
+    q: float = 0
+    q_min: float | None = None
+    q_max: float | None = None
+    driven: bool = False
+    motor_id: str | None = None
+
+
+class MechanicsModel(BaseModel):
+    id: str = ""
+    name: str = "Механизм"
+    elements: list[MechElement] = Field(default_factory=list)
+    joints: list[MechJoint] = Field(default_factory=list)
+    ee_id: str | None = None
+    elbow: str = "up"
+    trail: list[dict[str, float]] = Field(default_factory=list)
+    trail_on: bool = False
+    load_mass: float | None = None
+    load_lever: float | None = None
+    show_axes: bool = True
+    show_dims: bool = True
+
+
 class UserSettings(BaseModel):
     theme: Literal["light", "dark"] = "light"
     snap_to_grid: bool = True
@@ -346,6 +400,7 @@ class Project(BaseModel):
     created_at: str
     updated_at: str
     current_version_label: str = "черновик"
+    share_code: str = ""
     root_architecture_id: str
     architectures: list[Architecture] = Field(default_factory=list)
     components: list[Component] = Field(default_factory=list)
@@ -360,6 +415,7 @@ class Project(BaseModel):
     versions: list[ArchitectureVersion] = Field(default_factory=list)
     settings: UserSettings = Field(default_factory=UserSettings)
     databases: list[DatabaseInfo] = Field(default_factory=list)
+    mechanics: MechanicsModel | None = None
 
 
 class ExportEnvelope(BaseModel):
@@ -411,7 +467,9 @@ class ProjectSummary(BaseModel):
     created_at: str
     updated_at: str
     current_version_label: str = "черновик"
+    share_code: str = ""
     component_count: int = 0
+    role: str = "owner"
 
 
 class GlobalSettings(BaseModel):
@@ -469,6 +527,7 @@ PROTOCOL_COLORS: dict[str, str] = {
     "TCP/IP": "#6a6e62",
     "Custom Protocol": "#6e6a62",
     "Свой протокол": "#6e6a62",
+    "Электрическое подключение": "#8a6a4a",
 }
 
 

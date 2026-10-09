@@ -1,0 +1,627 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="800"
+     height="1200"
+     viewBox="0 0 800 1200">
+
+  <defs>
+    <marker id="arrow"
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto"
+            markerUnits="strokeWidth">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#2F5D50"/>
+    </marker>
+  </defs>
+
+  <!-- ========================================================= -->
+  <!-- ЗАГОЛОВОК -->
+  <!-- ========================================================= -->
+
+  <text x="400" y="42"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="27"
+        font-weight="700"
+        fill="#1C1B17">
+    ПРОЦЕССОР
+  </text>
+
+  <text x="400" y="68"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="14"
+        fill="#6E6B63">
+    инструкции • данные • вычисления • координация
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- 1. ЦИКЛ РАБОТЫ -->
+  <!-- ========================================================= -->
+
+  <rect x="35" y="95"
+        width="730"
+        height="285"
+        rx="12"
+        fill="#FCFBF8"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+  <text x="400" y="128"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#1C1B17">
+    ЦИКЛ РАБОТЫ CPU
+  </text>
+
+  <!-- Step 1 -->
+
+  <rect x="75" y="160"
+        width="290"
+        height="70"
+        rx="10"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="220" y="189"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    1. ПОЛУЧИТЬ
+  </text>
+
+  <text x="220" y="211"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    инструкцию
+  </text>
+
+  <!-- Step 2 -->
+
+  <rect x="435" y="160"
+        width="290"
+        height="70"
+        rx="10"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="580" y="189"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    2. ПОЛУЧИТЬ
+  </text>
+
+  <text x="580" y="211"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    нужные данные
+  </text>
+
+  <line x1="365" y1="195"
+        x2="428" y2="195"
+        stroke="#2F5D50"
+        stroke-width="2"
+        marker-end="url(#arrow)"/>
+
+
+  <!-- Step 3 -->
+
+  <rect x="435" y="270"
+        width="290" height="70"
+        rx="10"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="580" y="299"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    3. ОБРАБОТАТЬ
+  </text>
+
+  <text x="580" y="321"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    вычислить • сравнить • перейти
+  </text>
+
+  <line x1="580" y1="230"
+        x2="580" y2="263"
+        stroke="#2F5D50"
+        stroke-width="2"
+        marker-end="url(#arrow)"/>
+
+
+  <!-- Step 4 -->
+
+  <rect x="75" y="270"
+        width="290"
+        height="70"
+        rx="10"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="220" y="299"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    4. СОХРАНИТЬ
+  </text>
+
+  <text x="220" y="321"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    результат
+  </text>
+
+  <line x1="435" y1="305"
+        x2="372" y2="305"
+        stroke="#2F5D50"
+        stroke-width="2"
+        marker-end="url(#arrow)"/>
+
+
+  <!-- ========================================================= -->
+  <!-- 2. ЯДРА + ИНСТРУКЦИИ -->
+  <!-- ========================================================= -->
+
+  <rect x="35" y="410"
+        width="730"
+        height="220"
+        rx="12"
+        fill="#FCFBF8"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+  <text x="400" y="443"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#1C1B17">
+    НЕСКОЛЬКО ЯДЕР
+  </text>
+
+  <text x="400" y="466"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    независимые части работы могут выполняться параллельно
+  </text>
+
+
+  <rect x="65" y="495"
+        width="145"
+        height="55"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="137.5" y="529"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    ЯДРО 1
+  </text>
+
+
+  <rect x="230" y="495"
+        width="145"
+        height="55"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="302.5" y="529"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    ЯДРО 2
+  </text>
+
+
+  <rect x="395" y="495"
+        width="145"
+        height="55"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="467.5" y="529"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    ЯДРО 3
+  </text>
+
+
+  <rect x="560" y="495"
+        width="145"
+        height="55"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="632.5" y="529"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    ЯДРО 4
+  </text>
+
+
+  <text x="400" y="588"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    4 ядра ≠ 4× быстрее для любой задачи
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- 3. ПАМЯТЬ -->
+  <!-- ========================================================= -->
+
+  <rect x="35" y="660"
+        width="730"
+        height="190"
+        rx="12"
+        fill="#FCFBF8"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+  <text x="400" y="693"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#1C1B17">
+    ДАННЫЕ ДВИЖУТСЯ К CPU
+  </text>
+
+
+  <rect x="65" y="725"
+        width="155"
+        height="60"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="142.5" y="751"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    SSD / NVMe
+  </text>
+
+  <text x="142.5" y="771"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        fill="#6E6B63">
+    много • медленно
+  </text>
+
+
+  <rect x="240" y="725"
+        width="155"
+        height="60"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="317.5" y="751"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    RAM
+  </text>
+
+  <text x="317.5" y="771"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        fill="#6E6B63">
+    больше • быстрее
+  </text>
+
+
+  <rect x="415" y="725"
+        width="155"
+        height="60"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="492.5" y="751"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    КЭШ
+  </text>
+
+  <text x="492.5" y="771"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        fill="#6E6B63">
+    L1 • L2 • L3
+  </text>
+
+
+  <rect x="590" y="725"
+        width="155"
+        height="60"
+        rx="9"
+        fill="#ECE9E0"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="667.5" y="751"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#1C1B17">
+    РЕГИСТРЫ
+  </text>
+
+  <text x="667.5" y="771"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12"
+        fill="#6E6B63">
+    мало • очень быстро
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- 4. ПРОИЗВОДИТЕЛЬНОСТЬ -->
+  <!-- ========================================================= -->
+
+  <rect x="35" y="880"
+        width="355"
+        height="250"
+        rx="12"
+        fill="#FCFBF8"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+  <text x="212.5" y="913"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#1C1B17">
+    ПРОИЗВОДИТЕЛЬНОСТЬ
+  </text>
+
+
+  <text x="212.5" y="957"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="25"
+        font-weight="700"
+        fill="#2F5D50">
+    3 ГГц
+  </text>
+
+  <text x="212.5" y="980"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        fill="#6E6B63">
+    ≈ 3 млрд тактов / сек
+  </text>
+
+
+  <line x1="80" y1="1005"
+        x2="345" y2="1005"
+        stroke="#9A968C"
+        stroke-width="1"/>
+
+
+  <text x="212.5" y="1034"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="19"
+        font-weight="700"
+        fill="#1C1B17">
+    IPC
+  </text>
+
+  <text x="212.5" y="1057"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    работа за один такт
+  </text>
+
+  <text x="212.5" y="1087"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    + архитектура + кэш
+  </text>
+
+  <text x="212.5" y="1107"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    + память + ядра
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- 5. КОМАНДА ВЫЧИСЛИТЕЛЕЙ -->
+  <!-- ========================================================= -->
+
+  <rect x="410" y="880"
+        width="355"
+        height="250"
+        rx="12"
+        fill="#FCFBF8"
+        stroke="#2F5D50"
+        stroke-width="2"/>
+
+  <text x="587.5" y="913"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="20"
+        font-weight="700"
+        fill="#1C1B17">
+    КОМАНДА
+  </text>
+
+
+  <rect x="440" y="940"
+        width="295"
+        height="50"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="485" y="971"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    CPU
+  </text>
+
+  <text x="605" y="971"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    логика и управление
+  </text>
+
+
+  <rect x="440" y="1000"
+        width="295"
+        height="50"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="485" y="1031"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    GPU
+  </text>
+
+  <text x="605" y="1031"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    массовый параллелизм
+  </text>
+
+
+  <rect x="440" y="1060"
+        width="295"
+        height="50"
+        rx="9"
+        fill="#F7F5EF"
+        stroke="#2F5D50"
+        stroke-width="1.5"/>
+
+  <text x="485" y="1091"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="16"
+        font-weight="700"
+        fill="#1C1B17">
+    NPU
+  </text>
+
+  <text x="605" y="1091"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    машинное обучение
+  </text>
+
+
+  <!-- ========================================================= -->
+  <!-- ИТОГ -->
+  <!-- ========================================================= -->
+
+  <text x="400" y="1170"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="700"
+        fill="#2F5D50">
+    CPU — это не просто «гигагерцы»
+  </text>
+
+  <text x="400" y="1192"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="12.5"
+        fill="#6E6B63">
+    архитектура • ядра • кэш • память • конвейер • задача
+  </text>
+
+</svg>

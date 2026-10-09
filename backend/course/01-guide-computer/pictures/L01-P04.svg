@@ -1,0 +1,142 @@
+<svg width="800" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker
+      id="arrow"
+      markerWidth="8"
+      markerHeight="8"
+      refX="6"
+      refY="4"
+      orient="auto"
+      markerUnits="strokeWidth"
+    >
+      <path d="M0,0 L8,4 L0,8 Z" fill="#2F5D50"/>
+    </marker>
+  </defs>
+
+  <!-- Прозрачный фон -->
+
+  <!-- Приложение -->
+  <rect
+    x="220" y="15"
+    width="360" height="85"
+    rx="12"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+  <text
+    x="400" y="67"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="21"
+    font-weight="500"
+    fill="#1C1B17"
+  >
+    Приложение
+  </text>
+
+  <!-- Стрелка -->
+  <line
+    x1="400" y1="100"
+    x2="400" y2="120"
+    stroke="#2F5D50"
+    stroke-width="2"
+    marker-end="url(#arrow)"
+  />
+
+  <!-- Библиотеки / API -->
+  <rect
+    x="220" y="120"
+    width="360" height="85"
+    rx="12"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+  <text
+    x="400" y="172"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="21"
+    font-weight="500"
+    fill="#1C1B17"
+  >
+    Библиотеки / API
+  </text>
+
+  <!-- Стрелка -->
+  <line
+    x1="400" y1="205"
+    x2="400" y2="225"
+    stroke="#2F5D50"
+    stroke-width="2"
+    marker-end="url(#arrow)"
+  />
+
+  <!-- Операционная система -->
+  <rect
+    x="220" y="225"
+    width="360" height="100"
+    rx="12"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+  <text
+    x="400" y="267"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="21"
+    font-weight="500"
+    fill="#1C1B17"
+  >
+    Операционная система
+  </text>
+  <text
+    x="400" y="294"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="15"
+    fill="#6E6B63"
+  >
+    процессы, память, файлы, сеть, драйверы
+  </text>
+
+  <!-- Стрелка -->
+  <line
+    x1="400" y1="325"
+    x2="400" y2="345"
+    stroke="#2F5D50"
+    stroke-width="2"
+    marker-end="url(#arrow)"
+  />
+
+  <!-- Аппаратное обеспечение -->
+  <rect
+    x="220" y="345"
+    width="360" height="85"
+    rx="12"
+    fill="#FCFBF8"
+    stroke="#2F5D50"
+    stroke-width="2.5"
+  />
+  <text
+    x="400" y="385"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="21"
+    font-weight="500"
+    fill="#1C1B17"
+  >
+    Аппаратное обеспечение
+  </text>
+  <text
+    x="400" y="411"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="15"
+    fill="#6E6B63"
+  >
+    CPU, RAM, SSD, сеть...
+  </text>
+</svg>

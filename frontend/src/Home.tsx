@@ -25,6 +25,7 @@ export function Home() {
   const [name, setName] = useState('Робот')
   const [templateId, setTemplateId] = useState(settings.default_template_id || 'robot')
   const [error, setError] = useState('')
+  const [joinCode, setJoinCode] = useState('')
   const refresh = () => api.projects().then(setProjects)
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export function Home() {
   )
 
   return (
-    <div className="home" style={{ minHeight: '100%' }}>
+    <div className="home">
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark" />
@@ -77,7 +78,7 @@ export function Home() {
       </header>
       <div className="page" style={{ maxWidth: 980, margin: '0 auto' }}>
         <p className="hint" style={{ letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          Визуальная архитектура для разработки с нейросетями
+          Визуальная архитектура для разработки
         </p>
         <h1>Мои проекты</h1>
         {error ? <p style={{ color: 'var(--danger)' }}>{error}</p> : null}
@@ -128,6 +129,31 @@ export function Home() {
             {createBar}
           </>
         )}
+
+        <h2 className="home-create-title">Подключить проект по ID</h2>
+        <div className="create-bar">
+          <input
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+            placeholder="ABC7-K92P-X41M"
+            aria-label="ID проекта"
+          />
+          <button
+            className="btn"
+            type="button"
+            onClick={async () => {
+              setError('')
+              try {
+                const joined = await api.joinProject(joinCode)
+                navigate(`/p/${joined.id}`)
+              } catch (e) {
+                setError(e instanceof Error ? e.message : 'Не удалось подключить проект')
+              }
+            }}
+          >
+            Подключить
+          </button>
+        </div>
 
         <div style={{ marginTop: 28 }}>
           <label className="btn">

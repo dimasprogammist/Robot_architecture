@@ -12,6 +12,8 @@ import type {
 } from '../types'
 import { emptyMechanical, emptyTable, withComponentDefaults } from '../model/defaults'
 import { presetColor, seedLibraryPresets } from '../model/library'
+import { typeDefaultSize } from '../model/cardSize'
+import { storedConnectionHandles } from '../model/connections'
 import { definitionFor, componentSupportsAlgorithm, inferManufacturer } from '../model/componentCatalog'
 import { inferSensorKind } from '../model/protocols'
 
@@ -42,6 +44,8 @@ export interface ProjectState {
   lastSavedAt: string | null
   error: string | null
   clipboard: Component[]
+  versionPreviewId: string | null
+  liveBackup: Project | null
   load: (id: string, builtins?: LibraryPreset[]) => Promise<void>
   setProject: (p: Project, history?: boolean) => void
   mutate: (fn: (p: Project) => void, opts?: { history?: boolean }) => void
@@ -72,6 +76,21 @@ export interface ProjectState {
   updateRequirement: (id: string, patch: Partial<Requirement>) => void
   deleteRequirement: (id: string) => void
   ensureKindArchitecture: (kind: string, name: string) => string
+  duplicateComponent: (id: string) => void
+  previewVersion: (id: string) => void
+  exitVersionPreview: () => void
+  restoreVersion: (id: string) => Promise<void>
+}
+
+function projectFromSnapshot(live: Project, snapshot: Record<string, unknown>, label: string): Project {
+  const snap = snapshot as unknown as Project
+  return {
+    ...snap,
+    id: live.id,
+    versions: live.versions,
+    current_version_label: label,
+    created_at: live.created_at,
+  }
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -86,10 +105,35 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   lastSavedAt: null,
   error: null,
   clipboard: [],
+  versionPreviewId: null,
+  liveBackup: null,
 
   load: async (id, builtins = []) => {
     const project = await api.project(id)
-    const seeded = seedLibraryPresets(project, builtins)
+    let seeded = seedLibraryPresets(project, builtins)
+    if (!project.protocols.some((p) => p.name === 'Электрическое подключение')) {
+      seeded = true
+      project.protocols.push({
+        id: uid(),
+        name: 'Электрическое подключение',
+        version: '1.0',
+        transport: 'провод',
+        port: '',
+        direction: 'unidirectional',
+        data_format: 'электрический сигнал',
+        encoding: '',
+        description: 'Прямое проводное соединение без цифрового протокола.',
+        message_structure: 'полярность, сечение, сигнал',
+        timing: '',
+        timeout: '',
+        retry: '',
+        crc: '',
+        notes: '',
+        built_in: true,
+        color: '#8a6a4e',
+        stroke_width: 2,
+      })
+    }
     set({
       project,
       architectureId: project.root_architecture_id,
@@ -99,6 +143,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       future: [],
       dirty: seeded,
       error: null,
+      versionPreviewId: null,
+      liveBackup: null,
     })
     if (seeded) get().scheduleSave()
   },
@@ -157,7 +203,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   saveNow: async () => {
     const project = get().project
-    if (!project) return
+    if (!project || get().versionPreviewId) return
     set({ saving: true, error: null })
     try {
       const saved = await api.saveProject(project)
@@ -174,7 +220,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   scheduleSave: () => {
     const project = get().project
-    if (!project?.settings.autosave) return
+    if (!project?.settings.autosave || get().versionPreviewId) return
     if (saveTimer) clearTimeout(saveTimer)
     saveTimer = setTimeout(() => {
       get().saveNow()
@@ -183,7 +229,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   setArchitecture: (id) => set({ architectureId: id, selectedIds: [], selectedConnectionId: null }),
 
-  select: (ids, connectionId = null) => set({ selectedIds: ids, selectedConnectionId: connectionId }),
+  select: (ids, connectionId = null) => {
+    const cur = get()
+    const sameIds = cur.selectedIds.length === ids.length && cur.selectedIds.every((id, i) => id === ids[i])
+    if (sameIds && cur.selectedConnectionId === connectionId) return
+    set({ selectedIds: ids, selectedConnectionId: connectionId })
+  },
 
   addComponent: (partial, position) => {
     const id = uid()
@@ -229,6 +280,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 }
               : partial.table || null,
           mechanical: partial.mechanical || emptyMechanical(),
+          extra_fields: partial.extra_fields || {},
+          color: partial.color,
+          library_preset_id: partial.library_preset_id || null,
+          width: partial.width,
+          height: partial.height,
         }),
       )
     })
@@ -249,10 +305,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
                 return [field.key, inferManufacturer(preset.name, preset.type, '')]
               }
               if (field.options?.includes(preset.name)) return [field.key, preset.name]
+              if (field.key === 'terminal_inputs' || field.key === 'terminal_outputs') return [field.key, '2']
+              if (field.key === 'phases') {
+                const key = `${preset.type} ${preset.name}`.toLowerCase()
+                const def = /шагов/.test(key) ? '2' : preset.type === 'АД' || preset.type === 'СД' ? '3' : '1'
+                return [field.key, def]
+              }
               return [field.key, '']
             }),
           )
         : {}
+      const size = typeDefaultSize({ name: preset.name, type: preset.type, category: preset.category })
       return get().addComponent(
       {
         name: preset.name,
@@ -266,6 +329,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         extra_fields,
         color: presetColor(preset),
         library_preset_id: preset.id || null,
+        width: size.width,
+        height: size.height,
       },
       position,
       )
@@ -290,6 +355,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         const drop = new Set(selectedIds)
         p.components = p.components.filter((c) => !drop.has(c.id) || c.architecture_id !== architectureId)
         p.connections = p.connections.filter((c) => !drop.has(c.source) && !drop.has(c.target))
+        if (p.mechanics) {
+          p.mechanics.elements = p.mechanics.elements.filter((e) => !drop.has(e.id))
+          p.mechanics.joints = p.mechanics.joints.filter(
+            (j) => !drop.has(j.id) && !drop.has(j.parent_id) && !drop.has(j.child_id),
+          )
+          if (p.mechanics.ee_id && drop.has(p.mechanics.ee_id)) p.mechanics.ee_id = null
+        }
       }
     })
     set({ selectedIds: [], selectedConnectionId: null })
@@ -301,6 +373,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       const src = p.components.find((c) => c.id === source)
       const tgt = p.components.find((c) => c.id === target)
       const isTable = src?.entity_kind === 'table' || tgt?.entity_kind === 'table'
+      const arch = p.architectures.find((a) => a.id === (get().architectureId || p.root_architecture_id))
+      const electrical = arch?.kind === 'power' ? p.protocols.find((x) => x.name === 'Электрическое подключение') : undefined
       let targetColumn = isTable ? 'id' : ''
       if (isTable && src && tgt) {
         targetColumn = `${src.name.toLowerCase().replace(/\s+/g, '_')}_id`
@@ -327,8 +401,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         source,
         target,
         kind,
-        protocol_id: null,
-        protocol_name: '',
+        protocol_id: electrical?.id || null,
+        protocol_name: electrical?.name || '',
         direction: 'unidirectional',
         description: '',
         data_format: '',
@@ -337,12 +411,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         latency: '',
         reliability: '',
         notes: '',
-        color: '',
+        color: electrical?.color || '',
         cardinality: isTable ? 'one_to_many' : '',
         source_column: isTable ? 'id' : '',
         target_column: targetColumn,
-        source_handle: handles?.sourceHandle || '',
-        target_handle: handles?.targetHandle || '',
+        ...storedConnectionHandles(handles),
+        extra_fields: {},
       })
     })
     set({ selectedConnectionId: id, selectedIds: [] })
@@ -406,6 +480,82 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
     })
     set({ selectedIds: ids, selectedConnectionId: null })
+  },
+
+  duplicateComponent: (id) => {
+    const { project, architectureId } = get()
+    if (!project) return
+    const source = project.components.find((c) => c.id === id)
+    if (!source) return
+    const nextId = uid()
+    get().mutate((p) => {
+      p.components.push({
+        ...clone(source),
+        id: nextId,
+        name: `${source.name} (копия)`,
+        architecture_id: architectureId || p.root_architecture_id,
+        nested_architecture_id: null,
+        position: { x: source.position.x + 40, y: source.position.y + 40 },
+      })
+    })
+    set({ selectedIds: [nextId], selectedConnectionId: null })
+  },
+
+  previewVersion: (id) => {
+    const { project, liveBackup } = get()
+    if (!project) return
+    const source = liveBackup ?? project
+    const version = source.versions.find((v) => v.id === id)
+    if (!version) return
+    const next = projectFromSnapshot(source, version.snapshot, version.label)
+    set({
+      project: next,
+      liveBackup: liveBackup ?? clone(project),
+      versionPreviewId: id,
+      dirty: false,
+      selectedIds: [],
+      selectedConnectionId: null,
+      architectureId: next.architectures.some((a) => a.id === get().architectureId)
+        ? get().architectureId
+        : next.root_architecture_id,
+    })
+  },
+
+  exitVersionPreview: () => {
+    const backup = get().liveBackup
+    if (!backup) {
+      set({ versionPreviewId: null, liveBackup: null })
+      return
+    }
+    set({
+      project: backup,
+      liveBackup: null,
+      versionPreviewId: null,
+      dirty: false,
+      selectedIds: [],
+      selectedConnectionId: null,
+      architectureId: backup.architectures.some((a) => a.id === get().architectureId)
+        ? get().architectureId
+        : backup.root_architecture_id,
+    })
+  },
+
+  restoreVersion: async (id) => {
+    const live = get().liveBackup ?? get().project
+    if (!live) return
+    const version = live.versions.find((v) => v.id === id)
+    if (!version) return
+    const next = projectFromSnapshot(live, version.snapshot, version.label)
+    set({
+      project: next,
+      liveBackup: null,
+      versionPreviewId: null,
+      dirty: true,
+      selectedIds: [],
+      selectedConnectionId: null,
+      architectureId: next.root_architecture_id,
+    })
+    await get().saveNow()
   },
 
   ensureAlgorithm: (componentId) => {

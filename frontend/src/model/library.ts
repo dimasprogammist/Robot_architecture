@@ -2,16 +2,17 @@ import { uid } from '../lib/ids'
 import type { Component, LibraryPreset, Project } from '../types'
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  SOFTWARE: '#2f5d50',
-  HARDWARE: '#7a5c2e',
-  DATA: '#355f7a',
-  PROTOCOL: '#5a4a78',
-  NETWORK: '#4f6270',
-  MECHANICS: '#7a6a52',
-  OTHER: '#5c5a54',
+  SOFTWARE: '#2F9E78',
+  HARDWARE: '#C46B2E',
+  DATA: '#2B8FD4',
+  PROTOCOL: '#6B5AD8',
+  NETWORK: '#155E75',
+  MECHANICS: '#A16207',
+  ELECTRICAL: '#D9773A',
+  OTHER: '#57534E',
 }
 
-export const CANVAS_CATEGORIES = ['HARDWARE', 'SOFTWARE', 'DATA', 'NETWORK', 'MECHANICS', 'OTHER'] as const
+export const CANVAS_CATEGORIES = ['HARDWARE', 'SOFTWARE', 'DATA', 'NETWORK', 'MECHANICS', 'ELECTRICAL', 'OTHER'] as const
 
 export function presetColor(preset: Pick<LibraryPreset, 'category' | 'color'>) {
   return preset.color || CATEGORY_COLORS[preset.category] || CATEGORY_COLORS.OTHER
@@ -26,6 +27,7 @@ export function normalizePreset(preset: LibraryPreset): LibraryPreset {
     entity_kind: preset.entity_kind || (preset.type === 'Таблица' ? 'table' : 'component'),
     color: presetColor(preset),
     built_in: preset.built_in !== false,
+    stripe_width: preset.stripe_width && preset.stripe_width > 0 ? preset.stripe_width : 3,
     hardware_id: preset.hardware_id,
     protocol_id: preset.protocol_id,
   }
@@ -63,7 +65,7 @@ export function catalogLook(component: Component, presets: LibraryPreset[]): Com
     type: preset.type,
     category: preset.category,
     icon: preset.icon,
-    color: presetColor(preset),
+    color: component.color || presetColor(preset),
     technology: preset.technology || component.technology,
     entity_kind: preset.entity_kind || component.entity_kind,
     hardware_id: preset.hardware_id || component.hardware_id,
@@ -110,10 +112,27 @@ export function seedLibraryPresets(project: Project, builtins: LibraryPreset[]) 
     project.library_presets = builtins.map((item) => normalizePreset({ ...item, built_in: true }))
     changed = true
   } else {
+    const builtinByKey = new Map(builtins.map((item) => [`${item.category}::${item.name}`, item]))
     project.library_presets = project.library_presets.map((item) => {
-      if (!item.id || !item.color) changed = true
-      return normalizePreset(item)
+      const next = normalizePreset(item)
+      const fresh = builtinByKey.get(`${item.category}::${item.name}`)
+      if (fresh && item.built_in !== false) {
+        if (fresh.icon && next.icon !== fresh.icon && (next.icon === 'flash' || next.icon === 'box')) {
+          next.icon = fresh.icon
+          changed = true
+        }
+      }
+      if (!item.id || !item.color || !item.stripe_width) changed = true
+      return next
     })
+    const have = new Set(project.library_presets.map((item) => `${item.category}::${item.name}`))
+    for (const item of builtins) {
+      const key = `${item.category}::${item.name}`
+      if (have.has(key)) continue
+      project.library_presets.push(normalizePreset({ ...item, built_in: true }))
+      have.add(key)
+      changed = true
+    }
   }
   if (bindInstancesToCatalog(project)) changed = true
   return changed
@@ -130,5 +149,6 @@ export function emptyLibraryPreset(): LibraryPreset {
     color: CATEGORY_COLORS.HARDWARE,
     built_in: false,
     entity_kind: 'component',
+    stripe_width: 3,
   }
 }

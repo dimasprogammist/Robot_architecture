@@ -3,6 +3,8 @@ import { ColorSwatches } from '../components/ColorSwatches'
 import { IconPicker, TypeIcon } from '../components/TypeIcon'
 import { CATEGORY_LABELS } from '../i18n'
 import { applyPresetToInstances, emptyLibraryPreset, presetColor } from '../model/library'
+import { clampStripeWidth } from '../model/cardSize'
+import { PRESET_GROUPS } from '../model/presetGroups'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
 import type { LibraryPreset } from '../types'
@@ -22,17 +24,24 @@ export function ComponentsView() {
   const setNav = useUiStore((s) => s.setNav)
   const settings = useUiStore((s) => s.settings)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
 
   if (!project) return null
   const catalog = project.library_presets.filter((item) => item.category !== 'PROTOCOL')
-  const catalogCategories = Object.keys(CATEGORY_LABELS).filter((id) => id !== 'PROTOCOL')
-  const groupedCatalog = catalogCategories
-    .map((category) => ({
-      category,
-      title: CATEGORY_LABELS[category] || category,
-      items: catalog.filter((item) => item.category === category).sort((a, b) => a.name.localeCompare(b.name, 'ru')),
-    }))
-    .filter((group) => group.items.length > 0)
+  const claimed = new Set<string>()
+  const groupedCatalog = PRESET_GROUPS.map((group) => {
+    const items = catalog.filter(group.match).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+    items.forEach((item) => claimed.add(item.id || item.name))
+    return { id: group.id, title: group.title, items }
+  }).filter((group) => group.items.length > 0)
+  const rest = catalog.filter((item) => !claimed.has(item.id || item.name))
+  if (rest.length) {
+    groupedCatalog.push({
+      id: 'rest',
+      title: 'Прочее',
+      items: rest.sort((a, b) => a.name.localeCompare(b.name, 'ru')),
+    })
+  }
   const draft = catalog.find((item) => item.id === editingId)
 
   return (
@@ -121,16 +130,32 @@ export function ComponentsView() {
           </button>
         </h2>
         <p className="hint">Единый каталог канвы. Изменения применяются к библиотеке и к уже добавленным компонентам этого типа.</p>
-        {groupedCatalog.map((group) => (
-          <section key={group.category} className="catalog-group">
-            <h3 className="catalog-group-title">{group.title}</h3>
+        {groupedCatalog.map((group) => {
+          const expanded = openGroups[group.id] !== false
+          const editingHere = Boolean(draft && group.items.some((item) => item.id === draft.id))
+          const showBody = expanded || editingHere
+          return (
+          <section key={group.id} className="catalog-group">
+            <h3 className="catalog-group-title">
+              <button
+                type="button"
+                className="lib-group-btn"
+                onClick={() => setOpenGroups((prev) => ({ ...prev, [group.id]: !showBody }))}
+              >
+                {group.title}
+              </button>
+            </h3>
+            {showBody ? (
             <div className="catalog-grid">
               {group.items.map((item) => (
                 <button
                   key={item.id || item.name}
                   className={`catalog-card ${editingId === item.id ? 'on' : ''}`}
                   type="button"
-                  onClick={() => setEditingId(item.id || null)}
+                  onClick={() => {
+                    setEditingId(item.id || null)
+                    setOpenGroups((prev) => ({ ...prev, [group.id]: true }))
+                  }}
                 >
                   <span className="catalog-card-accent" style={{ background: presetColor(item) }} />
                   <TypeIcon name={item.icon} size={16} />
@@ -143,32 +168,33 @@ export function ComponentsView() {
                 </button>
               ))}
             </div>
+            ) : null}
+            {editingHere && draft ? (
+              <CatalogEditor
+                preset={draft}
+                onChange={(patch) =>
+                  mutate((p) => {
+                    const row = p.library_presets.find((item) => item.id === draft.id)
+                    if (!row) return
+                    const previous = { ...row }
+                    Object.assign(row, patch)
+                    applyPresetToInstances(p, row, previous)
+                  })
+                }
+                onDelete={() => {
+                  if (settings.confirm_delete && !window.confirm(`Удалить «${draft.name}» из каталога?`)) return
+                  mutate((p) => {
+                    p.library_presets = p.library_presets.filter((item) => item.id !== draft.id)
+                  })
+                  setEditingId(null)
+                }}
+                onClose={() => setEditingId(null)}
+              />
+            ) : null}
           </section>
-        ))}
-        {draft ? (
-          <CatalogEditor
-            preset={draft}
-            onChange={(patch) =>
-              mutate((p) => {
-                const row = p.library_presets.find((item) => item.id === draft.id)
-                if (!row) return
-                const previous = { ...row }
-                Object.assign(row, patch)
-                applyPresetToInstances(p, row, previous)
-              })
-            }
-            onDelete={() => {
-              if (settings.confirm_delete && !window.confirm(`Удалить «${draft.name}» из каталога?`)) return
-              mutate((p) => {
-                p.library_presets = p.library_presets.filter((item) => item.id !== draft.id)
-              })
-              setEditingId(null)
-            }}
-            onClose={() => setEditingId(null)}
-          />
-        ) : (
-          <p className="hint" style={{ marginTop: 12 }}>Выберите карточку, чтобы изменить конфигурацию.</p>
-        )}
+          )
+        })}
+        {!draft ? <p className="hint" style={{ marginTop: 12 }}>Выберите карточку, чтобы изменить конфигурацию.</p> : null}
       </section>
     </div>
   )
@@ -232,9 +258,24 @@ function CatalogEditor({
             <option value="table">Таблица БД</option>
           </select>
         </div>
+        <div className="field">
+          <label>Толщина цветной линии</label>
+          <input
+            type="number"
+            min={2}
+            max={12}
+            value={clampStripeWidth(preset.stripe_width)}
+            onChange={(e) => onChange({ stripe_width: clampStripeWidth(e.target.value) })}
+          />
+        </div>
         <div className="field catalog-editor-color">
           <label>Цвет боковой линии</label>
-          <ColorSwatches value={presetColor(preset)} onChange={(color) => onChange({ color })} compact={false} />
+          <ColorSwatches
+            layout="row"
+            compact={false}
+            value={presetColor(preset)}
+            onChange={(color) => onChange({ color })}
+          />
         </div>
       </div>
       {!preset.built_in ? (

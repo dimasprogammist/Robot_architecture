@@ -24,12 +24,24 @@ const KINDS = [
 
 function FlowBlock({ data }: NodeProps) {
   const kind = String(data.kind || 'action')
+  if (kind === 'condition') {
+    return (
+      <div className="flow-block flow-condition">
+        <Handle type="target" position={Position.Top} className="flow-port nodrag nopan" style={{ top: -2 }} />
+        <div className="flow-diamond" aria-hidden />
+        <span className="flow-condition-text">{String(data.label || '')}</span>
+        <Handle id="yes" type="source" position={Position.Bottom} className="flow-port nodrag nopan" style={{ bottom: -2 }} />
+        <span className="flow-cap flow-cap-yes">Да</span>
+        <Handle id="no" type="source" position={Position.Right} className="flow-port nodrag nopan" style={{ right: -2 }} />
+        <span className="flow-cap flow-cap-no">Нет</span>
+      </div>
+    )
+  }
   return (
     <div className={`flow-block flow-${kind}`}>
-      <Handle type="target" position={Position.Top} />
+      <Handle type="target" position={Position.Top} className="flow-port nodrag nopan" />
       <span>{String(data.label || '')}</span>
-      <Handle type="source" position={Position.Bottom} />
-      {kind === 'condition' ? <Handle id="no" type="source" position={Position.Right} /> : null}
+      <Handle type="source" position={Position.Bottom} className="flow-port nodrag nopan" />
     </div>
   )
 }
@@ -66,7 +78,7 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
         id: e.id,
         source: e.source,
         target: e.target,
-        sourceHandle: e.label === 'нет' ? 'no' : undefined,
+        sourceHandle: e.label === 'нет' ? 'no' : e.label === 'да' ? 'yes' : undefined,
         label: e.label,
         markerEnd: { type: 'arrowclosed' as const },
       })),
@@ -138,10 +150,11 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
           }}
           onConnect={(c) => {
             if (!c.source || !c.target) return
+            const label = c.sourceHandle === 'no' ? 'нет' : c.sourceHandle === 'yes' ? 'да' : ''
             updateAlgorithm(algorithm.id, {
               canvas_edges: [
                 ...algorithm.canvas_edges,
-                { id: uid(), source: c.source, target: c.target, label: c.sourceHandle === 'no' ? 'нет' : '' },
+                { id: uid(), source: c.source, target: c.target, label },
               ],
             })
           }}

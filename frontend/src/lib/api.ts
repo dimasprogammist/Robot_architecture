@@ -204,6 +204,24 @@ export const api = {
     }).then((r) => json<{ token: string; user: AuthUser }>(r)),
   logout: () => apiFetch('/api/auth/logout', { method: 'POST' }).then(json),
   me: () => apiFetch('/api/auth/me').then((r) => json<AuthUser>(r)),
+  forgotPassword: (email: string) =>
+    apiFetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }).then((r) => json<{ ok: boolean; message: string }>(r)),
+  resetPassword: (body: { token: string; password: string; password_repeat: string }) =>
+    apiFetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then((r) => json<{ ok: boolean; message: string }>(r)),
+  joinProject: (code: string) =>
+    apiFetch('/api/projects/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    }).then((r) => json<Project>(r)),
   course: () => apiFetch('/api/course').then((r) => json<CourseOverview>(r)),
   courseLesson: (id: string) => apiFetch(`/api/course/${id}`).then((r) => json<CourseLesson>(r)),
   courseProgress: () =>
@@ -300,6 +318,11 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),
     }).then((r) => json<CurriculumTaskCheckResult>(r)),
+  fileBlob: async (projectId: string, fileId: string) => {
+    const res = await apiFetch(`/api/projects/${projectId}/files/${fileId}`)
+    if (!res.ok) throw new Error(await res.text() || res.statusText)
+    return res.blob()
+  },
   uploadFile: async (projectId: string, file: File, componentId: string) => {
     const fd = new FormData()
     fd.append('file', file)

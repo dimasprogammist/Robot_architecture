@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Star } from 'lucide-react'
 import { MarkdownField } from '../components/MarkdownField'
-import { AttachedFileRow, projectFileUrl } from '../components/InspectorExtras'
+import { AttachedFileRow } from '../components/InspectorExtras'
 import { StlPreview } from '../components/StlPreview'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
@@ -59,7 +59,7 @@ export function DocumentsView() {
           ) : (
             <p className="hint">К компонентам пока не прикреплены файлы.</p>
           )}
-          {preview ? <StlPreview url={projectFileUrl(project.id, preview)} /> : null}
+          {preview ? <StlPreview url={preview} /> : null}
         </div>
       ) : null}
       {tab === 'notes' ? (

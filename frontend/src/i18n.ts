@@ -12,6 +12,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   PROTOCOL: 'Протокол',
   NETWORK: 'Сеть',
   MECHANICS: 'Механика',
+  ELECTRICAL: 'Электрика',
   OTHER: 'Прочее',
 }
 
