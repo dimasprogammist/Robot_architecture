@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -9,6 +9,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   type Edge,
+  type EdgeChange,
   type Node,
   type NodeChange,
   type NodeProps,
@@ -16,10 +17,12 @@ import {
 import { useProjectStore } from '../../store/useProjectStore'
 import { uid } from '../../lib/ids'
 import { FitViewOnCanvas } from './FitViewOnCanvas'
+import { LabeledEdge } from './nodes'
 import { cancelCanvasFit } from '../../model/canvasMotion'
 import {
   collectPersistableNodeChanges,
   positionNeedsWrite,
+  reuseRfById,
   selectionIdsEqual,
 } from '../../model/canvasNodeSync'
 
@@ -63,6 +66,9 @@ function FlowBlock({ data }: NodeProps) {
 }
 
 const nodeTypes = { flow: FlowBlock }
+const edgeTypes = { labeled: LabeledEdge }
+const MULTI_SELECTION_KEYS = ['Control', 'Meta']
+const DELETE_KEYS = ['Backspace', 'Delete']
 
 export function AlgorithmCanvas({ algorithmId }: { algorithmId: string }) {
   return (
@@ -89,7 +95,7 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
     return ids
   }, [algorithm, selectedIds])
 
-  const nodes: Node[] = useMemo(
+  const nodesRaw: Node[] = useMemo(
     () =>
       (algorithm?.canvas_nodes || []).map((n) => ({
         id: n.id,
@@ -101,14 +107,25 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
       })),
     [algorithm, selectedIds, neighborIds],
   )
-  const edges: Edge[] = useMemo(
+  const nodesPrev = useRef<Node[]>([])
+  const nodes = reuseRfById(nodesPrev.current, nodesRaw, (a, b) =>
+    a.selected === b.selected &&
+    a.className === b.className &&
+    a.position === b.position &&
+    a.data?.label === b.data?.label &&
+    a.data?.kind === b.data?.kind,
+  )
+  nodesPrev.current = nodes
+
+  const edgesRaw: Edge[] = useMemo(
     () =>
       (algorithm?.canvas_edges || []).map((e) => ({
         id: e.id,
         source: e.source,
         target: e.target,
+        type: 'labeled' as const,
         sourceHandle: e.label === 'нет' ? 'no' : e.label === 'да' ? 'yes' : undefined,
-        label: e.label,
+        data: { label: e.label },
         selected: selectedIds.length === 0 ? false : selectedIds.includes(e.source) && selectedIds.includes(e.target),
         markerEnd: EDGE_MARKER,
         style:
@@ -118,6 +135,98 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
       })),
     [algorithm, selectedIds],
   )
+  const edgesPrev = useRef<Edge[]>([])
+  const edges = reuseRfById(edgesPrev.current, edgesRaw, (a, b) =>
+    a.selected === b.selected &&
+    a.source === b.source &&
+    a.target === b.target &&
+    a.sourceHandle === b.sourceHandle &&
+    a.data?.label === b.data?.label &&
+    a.style?.strokeWidth === b.style?.strokeWidth,
+  )
+  edgesPrev.current = edges
+
+  const algorithmIdRef = useRef(algorithmId)
+  algorithmIdRef.current = algorithmId
+
+  const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {
+    if (event) cancelCanvasFit()
+  }, [])
+
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    const additive = event.ctrlKey || event.metaKey
+    clickSelectRef.current = true
+    window.requestAnimationFrame(() => {
+      clickSelectRef.current = false
+    })
+    setSelectedIds((current) => {
+      if (additive) {
+        return current.includes(node.id) ? current.filter((id) => id !== node.id) : [...current, node.id]
+      }
+      return selectionIdsEqual(current, [node.id]) ? current : [node.id]
+    })
+  }, [])
+
+  const onSelectionChange = useCallback(({ nodes: picked }: { nodes: { id: string }[] }) => {
+    const ids = picked.map((n) => n.id)
+    if (!ids.length) return
+    setSelectedIds((current) => {
+      if (clickSelectRef.current) {
+        if (current.length > ids.length && ids.every((id) => current.includes(id))) return current
+      }
+      return selectionIdsEqual(current, ids) ? current : ids
+    })
+  }, [])
+
+  const onPaneClick = useCallback(() => setSelectedIds([]), [])
+
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    const state = useProjectStore.getState()
+    const alg = state.project?.algorithms.find((a) => a.id === algorithmIdRef.current)
+    if (!alg) return
+    const collected = collectPersistableNodeChanges(changes, false)
+    const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)
+    const moved = collected.positions.filter((c) => {
+      const node = alg.canvas_nodes.find((n) => n.id === c.id)
+      return node && positionNeedsWrite(node.position, c)
+    })
+    if (!moved.length && !removed.length) return
+    if (removed.length) {
+      state.updateAlgorithm(alg.id, {
+        canvas_nodes: alg.canvas_nodes.filter((n) => !removed.includes(n.id)),
+        canvas_edges: alg.canvas_edges.filter((e) => !removed.includes(e.source) && !removed.includes(e.target)),
+      })
+      return
+    }
+    state.updateAlgorithm(alg.id, {
+      canvas_nodes: alg.canvas_nodes.map((n) => {
+        const ch = moved.find((c) => c.id === n.id)
+        return ch ? { ...n, position: { x: ch.x, y: ch.y } } : n
+      }),
+    })
+  }, [])
+
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    const removed = changes.filter((c) => c.type === 'remove').map((c) => ('id' in c ? c.id : ''))
+    if (!removed.length) return
+    const state = useProjectStore.getState()
+    const alg = state.project?.algorithms.find((a) => a.id === algorithmIdRef.current)
+    if (!alg) return
+    state.updateAlgorithm(alg.id, {
+      canvas_edges: alg.canvas_edges.filter((e) => !removed.includes(e.id)),
+    })
+  }, [])
+
+  const onConnect = useCallback((c: { source: string | null; target: string | null; sourceHandle?: string | null }) => {
+    if (!c.source || !c.target) return
+    const state = useProjectStore.getState()
+    const alg = state.project?.algorithms.find((a) => a.id === algorithmIdRef.current)
+    if (!alg) return
+    const label = c.sourceHandle === 'no' ? 'нет' : c.sourceHandle === 'yes' ? 'да' : ''
+    state.updateAlgorithm(alg.id, {
+      canvas_edges: [...alg.canvas_edges, { id: uid(), source: c.source, target: c.target, label }],
+    })
+  }, [])
 
   if (!algorithm) return null
   const selected = selectedIds.length === 1 ? algorithm.canvas_nodes.find((n) => n.id === selectedIds[0]) : undefined
@@ -153,72 +262,16 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
-          onMoveStart={(event) => {
-            if (event) cancelCanvasFit()
-          }}
-          onNodeClick={(event, node) => {
-            const additive = event.ctrlKey || event.metaKey
-            clickSelectRef.current = true
-            window.requestAnimationFrame(() => {
-              clickSelectRef.current = false
-            })
-            setSelectedIds((current) => {
-              if (additive) {
-                return current.includes(node.id) ? current.filter((id) => id !== node.id) : [...current, node.id]
-              }
-              return [node.id]
-            })
-          }}
-          onSelectionChange={({ nodes: picked }) => {
-            const ids = picked.map((n) => n.id)
-            if (!ids.length) return
-            if (clickSelectRef.current) {
-              if (selectedIds.length > ids.length && ids.every((id) => selectedIds.includes(id))) return
-            }
-            setSelectedIds((current) => (selectionIdsEqual(current, ids) ? current : ids))
-          }}
-          onPaneClick={() => setSelectedIds([])}
-          onNodesChange={(changes: NodeChange[]) => {
-            const collected = collectPersistableNodeChanges(changes, false)
-            const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)
-            const moved = collected.positions.filter((c) => {
-              const node = algorithm.canvas_nodes.find((n) => n.id === c.id)
-              return node && positionNeedsWrite(node.position, c)
-            })
-            if (!moved.length && !removed.length) return
-            if (removed.length) {
-              updateAlgorithm(algorithm.id, {
-                canvas_nodes: algorithm.canvas_nodes.filter((n) => !removed.includes(n.id)),
-                canvas_edges: algorithm.canvas_edges.filter((e) => !removed.includes(e.source) && !removed.includes(e.target)),
-              })
-              return
-            }
-            patchNodes(
-              algorithm.canvas_nodes.map((n) => {
-                const ch = moved.find((c) => c.id === n.id)
-                return ch ? { ...n, position: { x: ch.x, y: ch.y } } : n
-              }),
-            )
-          }}
-          onEdgesChange={(changes) => {
-            const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)
-            if (!removed.length) return
-            updateAlgorithm(algorithm.id, {
-              canvas_edges: algorithm.canvas_edges.filter((e) => !removed.includes(e.id)),
-            })
-          }}
-          onConnect={(c) => {
-            if (!c.source || !c.target) return
-            const label = c.sourceHandle === 'no' ? 'нет' : c.sourceHandle === 'yes' ? 'да' : ''
-            updateAlgorithm(algorithm.id, {
-              canvas_edges: [
-                ...algorithm.canvas_edges,
-                { id: uid(), source: c.source, target: c.target, label },
-              ],
-            })
-          }}
-          deleteKeyCode={['Backspace', 'Delete']}
-          multiSelectionKeyCode={['Control', 'Meta']}
+          edgeTypes={edgeTypes}
+          onMoveStart={onMoveStart}
+          onNodeClick={onNodeClick}
+          onSelectionChange={onSelectionChange}
+          onPaneClick={onPaneClick}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          deleteKeyCode={DELETE_KEYS}
+          multiSelectionKeyCode={MULTI_SELECTION_KEYS}
         >
           <FitViewOnCanvas canvasKey={`algo:${algorithmId}`} />
           <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="var(--line-strong)" />

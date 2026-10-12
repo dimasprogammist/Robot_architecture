@@ -13,6 +13,10 @@ export { CANVAS_FIT_MS }
 export function FitViewOnCanvas({ canvasKey }: { canvasKey: string }) {
   const { fitView, getNodes } = useReactFlow()
   const finished = useRef('')
+  const fitViewRef = useRef(fitView)
+  const getNodesRef = useRef(getNodes)
+  fitViewRef.current = fitView
+  getNodesRef.current = getNodes
 
   useEffect(() => {
     finished.current = ''
@@ -24,8 +28,8 @@ export function FitViewOnCanvas({ canvasKey }: { canvasKey: string }) {
     const reduce = shouldReduceMotion(useUiStore.getState().settings.reduce_motion)
     const run = () => {
       if (!isCanvasFitCurrent(token) || finished.current === canvasKey) return
-      const empty = getNodes().length === 0
-      fitView({
+      const empty = getNodesRef.current().length === 0
+      fitViewRef.current({
         padding: empty ? 0.4 : 0.18,
         duration: reduce ? 0 : CANVAS_FIT_MS,
         minZoom: 0.12,
@@ -52,6 +56,6 @@ export function FitViewOnCanvas({ canvasKey }: { canvasKey: string }) {
       timers.forEach((id) => window.clearTimeout(id))
       ro?.disconnect()
     }
-  }, [fitView, getNodes, canvasKey])
+  }, [canvasKey])
   return null
 }

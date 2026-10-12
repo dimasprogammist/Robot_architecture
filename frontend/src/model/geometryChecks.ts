@@ -30,10 +30,12 @@ import { canonicalComponentId } from './canonical'
 import {
   collectPersistableNodeChanges,
   positionNeedsWrite,
+  reuseRfById,
   selectionIdsEqual,
   sizeNeedsWrite,
 } from './canvasNodeSync'
 import { Position } from '@xyflow/react'
+import { handleCenterOnNode, pickHandleRect } from './handleGeometry'
 
 function assert(cond: unknown, message: string) {
   if (!cond) throw new Error(message)
@@ -293,10 +295,15 @@ export function runGeometryChecks() {
   )
   assert(measured.sizes.length === 0, 'layout measurement is not persisted')
   const echoed = collectPersistableNodeChanges(
+    [{ type: 'position', id: 'n1', position: { x: 10, y: 20 } }],
+    false,
+  )
+  assert(echoed.positions.length === 0, 'StoreUpdater position echo is not persisted')
+  const dragged = collectPersistableNodeChanges(
     [{ type: 'position', id: 'n1', position: { x: 10, y: 20 }, dragging: false }],
     false,
   )
-  assert(echoed.positions.length === 1, 'position events are collected')
+  assert(dragged.positions.length === 1, 'user drag end is persisted')
   assert(!positionNeedsWrite({ x: 10, y: 20 }, { x: 10, y: 20 }), 'identical position is skipped')
   const liveResize = collectPersistableNodeChanges(
     [{ type: 'dimensions', id: 'n1', resizing: true, dimensions: { width: 220, height: 130 } }],
@@ -310,6 +317,30 @@ export function runGeometryChecks() {
   assert(finishResize.sizes.length === 1 && !finishResize.resizing, 'resize end is persisted once')
   assert(!sizeNeedsWrite({ width: 220, height: 130 }, { width: 220, height: 130 }), 'identical size is skipped')
   assert(selectionIdsEqual(['a'], ['a']) && !selectionIdsEqual(['a'], ['b']), 'selection compare')
+  assert(selectionIdsEqual(['a', 'b'], ['b', 'a']), 'selection is a set')
+  const reused = reuseRfById(
+    [{ id: 'n1', selected: false }],
+    [{ id: 'n1', selected: false }],
+    (a, b) => a.selected === b.selected,
+  )
+  assert(reused[0] === reused[0] && reused.length === 1, 'rf identity reuse')
+  const prevArr = [{ id: 'n1', selected: false }]
+  const sameArr = reuseRfById(prevArr, [{ id: 'n1', selected: false }], (a, b) => a.selected === b.selected)
+  assert(sameArr === prevArr, 'unchanged rf array keeps identity')
+
+  const handle = { id: 'right-src', x: 170, y: 28, width: 10, height: 10 }
+  const nodeLike = {
+    position: { x: 40, y: 80 },
+    internals: {
+      positionAbsolute: { x: 40, y: 80 },
+      handleBounds: { source: [handle], target: [{ id: 'left-tgt', x: -5, y: 28, width: 10, height: 10 }] },
+    },
+  }
+  const mark = handleCenterOnNode(nodeLike, 'right-src', 'source')
+  assert(mark !== null && mark.x === 40 + 170 + 5 && mark.y === 80 + 28 + 5, 'marker sits on handle center')
+  const lineGeom = { x: 40 + 180, y: 80 + 40 }
+  assert(mark !== null && (mark.x !== lineGeom.x || mark.y !== lineGeom.y), 'handle center is not line endpoint')
+  assert(pickHandleRect(nodeLike.internals.handleBounds, 'left-tgt', 'target')?.id === 'left-tgt', 'target handle pick')
 }
 
 runGeometryChecks()

@@ -6,7 +6,7 @@ module_title: C++
 module_order: 8
 order: 1
 ---
-![График](../pictures/___.svg)
+
 # Что такое C++
 
 ## Цель
@@ -38,7 +38,7 @@ C++ появился как развитие языка C.
 
 Например, на C++ можно написать:
 
-```cpp
+```C++
 #include <iostream>
 
 int main() {
@@ -77,7 +77,7 @@ C++ появился на основе языка C.
 
 В C и C++ оператор:
 
-```cpp
+```C++
 a++;
 ```
 
@@ -103,7 +103,7 @@ main.cpp
 
 Внутри находится исходный код:
 
-```cpp
+```C++
 #include <iostream>
 
 int main() {
@@ -209,7 +209,7 @@ print(name)
 
 В C++:
 
-```cpp
+```C++
 #include <iostream>
 #include <string>
 
@@ -228,7 +228,7 @@ int main() {
 
 Например:
 
-```cpp
+```C++
 int number = 10;
 ```
 
@@ -396,7 +396,7 @@ C++ заставляет хорошо понимать устройство пр
 
 Например:
 
-```cpp
+```C++
 #include <memory>
 
 int main() {

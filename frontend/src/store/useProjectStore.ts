@@ -257,7 +257,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   select: (ids, connectionId = null) => {
     const cur = get()
-    const sameIds = cur.selectedIds.length === ids.length && cur.selectedIds.every((id, i) => id === ids[i])
+    const sameIds =
+      cur.selectedIds.length === ids.length &&
+      (ids.length <= 1
+        ? cur.selectedIds[0] === ids[0]
+        : ids.every((id) => cur.selectedIds.includes(id)))
     if (sameIds && cur.selectedConnectionId === connectionId) return
     set({ selectedIds: ids, selectedConnectionId: connectionId })
   },
@@ -717,6 +721,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (!project) return ''
     const existing = project.architectures.find((a) => a.kind === kind && !a.parent_component_id)
     if (existing) {
+      const cur = get()
+      if (
+        cur.architectureId === existing.id &&
+        cur.selectedIds.length === 0 &&
+        cur.selectedConnectionId == null
+      ) {
+        return existing.id
+      }
       set({ architectureId: existing.id, selectedIds: [], selectedConnectionId: null })
       return existing.id
     }

@@ -9,11 +9,13 @@ import {
   ReactFlowProvider,
   SelectionMode,
   addEdge,
-  useReactFlow,
+  useStoreApi,
   type Connection,
   type EdgeChange,
+  type Node,
   type NodeChange,
   type OnConnect,
+  type OnSelectionChangeFunc,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { ArchNode, TableNode, PowerNode, LabeledEdge } from './nodes'
@@ -30,6 +32,7 @@ import { restoreConnectionHandles } from '../../model/connections'
 import {
   collectPersistableNodeChanges,
   positionNeedsWrite,
+  reuseRfById,
   selectionIdsEqual,
   sizeNeedsWrite,
 } from '../../model/canvasNodeSync'
@@ -46,6 +49,9 @@ const EDGE_MARKER = {
 
 const nodeTypes = { arch: ArchNode, table: TableNode, power: PowerNode }
 const edgeTypes = { labeled: LabeledEdge }
+const PAN_ON_DRAG: [number, number] = [1, 2]
+const MULTI_SELECTION_KEYS = ['Control', 'Meta']
+const RF_STYLE = { width: '100%', height: '100%' }
 
 export function ArchitectureCanvas() {
   return (
@@ -56,7 +62,7 @@ export function ArchitectureCanvas() {
 }
 
 function ArchitectureCanvasInner() {
-  const { screenToFlowPosition } = useReactFlow()
+  const storeApi = useStoreApi()
   const project = useProjectStore((s) => s.project)
   const architectureId = useProjectStore((s) => s.architectureId)
   const selectedIds = useProjectStore((s) => s.selectedIds)
@@ -76,6 +82,8 @@ function ArchitectureCanvasInner() {
   const connectingRef = useRef(false)
   const clickSelectRef = useRef(false)
   const resizingRef = useRef(false)
+  const linkFromRef = useRef<string | null>(null)
+  linkFromRef.current = linkFrom
 
   const canvasKind = project?.architectures.find((a) => a.id === architectureId)?.kind || 'system'
 
@@ -92,7 +100,7 @@ function ArchitectureCanvasInner() {
     return ids
   }, [project, architectureId, selectedIds])
 
-  const nodes = useMemo(() => {
+  const nodesRaw = useMemo(() => {
     if (!project || !architectureId) return []
     return project.components
       .filter((c) => c.architecture_id === architectureId)
@@ -119,7 +127,19 @@ function ArchitectureCanvasInner() {
       }))
   }, [project, architectureId, selectedIds, canvasKind, neighborIds])
 
-  const edges = useMemo(() => {
+  const nodesPrev = useRef<typeof nodesRaw>([])
+  const nodes = reuseRfById(nodesPrev.current, nodesRaw, (a, b) =>
+    a.selected === b.selected &&
+    a.className === b.className &&
+    a.type === b.type &&
+    a.position === b.position &&
+    ('width' in a ? a.width : undefined) === ('width' in b ? b.width : undefined) &&
+    ('height' in a ? a.height : undefined) === ('height' in b ? b.height : undefined) &&
+    a.data.component === b.data.component,
+  )
+  nodesPrev.current = nodes
+
+  const edgesRaw = useMemo(() => {
     if (!project || !architectureId) return []
     return project.connections
       .filter((c) => c.architecture_id === architectureId)
@@ -157,6 +177,26 @@ function ArchitectureCanvasInner() {
       }
       })
   }, [project, architectureId, selectedConnectionId, selectedIds, settings.theme, settings.show_edge_labels])
+
+  const edgesPrev = useRef<typeof edgesRaw>([])
+  const edges = reuseRfById(edgesPrev.current, edgesRaw, (a, b) =>
+    a.selected === b.selected &&
+    a.source === b.source &&
+    a.target === b.target &&
+    a.sourceHandle === b.sourceHandle &&
+    a.targetHandle === b.targetHandle &&
+    a.style?.stroke === b.style?.stroke &&
+    a.style?.strokeWidth === b.style?.strokeWidth &&
+    a.data?.label === b.data?.label &&
+    a.data?.kind === b.data?.kind &&
+    a.markerStart === b.markerStart,
+  )
+  edgesPrev.current = edges
+
+  const snapGrid = useMemo(
+    () => [settings.grid_size, settings.grid_size] as [number, number],
+    [settings.grid_size],
+  )
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -243,7 +283,13 @@ function ArchitectureCanvasInner() {
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
-      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY })
+      const { transform, domNode } = storeApi.getState()
+      const pane = domNode || (e.currentTarget as HTMLElement).querySelector('.react-flow')
+      const rect = pane?.getBoundingClientRect()
+      const [tx, ty, zoom] = transform
+      const position = rect
+        ? { x: (e.clientX - rect.left - tx) / zoom, y: (e.clientY - rect.top - ty) / zoom }
+        : { x: e.clientX, y: e.clientY }
       const sourceId = e.dataTransfer.getData('application/architecture-source')
       if (sourceId) {
         useProjectStore.getState().placeArchitectureOnPower(sourceId, position)
@@ -261,11 +307,109 @@ function ArchitectureCanvasInner() {
       if (!preset || preset.category === 'PROTOCOL') return
       addFromPreset(preset, position)
     },
-    [addFromPreset, screenToFlowPosition],
+    [addFromPreset, storeApi],
   )
 
+  const onConnectStart = useCallback(() => {
+    connectingRef.current = true
+  }, [])
+
+  const onConnectEnd = useCallback(() => {
+    connectingRef.current = false
+  }, [])
+
+  const onPaneClick = useCallback(() => {
+    select([])
+    setMenu(null)
+  }, [select])
+
+  const onNodeClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      const target = event.target as HTMLElement | null
+      if (target?.closest('.react-flow__handle')) return
+      if (connectingRef.current) return
+      const from = linkFrom
+      if (from && from !== node.id) {
+        connect(from, node.id)
+        setLinkFrom(null)
+        return
+      }
+      const additive = event.ctrlKey || event.metaKey
+      const current = useProjectStore.getState().selectedIds
+      clickSelectRef.current = true
+      window.requestAnimationFrame(() => {
+        clickSelectRef.current = false
+      })
+      if (additive) {
+        select(current.includes(node.id) ? current.filter((id) => id !== node.id) : [...current, node.id])
+      } else {
+        select([node.id])
+      }
+    },
+    [connect, linkFrom, select],
+  )
+
+  const onSelectionChange = useCallback<OnSelectionChangeFunc>(({ nodes: selectedNodes }) => {
+    if (connectingRef.current || linkFromRef.current) return
+    const ids = selectedNodes.map((n) => n.id)
+    if (!ids.length) return
+    const stored = useProjectStore.getState()
+    if (stored.selectedConnectionId && !clickSelectRef.current) return
+    if (clickSelectRef.current) {
+      if (stored.selectedIds.length > ids.length && ids.every((id) => stored.selectedIds.includes(id))) return
+    }
+    if (selectionIdsEqual(stored.selectedIds, ids)) return
+    stored.select(ids)
+  }, [])
+
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      const comp = useProjectStore.getState().project?.components.find((c) => c.id === node.id)
+      if (!comp) return
+      event.preventDefault()
+      setMenu({
+        x: event.clientX,
+        y: event.clientY,
+        id: node.id,
+        kind: comp.entity_kind === 'table' ? 'table' : 'arch',
+      })
+    },
+    [],
+  )
+
+  const onNodeDoubleClick = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      const comp = useProjectStore.getState().project?.components.find((c) => c.id === node.id)
+      const mechanicalSystem =
+        comp?.type === 'Механическая система' ||
+        comp?.type === 'Механический узел' ||
+        comp?.name === 'Механическая система'
+      if (!mechanicalSystem) {
+        select([node.id])
+        return
+      }
+      enterComponent(node.id)
+    },
+    [enterComponent, select],
+  )
+
+  const onEdgeClick = useCallback(
+    (_: React.MouseEvent, edge: { id: string }) => {
+      select([], edge.id)
+    },
+    [select],
+  )
+
+  const onMoveStart = useCallback((event: MouseEvent | TouchEvent | null) => {
+    if (event) cancelCanvasFit()
+  }, [])
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+  }, [])
+
   return (
-    <div className="canvas-wrap" onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
+    <div className="canvas-wrap" onDrop={onDrop} onDragOver={onDragOver}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -274,92 +418,31 @@ function ArchitectureCanvasInner() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onConnectStart={() => {
-          connectingRef.current = true
-        }}
-        onConnectEnd={() => {
-          connectingRef.current = false
-        }}
+        onConnectStart={onConnectStart}
+        onConnectEnd={onConnectEnd}
         connectionRadius={28}
-        onPaneClick={() => {
-          select([])
-          setMenu(null)
-        }}
-        onNodeClick={(event, node) => {
-          const target = event.target as HTMLElement | null
-          if (target?.closest('.react-flow__handle')) return
-          if (connectingRef.current) return
-          if (linkFrom && linkFrom !== node.id) {
-            connect(linkFrom, node.id)
-            setLinkFrom(null)
-            return
-          }
-          const additive = event.ctrlKey || event.metaKey
-          const current = useProjectStore.getState().selectedIds
-          clickSelectRef.current = true
-          window.requestAnimationFrame(() => {
-            clickSelectRef.current = false
-          })
-          if (additive) {
-            select(current.includes(node.id) ? current.filter((id) => id !== node.id) : [...current, node.id])
-          } else {
-            select([node.id])
-          }
-        }}
-        onSelectionChange={({ nodes: selectedNodes }) => {
-          if (connectingRef.current || linkFrom) return
-          const ids = selectedNodes.map((n) => n.id)
-          if (!ids.length) return
-          const stored = useProjectStore.getState().selectedIds
-          if (useProjectStore.getState().selectedConnectionId && !clickSelectRef.current) return
-          if (clickSelectRef.current) {
-            if (stored.length > ids.length && ids.every((id) => stored.includes(id))) return
-          }
-          if (selectionIdsEqual(stored, ids)) return
-          select(ids)
-        }}
-        onNodeContextMenu={(event, node) => {
-          const comp = project?.components.find((c) => c.id === node.id)
-          if (!comp) return
-          event.preventDefault()
-          setMenu({
-            x: event.clientX,
-            y: event.clientY,
-            id: node.id,
-            kind: comp.entity_kind === 'table' ? 'table' : 'arch',
-          })
-        }}
-        onNodeDoubleClick={(_, node) => {
-          const comp = project?.components.find((c) => c.id === node.id)
-          const mechanicalSystem =
-            comp?.type === 'Механическая система' ||
-            comp?.type === 'Механический узел' ||
-            comp?.name === 'Механическая система'
-          if (!mechanicalSystem) {
-            select([node.id])
-            return
-          }
-          enterComponent(node.id)
-        }}
-        onEdgeClick={(_, edge) => select([], edge.id)}
+        onPaneClick={onPaneClick}
+        onNodeClick={onNodeClick}
+        onSelectionChange={onSelectionChange}
+        onNodeContextMenu={onNodeContextMenu}
+        onNodeDoubleClick={onNodeDoubleClick}
+        onEdgeClick={onEdgeClick}
         connectionMode={ConnectionMode.Loose}
         connectOnClick
         nodesConnectable
         selectNodesOnDrag={false}
         snapToGrid={settings.snap_to_grid}
-        snapGrid={[settings.grid_size, settings.grid_size]}
-        style={{ width: '100%', height: '100%' }}
+        snapGrid={snapGrid}
+        style={RF_STYLE}
         deleteKeyCode={null}
-        multiSelectionKeyCode={['Control', 'Meta']}
+        multiSelectionKeyCode={MULTI_SELECTION_KEYS}
         selectionMode={SelectionMode.Partial}
         panOnScroll
         selectionOnDrag
-        panOnDrag={[1, 2]}
+        panOnDrag={PAN_ON_DRAG}
         noPanClassName="nopan"
         noDragClassName="nodrag"
-        onMoveStart={(event) => {
-          if (event) cancelCanvasFit()
-        }}
+        onMoveStart={onMoveStart}
       >
         <FitViewOnCanvas canvasKey={`${project?.id || ''}:${architectureId || canvasKind}`} />
         {settings.show_grid ? (

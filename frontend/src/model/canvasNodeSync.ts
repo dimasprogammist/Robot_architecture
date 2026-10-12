@@ -13,7 +13,9 @@ function sameNumber(a: number, b: number) {
  * events back into Zustand clones the project, rebuilds `nodes`, and loops
  * until "Maximum update depth exceeded".
  *
- * Persist positions only when coordinates actually change.
+ * Persist positions only for a real user drag (`dragging` true/false).
+ * StoreUpdater's setNodes echo sends position with `dragging` undefined —
+ * writing those back clones Zustand, rebuilds `nodes`, and loops.
  * Persist dimensions only while the user is resizing (NodeResizer), never
  * for implicit layout measurement (`resizing` is undefined).
  */
@@ -28,6 +30,7 @@ export function collectPersistableNodeChanges(changes: NodeChange[], wasResizing
 
   for (const change of changes) {
     if (change.type === 'position' && change.position) {
+      if (change.dragging !== true && change.dragging !== false) continue
       positions.push({
         id: change.id,
         x: change.position.x,
@@ -70,5 +73,27 @@ export function sizeNeedsWrite(
 }
 
 export function selectionIdsEqual(a: string[], b: string[]) {
-  return a.length === b.length && a.every((id, i) => id === b[i])
+  if (a.length !== b.length) return false
+  if (a.length <= 1) return a[0] === b[0]
+  const other = new Set(b)
+  return a.every((id) => other.has(id))
+}
+
+export function reuseRfById<T extends { id: string }>(
+  prev: T[] | undefined,
+  next: T[],
+  same: (a: T, b: T) => boolean,
+): T[] {
+  if (!prev) return next
+  if (prev === next) return prev
+  if (prev.length !== next.length) return next
+  let changed = false
+  const out = next.map((item, i) => {
+    const old = prev[i]?.id === item.id ? prev[i] : prev.find((p) => p.id === item.id)
+    if (old && same(old, item)) return old
+    changed = true
+    return item
+  })
+  if (!changed && prev.every((p, i) => p.id === out[i].id)) return prev
+  return out
 }

@@ -2,6 +2,7 @@
 // together by ArchitectureCanvas — kept in one file since each is only a
 // few lines and they only ever make sense alongside one another.
 
+import { useCallback } from 'react'
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -9,11 +10,14 @@ import {
   Handle,
   NodeResizer,
   Position,
+  useStore,
   type Edge,
   type EdgeProps,
   type Node,
   type NodeProps,
+  type ReactFlowState,
 } from '@xyflow/react'
+import { handleCenterOnNode, samePoint, type InternalNodeLike } from '../../model/handleGeometry'
 import { FileText, KeyRound, Layers2 } from 'lucide-react'
 import { TypeIcon } from '../TypeIcon'
 import { useProjectStore } from '../../store/useProjectStore'
@@ -22,6 +26,9 @@ import { catalogLook, presetColor } from '../../model/library'
 import { clampStripeWidth, typeDefaultSize } from '../../model/cardSize'
 import { handleOffsetStyle, labelOffsetStyle, matchTerminal, rfTerminalHandleIds, terminalClass, terminalTooltip, terminalsFor } from '../../model/terminals'
 import type { Component, LibraryPreset } from '../../types'
+
+const EMPTY_PRESETS: LibraryPreset[] = []
+const EMPTY_LINKS: { source: string; target: string; source_handle?: string; target_handle?: string }[] = []
 
 const ARCH_SIDES = [Position.Top, Position.Right, Position.Bottom, Position.Left] as const
 
@@ -116,7 +123,7 @@ function stripeStyle(c: Component, presets: LibraryPreset[]) {
 }
 
 export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
-  const presets = useProjectStore((s) => s.project?.library_presets || [])
+  const presets = useProjectStore((s) => s.project?.library_presets ?? EMPTY_PRESETS)
   if (!data?.component) return null
   const c = catalogLook(data.component, presets)
   const extra = nodeExtra(c)
@@ -158,8 +165,8 @@ export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
 export type PowerRFNode = Node<ArchNodeData, 'power'>
 
 export function PowerNode({ data, selected }: NodeProps<PowerRFNode>) {
-  const presets = useProjectStore((s) => s.project?.library_presets || [])
-  const connections = useProjectStore((s) => s.project?.connections || [])
+  const presets = useProjectStore((s) => s.project?.library_presets ?? EMPTY_PRESETS)
+  const connections = useProjectStore((s) => s.project?.connections ?? EMPTY_LINKS)
   if (!data?.component) return null
   const c = catalogLook(data.component, presets)
   const category = c.category || 'OTHER'
@@ -285,6 +292,8 @@ export type LabeledRFEdge = Edge<LabeledEdgeData, 'labeled'>
 
 export function LabeledEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -297,6 +306,34 @@ export function LabeledEdge({
   style,
   selected,
 }: EdgeProps<LabeledRFEdge>) {
+  const sourceMark = useStore(
+    useCallback(
+      (s: ReactFlowState) => {
+        const edge = s.edgeLookup.get(id)
+        return handleCenterOnNode(
+          s.nodeLookup.get(source) as InternalNodeLike | undefined,
+          edge?.sourceHandle,
+          'source',
+        )
+      },
+      [id, source],
+    ),
+    samePoint,
+  )
+  const targetMark = useStore(
+    useCallback(
+      (s: ReactFlowState) => {
+        const edge = s.edgeLookup.get(id)
+        return handleCenterOnNode(
+          s.nodeLookup.get(target) as InternalNodeLike | undefined,
+          edge?.targetHandle,
+          'target',
+        )
+      },
+      [id, target],
+    ),
+    samePoint,
+  )
   const [path, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -309,19 +346,19 @@ export function LabeledEdge({
   return (
     <>
       <BaseEdge id={id} path={path} markerEnd={markerEnd} markerStart={markerStart} style={style} />
-      {selected ? (
+      {selected && sourceMark && targetMark ? (
         <g className="edge-ends" pointerEvents="none">
           <circle
             className="edge-end-mark"
-            cx={sourceX}
-            cy={sourceY}
+            cx={sourceMark.x}
+            cy={sourceMark.y}
             r={6}
             vectorEffect="non-scaling-stroke"
           />
           <circle
             className="edge-end-mark"
-            cx={targetX}
-            cy={targetY}
+            cx={targetMark.x}
+            cy={targetMark.y}
             r={6}
             vectorEffect="non-scaling-stroke"
           />
