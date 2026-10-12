@@ -1,7 +1,8 @@
-from app.domain.math_tasks import MATH_ITEMS
 from __future__ import annotations
+
 from typing import Any
 from app.domain.exercises_catalog import _choice, _code, _multi, _sql, _text
+from app.domain.math_tasks import MATH_ITEMS
 
 SHOP = """
 CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, price INTEGER);
