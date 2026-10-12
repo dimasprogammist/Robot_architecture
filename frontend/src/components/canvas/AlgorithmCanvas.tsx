@@ -4,6 +4,7 @@ import {
   BackgroundVariant,
   Controls,
   Handle,
+  MarkerType,
   Position,
   ReactFlow,
   ReactFlowProvider,
@@ -16,6 +17,19 @@ import { useProjectStore } from '../../store/useProjectStore'
 import { uid } from '../../lib/ids'
 import { FitViewOnCanvas } from './FitViewOnCanvas'
 import { cancelCanvasFit } from '../../model/canvasMotion'
+import {
+  collectPersistableNodeChanges,
+  positionNeedsWrite,
+  selectionIdsEqual,
+} from '../../model/canvasNodeSync'
+
+const EDGE_MARKER = {
+  type: MarkerType.ArrowClosed,
+  width: 18,
+  height: 18,
+  strokeWidth: 1.4,
+  markerUnits: 'userSpaceOnUse',
+} as const
 
 const KINDS = [
   { id: 'start', label: 'Начало' },
@@ -96,7 +110,7 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
         sourceHandle: e.label === 'нет' ? 'no' : e.label === 'да' ? 'yes' : undefined,
         label: e.label,
         selected: selectedIds.length === 0 ? false : selectedIds.includes(e.source) && selectedIds.includes(e.target),
-        markerEnd: { type: 'arrowclosed' as const },
+        markerEnd: EDGE_MARKER,
         style:
           selectedIds.includes(e.source) || selectedIds.includes(e.target)
             ? { strokeWidth: 2.4 }
@@ -159,30 +173,32 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
             const ids = picked.map((n) => n.id)
             if (!ids.length) return
             if (clickSelectRef.current) {
-              const stored = selectedIds
-              if (stored.length > ids.length && ids.every((id) => stored.includes(id))) return
+              if (selectedIds.length > ids.length && ids.every((id) => selectedIds.includes(id))) return
             }
-            setSelectedIds(ids)
+            setSelectedIds((current) => (selectionIdsEqual(current, ids) ? current : ids))
           }}
           onPaneClick={() => setSelectedIds([])}
           onNodesChange={(changes: NodeChange[]) => {
-            const moved = changes.filter((c): c is Extract<NodeChange, { type: 'position' }> => c.type === 'position' && Boolean(c.position))
+            const collected = collectPersistableNodeChanges(changes, false)
             const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)
+            const moved = collected.positions.filter((c) => {
+              const node = algorithm.canvas_nodes.find((n) => n.id === c.id)
+              return node && positionNeedsWrite(node.position, c)
+            })
             if (!moved.length && !removed.length) return
-            patchNodes(
-              algorithm.canvas_nodes
-                .filter((n) => !removed.includes(n.id))
-                .map((n) => {
-                  const ch = moved.find((c) => c.id === n.id)
-                  return ch?.position ? { ...n, position: ch.position } : n
-                }),
-            )
             if (removed.length) {
               updateAlgorithm(algorithm.id, {
                 canvas_nodes: algorithm.canvas_nodes.filter((n) => !removed.includes(n.id)),
                 canvas_edges: algorithm.canvas_edges.filter((e) => !removed.includes(e.source) && !removed.includes(e.target)),
               })
+              return
             }
+            patchNodes(
+              algorithm.canvas_nodes.map((n) => {
+                const ch = moved.find((c) => c.id === n.id)
+                return ch ? { ...n, position: { x: ch.x, y: ch.y } } : n
+              }),
+            )
           }}
           onEdgesChange={(changes) => {
             const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)

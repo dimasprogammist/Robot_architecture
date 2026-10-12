@@ -311,8 +311,20 @@ export function LabeledEdge({
       <BaseEdge id={id} path={path} markerEnd={markerEnd} markerStart={markerStart} style={style} />
       {selected ? (
         <g className="edge-ends" pointerEvents="none">
-          <circle className="edge-end-mark" cx={sourceX} cy={sourceY} r={7} />
-          <circle className="edge-end-mark" cx={targetX} cy={targetY} r={7} />
+          <circle
+            className="edge-end-mark"
+            cx={sourceX}
+            cy={sourceY}
+            r={6}
+            vectorEffect="non-scaling-stroke"
+          />
+          <circle
+            className="edge-end-mark"
+            cx={targetX}
+            cy={targetY}
+            r={6}
+            vectorEffect="non-scaling-stroke"
+          />
         </g>
       ) : null}
       {label ? (

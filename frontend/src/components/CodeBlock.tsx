@@ -12,8 +12,9 @@ export function CodeBlock({
   const [copied, setCopied] = useState(false)
   const resolved = normalizeLang(lang)
   const diagram = isDiagramCode(code, lang)
+  const plainText = resolved === 'text' && !diagram
   const lines = code.length ? code.split('\n') : ['']
-  const highlighted = diagram ? [code] : highlightCode(code, resolved)
+  const highlighted = diagram || plainText ? [code] : highlightCode(code, resolved)
 
   const copy = async () => {
     try {
@@ -32,13 +33,15 @@ export function CodeBlock({
   }
 
   return (
-    <div className={`code-card ${diagram ? 'is-diagram' : ''}`}>
+    <div className={`code-card ${diagram ? 'is-diagram' : ''} ${plainText ? 'is-text' : ''}`}>
       <div className="code-card-bar">
-        <span className="code-dots" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </span>
+        {plainText ? null : (
+          <span className="code-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
         <span className="code-card-lang">{diagram ? 'схема' : resolved === 'text' ? '' : resolved}</span>
         <button
           className="code-copy"
@@ -52,11 +55,13 @@ export function CodeBlock({
         </button>
       </div>
       <div className="code-card-body">
-        <ol className="code-gutter" aria-hidden="true">
-          {lines.map((_, i) => (
-            <li key={i}>{i + 1}</li>
-          ))}
-        </ol>
+        {plainText ? null : (
+          <ol className="code-gutter" aria-hidden="true">
+            {lines.map((_, i) => (
+              <li key={i}>{i + 1}</li>
+            ))}
+          </ol>
+        )}
         <pre className="code-pre">
           <code>{highlighted}</code>
         </pre>

@@ -27,6 +27,12 @@ import { nodeColor, pointOnNode } from './minimapGeometry'
 import { resolvedPins } from './controllerPins'
 import { definitionFor, groupedComponentFields } from './componentCatalog'
 import { canonicalComponentId } from './canonical'
+import {
+  collectPersistableNodeChanges,
+  positionNeedsWrite,
+  selectionIdsEqual,
+  sizeNeedsWrite,
+} from './canvasNodeSync'
 import { Position } from '@xyflow/react'
 
 function assert(cond: unknown, message: string) {
@@ -280,6 +286,30 @@ export function runGeometryChecks() {
   const viewId = ensurePowerView(p as never, sid as string)
   assert(viewId === 'pwr-uno', 'existing power view reused')
   assert(canonicalComponentId(p as never, 'pwr-uno') === sid, 'power view canonical id is architecture source')
+
+  const measured = collectPersistableNodeChanges(
+    [{ type: 'dimensions', id: 'n1', dimensions: { width: 200, height: 120 } }],
+    false,
+  )
+  assert(measured.sizes.length === 0, 'layout measurement is not persisted')
+  const echoed = collectPersistableNodeChanges(
+    [{ type: 'position', id: 'n1', position: { x: 10, y: 20 }, dragging: false }],
+    false,
+  )
+  assert(echoed.positions.length === 1, 'position events are collected')
+  assert(!positionNeedsWrite({ x: 10, y: 20 }, { x: 10, y: 20 }), 'identical position is skipped')
+  const liveResize = collectPersistableNodeChanges(
+    [{ type: 'dimensions', id: 'n1', resizing: true, dimensions: { width: 220, height: 130 } }],
+    false,
+  )
+  assert(liveResize.sizes.length === 1 && liveResize.resizing, 'user resize is persisted')
+  const finishResize = collectPersistableNodeChanges(
+    [{ type: 'dimensions', id: 'n1', resizing: false, dimensions: { width: 220, height: 130 } }],
+    true,
+  )
+  assert(finishResize.sizes.length === 1 && !finishResize.resizing, 'resize end is persisted once')
+  assert(!sizeNeedsWrite({ width: 220, height: 130 }, { width: 220, height: 130 }), 'identical size is skipped')
+  assert(selectionIdsEqual(['a'], ['a']) && !selectionIdsEqual(['a'], ['b']), 'selection compare')
 }
 
 runGeometryChecks()

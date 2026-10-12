@@ -161,7 +161,13 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
               ))}
             </section>
           ) : null}
-          <p className="hint">Протокол задаётся на стрелке между компонентами.</p>
+          {filter === 'power' ? null : (
+            <p className="hint">
+              {filter === 'table'
+                ? 'Зависимости между таблицами указаны на стрелке.'
+                : 'Протокол задаётся на стрелке между компонентами.'}
+            </p>
+          )}
         </aside>
       )}
     </>

@@ -4,6 +4,7 @@ import {
   BackgroundVariant,
   ConnectionMode,
   Controls,
+  MarkerType,
   ReactFlow,
   ReactFlowProvider,
   SelectionMode,
@@ -26,8 +27,22 @@ import { SchemeMiniMap } from './SchemeMiniMap'
 import { FitViewOnCanvas } from './FitViewOnCanvas'
 import { cancelCanvasFit } from '../../model/canvasMotion'
 import { restoreConnectionHandles } from '../../model/connections'
+import {
+  collectPersistableNodeChanges,
+  positionNeedsWrite,
+  selectionIdsEqual,
+  sizeNeedsWrite,
+} from '../../model/canvasNodeSync'
 import { uid } from '../../lib/ids'
 import type { LibraryPreset } from '../../types'
+
+const EDGE_MARKER = {
+  type: MarkerType.ArrowClosed,
+  width: 18,
+  height: 18,
+  strokeWidth: 1.4,
+  markerUnits: 'userSpaceOnUse',
+} as const
 
 const nodeTypes = { arch: ArchNode, table: TableNode, power: PowerNode }
 const edgeTypes = { labeled: LabeledEdge }
@@ -60,6 +75,7 @@ function ArchitectureCanvasInner() {
   const [linkFrom, setLinkFrom] = useState<string | null>(null)
   const connectingRef = useRef(false)
   const clickSelectRef = useRef(false)
+  const resizingRef = useRef(false)
 
   const canvasKind = project?.architectures.find((a) => a.id === architectureId)?.kind || 'system'
 
@@ -118,8 +134,8 @@ function ArchitectureCanvasInner() {
         ...restoreConnectionHandles(c),
         type: 'labeled' as const,
         selected: selectedConnectionId === c.id,
-        markerEnd: { type: 'arrowclosed' as const, width: 18, height: 18, strokeWidth: 1.4 },
-        markerStart: c.direction === 'bidirectional' ? { type: 'arrowclosed' as const, width: 18, height: 18, strokeWidth: 1.4 } : undefined,
+        markerEnd: EDGE_MARKER,
+        markerStart: c.direction === 'bidirectional' ? EDGE_MARKER : undefined,
         style: {
           stroke: protocolColor(
             c.protocol_name,
@@ -144,52 +160,56 @@ function ArchitectureCanvasInner() {
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      const pos = changes.filter((c) => c.type === 'position' && 'position' in c && c.position)
-      const dims = changes.filter(
-        (c) =>
-          c.type === 'dimensions' &&
-          'dimensions' in c &&
-          c.dimensions &&
-          'resizing' in c &&
-          c.resizing !== undefined,
-      )
-      if (connectingRef.current) {
-        if (!pos.length) return
-      }
+      const collected = collectPersistableNodeChanges(changes, resizingRef.current)
+      resizingRef.current = collected.resizing
+      const pos = connectingRef.current
+        ? collected.positions.filter((c) => c.dragging)
+        : collected.positions
+      const dims = connectingRef.current ? [] : collected.sizes
       if (!pos.length && !dims.length) return
+      const project = useProjectStore.getState().project
+      if (!project) return
+      const writes: { id: string; position?: { x: number; y: number }; width?: number; height?: number }[] = []
+      for (const c of pos) {
+        const node = project.components.find((x) => x.id === c.id)
+        if (!node || !positionNeedsWrite(node.position, c)) continue
+        writes.push({ id: c.id, position: { x: c.x, y: c.y } })
+      }
+      for (const c of dims) {
+        const node = project.components.find((x) => x.id === c.id)
+        if (!node) continue
+        const size = clampCardSize(node, c.width, c.height)
+        if (!sizeNeedsWrite(node, size)) continue
+        writes.push({ id: c.id, width: size.width, height: size.height })
+      }
+      if (!writes.length) return
       mutate((p) => {
-        for (const c of pos) {
-          if (c.type !== 'position' || !c.position) continue
-          const node = p.components.find((x) => x.id === c.id)
-          if (node) node.position = { x: c.position.x, y: c.position.y }
-        }
-        if (connectingRef.current) return
-        for (const c of dims) {
-          if (c.type !== 'dimensions' || !c.dimensions) continue
-          const node = p.components.find((x) => x.id === c.id)
+        for (const write of writes) {
+          const node = p.components.find((x) => x.id === write.id)
           if (!node) continue
-          const size = clampCardSize(node, c.dimensions.width, c.dimensions.height)
-          node.width = size.width
-          node.height = size.height
+          if (write.position) node.position = write.position
+          if (write.width !== undefined) node.width = write.width
+          if (write.height !== undefined) node.height = write.height
         }
-      }, { history: pos.some((c) => c.type === 'position' && c.dragging === false) || dims.some((c) => c.type === 'dimensions' && c.resizing === false) })
+      }, {
+        history:
+          pos.some((c) => c.dragging === false) ||
+          (dims.length > 0 && !collected.resizing),
+      })
     },
     [mutate],
   )
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
-      const sel = changes.find((c) => c.type === 'select' && c.selected)
-      if (sel && sel.type === 'select') select([], sel.id)
       const removed = changes.filter((c) => c.type === 'remove')
-      if (removed.length) {
-        mutate((p) => {
-          const drop = new Set(removed.map((c) => c.id))
-          p.connections = p.connections.filter((e) => !drop.has(e.id))
-        })
-      }
+      if (!removed.length) return
+      mutate((p) => {
+        const drop = new Set(removed.map((c) => c.id))
+        p.connections = p.connections.filter((e) => !drop.has(e.id))
+      })
     },
-    [mutate, select],
+    [mutate],
   )
 
   const onConnect: OnConnect = useCallback(
@@ -290,10 +310,12 @@ function ArchitectureCanvasInner() {
           if (connectingRef.current || linkFrom) return
           const ids = selectedNodes.map((n) => n.id)
           if (!ids.length) return
+          const stored = useProjectStore.getState().selectedIds
+          if (useProjectStore.getState().selectedConnectionId && !clickSelectRef.current) return
           if (clickSelectRef.current) {
-            const stored = useProjectStore.getState().selectedIds
             if (stored.length > ids.length && ids.every((id) => stored.includes(id))) return
           }
+          if (selectionIdsEqual(stored, ids)) return
           select(ids)
         }}
         onNodeContextMenu={(event, node) => {

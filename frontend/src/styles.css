@@ -1956,7 +1956,7 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
   padding: 0;
   list-style: none;
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.55;
   color: var(--code-gutter);
   text-align: right;
@@ -1970,11 +1970,21 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
 
 .code-pre code {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.55;
   display: block;
   white-space: pre;
   color: var(--code-text);
+}
+
+.code-card.is-text .code-card-body {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 12px 16px 16px;
+}
+
+.code-card.is-text .code-pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .code-editor-card {
@@ -1989,7 +1999,7 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
 .code-editor-highlight,
 .code-editor-input {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.55;
   tab-size: 4;
   white-space: pre;
@@ -2018,6 +2028,19 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
   overflow: auto;
 }
 
+.field .code-editor-input,
+.field .code-editor-input:hover,
+.field .code-editor-input:focus,
+.field .code-editor-input:focus-visible {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  min-height: 0;
+  border-radius: 0;
+  padding: 4px 16px 16px;
+}
+
 .tok-kw {
   color: var(--code-kw);
   font-weight: 600;
@@ -2043,9 +2066,10 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
 }
 
 .edge-end-mark {
-  fill: transparent;
+  fill: none;
   stroke: var(--danger);
   stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 /* ---------- Learning ---------- */
