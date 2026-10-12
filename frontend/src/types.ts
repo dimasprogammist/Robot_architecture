@@ -295,6 +295,7 @@ export interface Requirement {
   connection_ids: string[]
   notes: string
   priority: string
+  starred?: boolean
 }
 
 export interface Document {
@@ -409,6 +410,44 @@ export interface MechanicsModel {
   load_lever: number | null
   show_axes: boolean
   show_dims: boolean
+  task?: 'diff' | 'diff4' | 'linear' | 'arm2r' | 'custom' | 'drone'
+  workspace?: { width: number; height: number; grid: number }
+  obstacles?: {
+    id: string
+    kind: 'line' | 'rect' | 'circle'
+    name: string
+    x: number
+    y: number
+    x2: number
+    y2: number
+    width: number
+    height: number
+    theta: number
+    thickness: number
+    z_height?: number
+  }[]
+  waypoints?: { id: string; role: 'start' | 'goal' | 'via'; x: number; y: number; theta: number }[]
+  path?: {
+    points: { x: number; y: number }[]
+    source: 'waypoints' | 'astar'
+    stale: boolean
+    collision_obstacle_id: string | null
+    collision_index: number | null
+    length: number | null
+  } | null
+  motion?: {
+    v: number | null
+    w: number | null
+    acc: number | null
+    dec: number | null
+    v_max: number | null
+    w_max: number | null
+    stale: boolean
+    altitude?: number | null
+  }
+  encoder_left?: number | null
+  encoder_right?: number | null
+  included_component_ids?: string[]
 }
 
 export interface ProjectSummary {

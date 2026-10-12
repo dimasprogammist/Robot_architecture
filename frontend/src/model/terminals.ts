@@ -1,5 +1,7 @@
 import { Position } from '@xyflow/react'
 import type { Component } from '../types'
+import { resolvedPins } from './controllerPins'
+import { extraMap, extraValue } from './extraFields'
 
 export type TerminalKind =
   | 'plus'
@@ -122,8 +124,8 @@ export function rfTerminalHandleIds(termId: string) {
   return { source: `${termId}-src`, target: `${termId}-tgt` }
 }
 
-function clampCount(raw: string | undefined, fallback: number, max = 16) {
-  const n = Number.parseInt(raw || '', 10)
+function clampCount(raw: unknown, fallback: number, max = 16) {
+  const n = Number.parseInt(raw == null ? '' : String(raw), 10)
   if (!Number.isFinite(n)) return fallback
   return Math.min(max, Math.max(1, n))
 }
@@ -132,13 +134,25 @@ function keyOf(component: Pick<Component, 'type' | 'name' | 'category'>) {
   return `${component.type} ${component.name}`.toLowerCase()
 }
 
+function ioTerminals(pins: { di: number; do: number; ai: number; ao: number }): TerminalDef[] {
+  const out: TerminalDef[] = []
+  for (let i = 1; i <= pins.di; i++) out.push(t(`di-${i}`, `DI${i}`, 'di', Position.Left))
+  for (let i = 1; i <= pins.do; i++) out.push(t(`do-${i}`, `DO${i}`, 'do', Position.Right))
+  for (let i = 1; i <= pins.ai; i++) out.push(t(`ai-${i}`, `AI${i}`, 'ai', Position.Left))
+  for (let i = 1; i <= pins.ao; i++) out.push(t(`ao-${i}`, `AO${i}`, 'ao', Position.Right))
+  return out
+}
+
 export function terminalsFor(component: Pick<Component, 'type' | 'name' | 'category' | 'extra_fields'>): TerminalDef[] {
   return distributeTerminals(buildTerminals(component))
 }
 
 function buildTerminals(component: Pick<Component, 'type' | 'name' | 'category' | 'extra_fields'>): TerminalDef[] {
+  if (component.category === 'MECHANICS' || component.category === 'SOFTWARE' || component.category === 'DATA') {
+    return []
+  }
   const key = keyOf(component)
-  const extra = component.extra_fields || {}
+  const extra = extraMap(component.extra_fields || {})
 
   if (/клеммник/.test(key)) {
     const inputs = clampCount(extra.terminal_inputs, 2)
@@ -229,16 +243,13 @@ function buildTerminals(component: Pick<Component, 'type' | 'name' | 'category' 
     return motorTerminals(component, extra)
   }
 
-  if (/плк/.test(key)) {
+  if (/плк/.test(key) || component.type === 'ПЛК') {
+    const pins = resolvedPins(component)
     return [
       t('lplus', 'L+', 'plus', Position.Top),
       t('m', 'M', 'minus', Position.Bottom),
       t('pe', 'PE', 'pe', Position.Bottom),
-      t('di0', 'DI0', 'di', Position.Left),
-      t('di1', 'DI1', 'di', Position.Left),
-      t('do0', 'DO0', 'do', Position.Right),
-      t('ai0', 'AI0', 'ai', Position.Left),
-      t('ao0', 'AO0', 'ao', Position.Right),
+      ...ioTerminals(pins),
     ]
   }
 
@@ -274,17 +285,16 @@ function buildTerminals(component: Pick<Component, 'type' | 'name' | 'category' 
   }
 
   if (/arduino|stm32|esp32|mcu/.test(key) || component.type === 'MCU') {
+    const pins = resolvedPins(component)
     return [
       t('vcc', '5V', 'plus', Position.Top),
       t('gnd', 'GND', 'gnd', Position.Bottom),
       t('vin', 'VIN', 'vin', Position.Top),
-      t('d2', 'D2', 'di', Position.Right, { role: 'DI/DO' }),
-      t('d3', 'D3', 'do', Position.Right),
-      t('a0', 'A0', 'ai', Position.Left),
       t('tx', 'TX', 'tx', Position.Right),
       t('rx', 'RX', 'rx', Position.Left),
       t('sda', 'SDA', 'sda', Position.Bottom),
       t('scl', 'SCL', 'scl', Position.Bottom),
+      ...ioTerminals(pins),
     ]
   }
 
@@ -292,7 +302,7 @@ function buildTerminals(component: Pick<Component, 'type' | 'name' | 'category' 
     return [
       t('vcc', 'Vcc', 'plus', Position.Top),
       t('gnd', 'GND', 'gnd', Position.Bottom),
-      t('sig', 'S', 'ao', Position.Right, { role: 'сигнал', signal: extra.signal_type === 'дискретный' ? 'DO' : extra.signal_type === 'ШИМ' ? 'PWM' : 'AI' }),
+      t('sig', 'S', 'ao', Position.Right, { role: 'сигнал', signal: extraValue(extra, 'signal_type') === 'дискретный' ? 'DO' : extraValue(extra, 'signal_type') === 'ШИМ' ? 'PWM' : 'AI' }),
     ]
   }
 
@@ -312,6 +322,10 @@ export function handleOffsetStyle(term: TerminalDef): { top?: string; left?: str
   const value = `${term.offset}%`
   if (term.position === Position.Left || term.position === Position.Right) return { top: value }
   return { left: value }
+}
+
+export function labelOffsetStyle(term: TerminalDef): { top?: string; left?: string } {
+  return handleOffsetStyle(term)
 }
 
 export function terminalAnchor(term: TerminalDef, size: { width: number; height: number }) {

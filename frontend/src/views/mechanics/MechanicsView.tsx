@@ -1,18 +1,28 @@
-import { useEffect, useRef, useState } from 'react'
-import { Pause, Play, RotateCcw, Square } from 'lucide-react'
-import { Toggle } from '../../components/Toggle'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { createElement } from '../../model/mechanics/catalog'
-import { ensureMechanics, makeJoint, removeElement } from '../../model/mechanics/factory'
-import { clampJoint, numParam, solvePoses } from '../../model/mechanics/geometry'
-import { inverse2R, findSerial2R, findDiffPlatform } from '../../model/mechanics/kinematics'
-import { mmToM } from '../../model/mechanics/units'
+import { fliesOverObstacle, obstacleHit } from '../../model/mechanics/collision'
+import { applyTemplate, commitPath, ensureMechanics, makeJoint, markPathStale, orderedWaypoints, removeElement } from '../../model/mechanics/factory'
+import { planAStar } from '../../model/mechanics/astar'
+import { motionAt, pathLength, pointAlong, travelTime } from '../../model/mechanics/motion'
+import { blockedReason, canEnterStep, continueFrom, flightParams, robotInflate, stageList } from '../../model/mechanics/stages'
+import { numParam } from '../../model/mechanics/geometry'
+import { animateView, fitPointView, fitWorkspaceView } from '../../model/mechanics/units'
+import { CANVAS_FIT_MS, shouldReduceMotion } from '../../model/canvasMotion'
 import { createJointError } from '../../model/mechanics/validate'
-import type { MechJointKind, MechMode, MechanicsModel } from '../../model/mechanics/types'
+import type { KinStageId, KinTaskKind, MechCanvasTool, MechJointKind, MechanicsModel } from '../../model/mechanics/types'
 import { useProjectStore } from '../../store/useProjectStore'
-import { MechanicsCanvas, eeWorld } from './MechanicsCanvas'
-import { MechanicsInspector } from './MechanicsInspector'
-import { MechanicsLibrary } from './MechanicsLibrary'
-import { MechanicsResults } from './MechanicsResults'
+import { useUiStore } from '../../store/useUiStore'
+import { MechanicsCanvas } from './MechanicsCanvas'
+import { MechanicsSidebar } from './MechanicsSidebar'
+
+const STEP_LABEL: Record<KinStageId, string> = {
+  robot: 'Робот',
+  mass: 'Масса',
+  map: 'Карта',
+  path: 'Маршрут',
+  motion: 'Движение',
+  check: 'Проверка',
+}
 
 export function MechanicsView() {
   const project = useProjectStore((s) => s.project)!
@@ -25,24 +35,75 @@ export function MechanicsView() {
   const model = ensureMechanics(project.mechanics)
   const selectedId = selectedIds[0] || null
   const selected = model.elements.find((e) => e.id === selectedId) || null
-  const selectedJoint = model.joints.find((j) => j.id === selectedId) || model.joints.find((j) => j.child_id === selectedId) || null
+  const selectedObstacle = model.obstacles.find((o) => o.id === selectedId) || null
+  const selectedWaypoint = model.waypoints.find((w) => w.id === selectedId) || null
 
-  const [mode, setMode] = useState<MechMode>('constructor')
-  const [query, setQuery] = useState('')
+  const [step, setStep] = useState<KinStageId>('robot')
   const [connectKind, setConnectKind] = useState<MechJointKind | null>(null)
   const [connectFrom, setConnectFrom] = useState<{ elementId: string; anchorId: string } | null>(null)
-  const [pan, setPan] = useState({ x: 280, y: 260 })
+  const [canvasTool, setCanvasTool] = useState<MechCanvasTool>('select')
+  const [pan, setPan] = useState({ x: 80, y: 420 })
   const [zoom, setZoom] = useState(1)
-  const [resultTab, setResultTab] = useState<'mech' | 'kin' | 'move' | 'issues'>('kin')
-  const [collapsed, setCollapsed] = useState(false)
-  const [speed, setSpeed] = useState(1)
+  const [planMsg, setPlanMsg] = useState('')
+  const [sideW, setSideW] = useState(360)
   const [playing, setPlaying] = useState(false)
-  const [paused, setPaused] = useState(false)
-  const [ikX, setIkX] = useState('250')
-  const [ikY, setIkY] = useState('0')
-  const [ikMsg, setIkMsg] = useState('')
-  const playRef = useRef<number | null>(null)
-  const lastRef = useRef<number>(0)
+  const [simT, setSimT] = useState(0)
+  const [rate, setRate] = useState(1)
+  const [hitMsg, setHitMsg] = useState('')
+  const mainRef = useRef<HTMLDivElement>(null)
+  const playRef = useRef({ playing: false, t: 0, rate: 1, last: 0 })
+  playRef.current.playing = playing
+  playRef.current.t = simT
+  playRef.current.rate = rate
+
+  const stages = stageList(model)
+  const planReason = blockedReason('plan', stages)
+  const timeReason = blockedReason('time', stages)
+  const cont = continueFrom(step, stages)
+  const mobile = model.task === 'diff' || model.task === 'diff4' || model.task === 'custom' || model.task === 'drone'
+  const pathPts = model.path?.points
+  const pathLen = pathPts && pathPts.length > 1 ? pathLength(pathPts) : 0
+  const profile = travelTime(pathLen, model.motion.v_max ?? model.motion.v, model.motion.acc, model.motion.dec)
+  const at = profile.ok && pathPts && pathPts.length > 1 ? motionAt(pathLen, simT, model.motion.v_max ?? model.motion.v, model.motion.acc, model.motion.dec) : null
+  const overlayPose =
+    at && pathPts && (playing || simT > 0) && step !== 'robot' && step !== 'mass'
+      ? pointAlong(pathPts, at.s)
+      : null
+
+  useEffect(() => {
+    if (!stages.some((s) => s.id === step)) setStep(stages[0].id)
+  }, [model.task, step, stages])
+
+  const fittedRef = useRef(false)
+  const stopFit = useRef<() => void>(() => undefined)
+  const reduceMotion = useUiStore((s) => s.settings.reduce_motion)
+  useEffect(() => {
+    if (fittedRef.current) return
+    let n = 0
+    let id = 0
+    const tick = () => {
+      const r = mainRef.current?.getBoundingClientRect()
+      const w = r?.width || 0
+      const h = r?.height || 0
+      if (w > 80 && h > 80) {
+        fittedRef.current = true
+        const next = fitWorkspaceView(model.workspace, w, h)
+        stopFit.current = animateView({ pan, zoom }, next, (frame) => {
+          setPan(frame.pan)
+          setZoom(frame.zoom)
+        }, CANVAS_FIT_MS, shouldReduceMotion(reduceMotion))
+        return
+      }
+      if (n++ < 20) id = requestAnimationFrame(tick)
+    }
+    id = requestAnimationFrame(tick)
+    return () => {
+      cancelAnimationFrame(id)
+      stopFit.current()
+    }
+    // first enter only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const setModel = (next: MechanicsModel, history = true) => {
     mutate((p) => {
@@ -59,54 +120,165 @@ export function MechanicsView() {
   }, [mutate, project.mechanics?.id])
 
   useEffect(() => {
-    if (!playing || paused) {
-      if (playRef.current) cancelAnimationFrame(playRef.current)
-      playRef.current = null
+    if (model.path?.stale || model.motion.stale) {
+      setPlaying(false)
+    }
+  }, [model.path?.stale, model.motion.stale])
+
+  useEffect(() => {
+    if (!playing) return
+    let raf = 0
+    const tick = (now: number) => {
+      const st = playRef.current
+      if (!st.playing) return
+      if (!st.last) st.last = now
+      const dt = Math.min(0.05, ((now - st.last) / 1000) * st.rate)
+      st.last = now
+      const nextT = st.t + dt
+      const pts = model.path?.points
+      const len = pts && pts.length > 1 ? pathLength(pts) : 0
+      const tot = travelTime(len, model.motion.v_max ?? model.motion.v, model.motion.acc, model.motion.dec)
+      const pose = pts && pts.length > 1 ? pointAlong(pts, motionAt(len, nextT, model.motion.v_max ?? model.motion.v, model.motion.acc, model.motion.dec).s) : null
+      if (pose) {
+        const inflate = robotInflate(model)
+        for (const o of model.obstacles) {
+          const flight = flightParams(model)
+          if (flight && fliesOverObstacle(o, flight.altitude, flight.bodyHeight)) continue
+          if (obstacleHit(o, pose.x, pose.y, inflate)) {
+            setPlaying(false)
+            const heightFail = flight && !fliesOverObstacle(o, flight.altitude, flight.bodyHeight)
+            setHitMsg(
+              heightFail
+                ? `Недостаточная высота пролёта над «${o.name}» на t = ${nextT.toFixed(2)} с (высота препятствия ${o.z_height ?? 1} м).`
+                : `Столкновение с «${o.name}» на t = ${nextT.toFixed(2)} с. Модель габарита — окружность.`,
+            )
+            setSimT(nextT)
+            return
+          }
+        }
+      }
+      if (!tot.ok || nextT >= tot.t) {
+        setSimT(tot.ok ? tot.t : nextT)
+        setPlaying(false)
+        return
+      }
+      setSimT(nextT)
+      raf = requestAnimationFrame(tick)
+    }
+    playRef.current.last = 0
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, model])
+
+  const toolForStep = useMemo((): MechCanvasTool => {
+    if (step === 'map') return canvasTool === 'start' || canvasTool === 'goal' || canvasTool === 'via' ? 'select' : canvasTool
+    if (step === 'path') return canvasTool === 'line' || canvasTool === 'rect' || canvasTool === 'circle' ? 'select' : canvasTool
+    return 'select'
+  }, [step, canvasTool])
+
+  const go = (id: KinStageId) => {
+    const reason = canEnterStep(id, stages)
+    if (reason) {
+      setPlanMsg(reason)
       return
     }
-    const tick = (t: number) => {
-      const dt = lastRef.current ? Math.min(0.05, (t - lastRef.current) / 1000) * speed : 0
-      lastRef.current = t
-      const current = ensureMechanics(useProjectStore.getState().project?.mechanics)
-      const next: MechanicsModel = {
-        ...current,
-        joints: current.joints.map((j) => {
-          if (!j.driven || j.kind === 'fixed') return j
-          const motor = j.motor_id ? current.elements.find((e) => e.id === j.motor_id) : undefined
-          const w = motor ? numParam(motor, 'omega') : j.kind === 'revolute' ? 0.4 : 0.02
-          return { ...j, q: clampJoint(j, j.q + w * dt) }
-        }),
+    setPlanMsg('')
+    setCanvasTool('select')
+    setStep(id)
+    if (id === 'check') {
+      const playable = Boolean(model.path && !model.path.stale && !model.motion.stale && profile.ok && mobile && pathLen > 0)
+      if (playable) {
+        setHitMsg('')
+        setSimT(0)
+        setPlaying(true)
       }
-      const plat = findDiffPlatform(next, solvePoses(next).poses)
-      if (plat?.motion.ok && plat.pose) {
-        next.elements = next.elements.map((el) => {
-          if (el.id !== plat.chassis.id) return el
-          return {
-            ...el,
-            x: el.x + plat.motion.v * Math.cos(el.theta) * dt,
-            y: el.y + plat.motion.v * Math.sin(el.theta) * dt,
-            theta: el.theta + plat.motion.w * dt,
-          }
-        })
-      }
-      if (next.trail_on) {
-        const ee = eeWorld(next)
-        next.trail = [...next.trail, ee].slice(-400)
-      }
-      setModel(next, false)
-      playRef.current = requestAnimationFrame(tick)
     }
-    playRef.current = requestAnimationFrame(tick)
-    return () => {
-      if (playRef.current) cancelAnimationFrame(playRef.current)
-      lastRef.current = 0
-    }
-  }, [playing, paused, speed])
+  }
 
-  const add = (kind: Parameters<typeof createElement>[0]) => {
-    const el = createElement(kind, 0.15 + model.elements.length * 0.05, 0.08)
-    setModel({ ...model, elements: [...model.elements, el] })
-    select([el.id])
+  const viewSize = () => {
+    const r = mainRef.current?.getBoundingClientRect()
+    return { w: r?.width || 640, h: r?.height || 420 }
+  }
+
+  const onPlan = (modePlan: 'waypoints' | 'astar') => {
+    if (planReason) {
+      setPlanMsg(planReason)
+      return
+    }
+    const wps = orderedWaypoints(model)
+    if (!wps) {
+      setPlanMsg('Укажите начальную точку и цель.')
+      return
+    }
+    setPlaying(false)
+    setSimT(0)
+    if (modePlan === 'waypoints') {
+      const next = commitPath(
+        model,
+        wps.map((w) => ({ x: w.x, y: w.y })),
+        'waypoints',
+      )
+      setModel(next)
+      setPlanMsg(next.path?.collision_obstacle_id ? 'Ломаная пересекает препятствие. Это не маршрут A*.' : 'Построена ломаная по точкам.')
+      return
+    }
+    const inflate = robotInflate(model)
+    const cell = model.workspace.grid || 0.05
+    const pts: { x: number; y: number }[] = []
+    for (let i = 0; i < wps.length - 1; i++) {
+      const res = planAStar(model.workspace, model.obstacles, wps[i], wps[i + 1], inflate, cell)
+      if (!res.ok) {
+        setPlanMsg(res.reason)
+        setModel({ ...model, path: null })
+        return
+      }
+      pts.push(...(i === 0 ? res.points : res.points.slice(1)))
+    }
+    const next = commitPath(model, pts, 'astar')
+    setModel(next)
+    setPlanMsg(next.path?.collision_obstacle_id ? 'A* вернул путь, но проверка столкновений его отклонила.' : 'A* нашёл обход по сетке.')
+  }
+
+  const onTime = () => {
+    if (timeReason) {
+      setPlanMsg(timeReason)
+      return
+    }
+    const len = model.path && model.path.points.length > 1 ? pathLength(model.path.points) : 0
+    const t = travelTime(len, model.motion.v_max ?? model.motion.v, model.motion.acc, model.motion.dec)
+    if (!t.ok) {
+      setPlanMsg(t.reason)
+      return
+    }
+    setPlaying(false)
+    setSimT(0)
+    setHitMsg('')
+    setModel({ ...model, motion: { ...model.motion, stale: false } })
+    setPlanMsg(`t = ${t.t.toFixed(2)} с (${t.profile}).`)
+  }
+
+  const startResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const resizer = event.currentTarget
+    const pointerId = event.pointerId
+    const startX = event.clientX
+    const startWidth = sideW
+    resizer.setPointerCapture(pointerId)
+    document.body.classList.add('inspector-resizing')
+    const move = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return
+      setSideW(Math.min(620, Math.max(280, startWidth + startX - e.clientX)))
+    }
+    const end = (e: PointerEvent) => {
+      if (e.pointerId !== pointerId) return
+      resizer.releasePointerCapture(pointerId)
+      resizer.removeEventListener('pointermove', move)
+      resizer.removeEventListener('pointerup', end)
+      resizer.removeEventListener('pointercancel', end)
+      document.body.classList.remove('inspector-resizing')
+    }
+    resizer.addEventListener('pointermove', move)
+    resizer.addEventListener('pointerup', end)
+    resizer.addEventListener('pointercancel', end)
   }
 
   const pickAnchor = (elementId: string, anchorId: string) => {
@@ -128,50 +300,34 @@ export function MechanicsView() {
     select([joint.id])
   }
 
-  const applyIk = () => {
-    const { poses } = solvePoses(model)
-    const arm = findSerial2R(model, poses)
-    if (!arm) {
-      setIkMsg('Нет двухзвенного манипулятора.')
-      return
-    }
-    const x = mmToM(Number(ikX.replace(',', '.')))
-    const y = mmToM(Number(ikY.replace(',', '.')))
-    const ik = inverse2R(arm.l1, arm.l2, x, y, model.elbow)
-    if (!ik.ok) {
-      setIkMsg(ik.reason)
-      return
-    }
-    if (clampJoint(arm.j1, ik.t1) !== ik.t1 || clampJoint(arm.j2, ik.t2) !== ik.t2) {
-      setIkMsg('Решение не проходит ограничения шарниров.')
-      return
-    }
-    setModel({
-      ...model,
-      joints: model.joints.map((j) => (j.id === arm.j1.id ? { ...j, q: ik.t1 } : j.id === arm.j2.id ? { ...j, q: ik.t2 } : j)),
-    })
-    setIkMsg(`Использована конфигурация «локоть ${model.elbow === 'up' ? 'вверх' : 'вниз'}».`)
-  }
+  const canPlay = Boolean(model.path && !model.path.stale && !model.motion.stale && profile.ok && mobile && pathLen > 0)
 
   return (
-    <div className="page mech-page">
-      <header className="mech-toolbar">
+    <div className="page kin-page">
+      <header className="kin-top">
         <div>
-          <h1>Механика и кинематика</h1>
-          <input
-            className="mech-title"
-            value={model.name}
-            aria-label="Имя механической модели"
-            onChange={(e) => setModel({ ...model, name: e.target.value })}
-          />
+          <h1>Кинематика</h1>
+          <input className="mech-title" value={model.name} aria-label="Имя модели" onChange={(e) => setModel({ ...model, name: e.target.value })} />
         </div>
-        <div className="mech-modes">
-          {(['constructor', 'kinematics', 'calc'] as const).map((id) => (
-            <button key={id} type="button" className={mode === id ? 'on' : ''} onClick={() => setMode(id)}>
-              {id === 'constructor' ? 'Конструктор' : id === 'kinematics' ? 'Кинематика' : 'Расчёты'}
-            </button>
-          ))}
-        </div>
+        <ol className="kin-steps" aria-label="Этапы">
+          {stages.map((s, i) => {
+            const locked = !!canEnterStep(s.id, stages)
+            return (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  className={`kin-step-btn is-${s.status} ${step === s.id ? 'is-current' : ''}`}
+                  disabled={locked && s.id !== step}
+                  title={locked && s.id !== step ? canEnterStep(s.id, stages) || '' : s.detail}
+                  onClick={() => go(s.id)}
+                >
+                  <span className="n">{i + 1}</span>
+                  {STEP_LABEL[s.id]}
+                </button>
+              </li>
+            )
+          })}
+        </ol>
         <div className="mech-toolbar-actions">
           {dirty ? <span className="save-meta">Есть изменения</span> : null}
           <button className="btn ghost" type="button" onClick={() => undo()}>
@@ -181,131 +337,196 @@ export function MechanicsView() {
             Повторить
           </button>
           <button
+            className="btn ghost"
+            type="button"
+            onClick={() => {
+              const { w, h } = viewSize()
+              const next = fitWorkspaceView(model.workspace, w, h)
+              stopFit.current()
+              stopFit.current = animateView({ pan, zoom }, next, (frame) => {
+                setPan(frame.pan)
+                setZoom(frame.zoom)
+              }, CANVAS_FIT_MS, shouldReduceMotion(reduceMotion))
+            }}
+          >
+            Вся карта
+          </button>
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={() => {
+              const ch = model.elements.find((e) => e.kind === 'chassis')
+              const { w, h } = viewSize()
+              const pose = overlayPose || (ch ? { x: ch.x, y: ch.y } : { x: 0.2, y: 0.2 })
+              const span = ch ? Math.max(numParam(ch, 'length', 0.2), numParam(ch, 'width', 0.16)) : 0.2
+              const next = fitPointView(pose.x, pose.y, span, w, h)
+              setPan(next.pan)
+              setZoom(next.zoom)
+            }}
+          >
+            Показать робота
+          </button>
+          <button className="btn ghost" type="button" onClick={() => { setPan({ x: 80, y: 420 }); setZoom(1) }}>
+            Сброс вида
+          </button>
+          <button
             className="btn danger"
             type="button"
-            disabled={!selectedId}
+            disabled={!selectedIds.length}
+            title={!selectedIds.length ? 'Сначала выберите объект' : ''}
             onClick={() => {
-              if (!selectedId) return
-              setModel(removeElement(model, selectedId))
+              if (!selectedIds.length) return
+              let next = model
+              for (const id of selectedIds) next = removeElement(next, id)
+              setModel(next)
               select([])
             }}
           >
             Удалить
           </button>
-          <Toggle checked={model.show_axes} onChange={(v) => setModel({ ...model, show_axes: v })} label="Оси" />
-          <Toggle checked={model.show_dims} onChange={(v) => setModel({ ...model, show_dims: v })} label="Размеры" />
         </div>
       </header>
-      <div className="mech-body">
-        <MechanicsLibrary
-          query={query}
-          onQuery={setQuery}
-          connectKind={connectKind}
-          onTool={(k) => {
-            setConnectKind(k)
-            setConnectFrom(null)
-          }}
-          onAdd={add}
-        />
-        <div className="mech-center">
+      <div className={`kin-layout ${sideW < 340 ? 'is-compact' : ''}`} style={{ gridTemplateColumns: `minmax(0, 1fr) ${sideW}px` }}>
+        <div className="kin-main" ref={mainRef}>
           <MechanicsCanvas
             model={model}
             selectedId={selectedId}
+            selectedIds={selectedIds}
             connectKind={connectKind}
             connectFrom={connectFrom}
+            tool={toolForStep}
             pan={pan}
             zoom={zoom}
             onPan={setPan}
             onZoom={setZoom}
-            onSelect={(id) => select(id ? [id] : [])}
-            onMoveRoot={(id, x, y) =>
-              setModel({ ...model, elements: model.elements.map((el) => (el.id === id ? { ...el, x, y } : el)) }, false)
-            }
+            onUserView={() => stopFit.current()}
+            onSelect={(id, mods) => {
+              if (!id) {
+                select([])
+                return
+              }
+              if (mods?.ctrlKey || mods?.metaKey) {
+                select(selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id])
+                return
+              }
+              select([id])
+            }}
+            onSelectMany={(ids) => select(ids)}
+            onMoveRoot={(id, x, y) => {
+              const el = model.elements.find((e) => e.id === id)
+              if (!el) return
+              const dx = x - el.x
+              const dy = y - el.y
+              const group = selectedIds.includes(id) && selectedIds.length > 1 ? selectedIds : [id]
+              const children = new Set(model.joints.map((j) => j.child_id))
+              setModel(
+                {
+                  ...model,
+                  elements: model.elements.map((item) =>
+                    group.includes(item.id) && !children.has(item.id) ? { ...item, x: item.x + dx, y: item.y + dy } : item,
+                  ),
+                },
+                false,
+              )
+            }}
             onPickAnchor={pickAnchor}
-          />
-          {mode !== 'constructor' ? (
-            <div className="mech-kin-bar">
-              <button className="icon-btn" type="button" title="Запуск" aria-label="Запуск" onClick={() => { setPlaying(true); setPaused(false) }}>
-                <Play size={16} />
-              </button>
-              <button className="icon-btn" type="button" title="Пауза" aria-label="Пауза" onClick={() => setPaused(true)}>
-                <Pause size={16} />
-              </button>
-              <button
-                className="icon-btn"
-                type="button"
-                title="Стоп"
-                aria-label="Стоп"
-                onClick={() => {
-                  setPlaying(false)
-                  setPaused(false)
-                }}
-              >
-                <Square size={16} />
-              </button>
-              <button
-                className="icon-btn"
-                type="button"
-                title="В начало"
-                aria-label="В начало"
-                onClick={() => {
-                  setPlaying(false)
-                  setModel({
-                    ...model,
-                    joints: model.joints.map((j) => ({ ...j, q: j.kind === 'prismatic' ? (j.q_min ?? 0) : 0 })),
-                    trail: [],
-                  })
-                }}
-              >
-                <RotateCcw size={16} />
-              </button>
-              <label className="hint">
-                Скорость
-                <input type="range" min={0.2} max={3} step={0.1} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
-              </label>
-              <Toggle checked={model.trail_on} onChange={(v) => setModel({ ...model, trail_on: v })} label="Траектория" />
-              <button className="btn ghost" type="button" onClick={() => setModel({ ...model, trail: [] })}>
-                Очистить след
-              </button>
-              {mode === 'kinematics' ? (
-                <>
-                  <label className="hint">
-                    IK x, мм
-                    <input value={ikX} onChange={(e) => setIkX(e.target.value)} style={{ width: 72 }} />
-                  </label>
-                  <label className="hint">
-                    y, мм
-                    <input value={ikY} onChange={(e) => setIkY(e.target.value)} style={{ width: 72 }} />
-                  </label>
-                  <select value={model.elbow} onChange={(e) => setModel({ ...model, elbow: e.target.value as 'up' | 'down' })}>
-                    <option value="up">Локоть вверх</option>
-                    <option value="down">Локоть вниз</option>
-                  </select>
-                  <button className="btn" type="button" onClick={applyIk}>
-                    Обратная кинематика
-                  </button>
-                  {ikMsg ? <span className="hint">{ikMsg}</span> : null}
-                </>
-              ) : null}
-            </div>
-          ) : null}
-          <MechanicsResults
-            model={model}
-            tab={mode === 'calc' ? 'move' : resultTab}
-            onTab={setResultTab}
-            collapsed={collapsed}
-            onCollapsed={setCollapsed}
             onModel={setModel}
-            catalogIds={new Set(project.components.map((c) => c.id))}
+            overlayPose={overlayPose}
           />
         </div>
-        <MechanicsInspector
-          model={model}
-          selected={selected}
-          joint={selectedJoint}
-          components={project.components.filter((c) => c.entity_kind !== 'table')}
-          onChange={setModel}
-        />
+        <div className="kin-side-shell">
+          <div
+            className="kin-resizer inspector-resizer"
+            onPointerDown={startResize}
+            aria-label="Изменить ширину панели параметров"
+            role="separator"
+            aria-orientation="vertical"
+          />
+          <MechanicsSidebar
+            model={model}
+            step={step}
+            selected={selected}
+            selectedCount={selectedIds.length}
+            obstacle={selectedObstacle}
+            waypoint={selectedWaypoint}
+            canvasTool={toolForStep}
+            planMsg={planMsg}
+            planReason={planReason}
+            timeReason={timeReason}
+            continueReason={cont.reason}
+            sim={{
+              t: simT,
+              playing,
+              rate,
+              v: at?.v ?? 0,
+              s: at?.s ?? 0,
+              total: profile.ok ? profile.t : 0,
+              hit: hitMsg,
+              canPlay,
+              stale: !!(model.path?.stale || model.motion.stale),
+            }}
+            onTask={(task) => {
+              setPlaying(false)
+              setSimT(0)
+              setModel(markPathStale({ ...model, task }))
+            }}
+            onTemplate={(kind: KinTaskKind) => {
+              if (model.elements.length && !window.confirm('Заменить текущую модель заготовкой? Карта и точки не сохранятся, если они были только в этой модели.')) return
+              setPlaying(false)
+              setSimT(0)
+              setModel(applyTemplate(kind))
+              select([])
+              setStep('robot')
+              setPlanMsg('Параметры заготовки примерные. Проверьте размеры и нажмите «Продолжить».')
+              requestAnimationFrame(() => {
+                const { w, h } = viewSize()
+                const next = fitWorkspaceView(applyTemplate(kind).workspace, w, h)
+                setPan(next.pan)
+                setZoom(next.zoom)
+              })
+            }}
+            onAdd={(kind) => {
+              const el = createElement(kind, 0.15 + model.elements.length * 0.05, 0.08)
+              setModel({ ...model, elements: [...model.elements, el] })
+              select([el.id])
+            }}
+            onChange={(next) => {
+              setPlaying(false)
+              setModel(next)
+            }}
+            onTool={setCanvasTool}
+            onPlan={onPlan}
+            onTime={onTime}
+            onPlay={() => {
+              if (!canPlay) {
+                setPlanMsg(model.motion.stale || model.path?.stale ? 'Сначала пересчитайте маршрут и время — предыдущий результат устарел.' : 'Нужен рассчитанный маршрут без столкновений.')
+                return
+              }
+              setHitMsg('')
+              setPlaying(true)
+            }}
+            onPause={() => setPlaying(false)}
+            onReset={() => {
+              setPlaying(false)
+              setSimT(0)
+              setHitMsg('')
+            }}
+            onRate={setRate}
+            onContinue={() => {
+              if (cont.reason || !cont.next) {
+                setPlanMsg(cont.reason || '')
+                return
+              }
+              go(cont.next)
+            }}
+            onBack={() => {
+              const ids = stages.map((s) => s.id)
+              const prev = ids[ids.indexOf(step) - 1]
+              if (prev) setStep(prev)
+            }}
+            onGo={go}
+          />
+        </div>
       </div>
     </div>
   )

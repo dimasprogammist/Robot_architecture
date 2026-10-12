@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+  <!-- Внешний фон — прозрачный -->
+
+  <!-- Карточка: бежевая, ниже -->
+  <rect x="200" y="235" width="1200" height="530" rx="55" ry="55"
+        fill="#f5f1ea" stroke="#e6e0d6" stroke-width="2"/>
+
+  <!-- Три пастельные точки -->
+  <circle cx="270" cy="315" r="22" fill="#e8a89a"/>
+  <circle cx="345" cy="315" r="22" fill="#e8c98a"/>
+  <circle cx="420" cy="315" r="22" fill="#a8c9a0"/>
+
+  <!-- Номера строк -->
+  <g font-family="Consolas, 'Courier New', monospace" font-size="38" fill="#c9c4bb" text-anchor="end">
+    <text x="320" y="425">1</text>
+    <text x="320" y="483">2</text>
+    <text x="320" y="541">3</text>
+    <text x="320" y="599">4</text>
+    <text x="320" y="657">5</text>
+    <text x="320" y="715">6</text>
+  </g>
+
+  <!-- Код -->
+  <g font-family="Calibri, 'Courier New', monospace" font-size="42">
+    <!-- 1 -->
+    <text x="375" y="425">
+      <tspan fill="#5a8a3c">#include</tspan>
+      <tspan fill="#b8a52e"> &lt;iostream&gt;</tspan>
+    </text>
+
+    <!-- 3 -->
+    <text x="375" y="541">
+      <tspan fill="#5a8a3c">int</tspan>
+      <tspan fill="#1e1e1e"> main() {</tspan>
+    </text>
+
+    <!-- 4 -->
+    <text x="470" y="599">
+      <tspan fill="#1e1e1e">std::cout &lt;&lt; </tspan>
+      <tspan fill="#b8a52e">"Hello, world!\n"</tspan>
+      <tspan fill="#1e1e1e">;</tspan>
+    </text>
+
+    <!-- 5 -->
+    <text x="470" y="657">
+      <tspan fill="#5a8a3c">return</tspan>
+      <tspan fill="#1e1e1e"> 0;</tspan>
+    </text>
+
+    <!-- 6 -->
+    <text x="375" y="715" fill="#1e1e1e">}</text>
+  </g>
+</svg>

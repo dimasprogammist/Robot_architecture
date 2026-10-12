@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
@@ -14,6 +14,8 @@ import {
 } from '@xyflow/react'
 import { useProjectStore } from '../../store/useProjectStore'
 import { uid } from '../../lib/ids'
+import { FitViewOnCanvas } from './FitViewOnCanvas'
+import { cancelCanvasFit } from '../../model/canvasMotion'
 
 const KINDS = [
   { id: 'start', label: 'Начало' },
@@ -59,7 +61,19 @@ export function AlgorithmCanvas({ algorithmId }: { algorithmId: string }) {
 function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
   const algorithm = useProjectStore((s) => s.project?.algorithms.find((a) => a.id === algorithmId))
   const updateAlgorithm = useProjectStore((s) => s.updateAlgorithm)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const clickSelectRef = useRef(false)
+
+  const neighborIds = useMemo(() => {
+    const ids = new Set<string>()
+    const picked = new Set(selectedIds)
+    for (const edge of algorithm?.canvas_edges || []) {
+      if (picked.has(edge.source)) ids.add(edge.target)
+      if (picked.has(edge.target)) ids.add(edge.source)
+    }
+    selectedIds.forEach((id) => ids.delete(id))
+    return ids
+  }, [algorithm, selectedIds])
 
   const nodes: Node[] = useMemo(
     () =>
@@ -68,9 +82,10 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
         type: 'flow',
         position: n.position,
         data: { label: n.label, kind: n.kind },
-        selected: n.id === selectedId,
+        selected: selectedIds.includes(n.id),
+        className: neighborIds.has(n.id) ? 'is-linked' : undefined,
       })),
-    [algorithm, selectedId],
+    [algorithm, selectedIds, neighborIds],
   )
   const edges: Edge[] = useMemo(
     () =>
@@ -80,13 +95,18 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
         target: e.target,
         sourceHandle: e.label === 'нет' ? 'no' : e.label === 'да' ? 'yes' : undefined,
         label: e.label,
+        selected: selectedIds.length === 0 ? false : selectedIds.includes(e.source) && selectedIds.includes(e.target),
         markerEnd: { type: 'arrowclosed' as const },
+        style:
+          selectedIds.includes(e.source) || selectedIds.includes(e.target)
+            ? { strokeWidth: 2.4 }
+            : undefined,
       })),
-    [algorithm],
+    [algorithm, selectedIds],
   )
 
   if (!algorithm) return null
-  const selected = algorithm.canvas_nodes.find((n) => n.id === selectedId)
+  const selected = selectedIds.length === 1 ? algorithm.canvas_nodes.find((n) => n.id === selectedIds[0]) : undefined
 
   const patchNodes = (next: typeof algorithm.canvas_nodes) => updateAlgorithm(algorithm.id, { canvas_nodes: next })
 
@@ -119,9 +139,32 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
-          fitView
-          onNodeClick={(_, node) => setSelectedId(node.id)}
-          onPaneClick={() => setSelectedId(null)}
+          onMoveStart={(event) => {
+            if (event) cancelCanvasFit()
+          }}
+          onNodeClick={(event, node) => {
+            const additive = event.ctrlKey || event.metaKey
+            clickSelectRef.current = true
+            window.requestAnimationFrame(() => {
+              clickSelectRef.current = false
+            })
+            setSelectedIds((current) => {
+              if (additive) {
+                return current.includes(node.id) ? current.filter((id) => id !== node.id) : [...current, node.id]
+              }
+              return [node.id]
+            })
+          }}
+          onSelectionChange={({ nodes: picked }) => {
+            const ids = picked.map((n) => n.id)
+            if (!ids.length) return
+            if (clickSelectRef.current) {
+              const stored = selectedIds
+              if (stored.length > ids.length && ids.every((id) => stored.includes(id))) return
+            }
+            setSelectedIds(ids)
+          }}
+          onPaneClick={() => setSelectedIds([])}
           onNodesChange={(changes: NodeChange[]) => {
             const moved = changes.filter((c): c is Extract<NodeChange, { type: 'position' }> => c.type === 'position' && Boolean(c.position))
             const removed = changes.filter((c) => c.type === 'remove').map((c) => c.id)
@@ -159,7 +202,9 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
             })
           }}
           deleteKeyCode={['Backspace', 'Delete']}
+          multiSelectionKeyCode={['Control', 'Meta']}
         >
+          <FitViewOnCanvas canvasKey={`algo:${algorithmId}`} />
           <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="var(--line-strong)" />
           <Controls showInteractive={false} />
         </ReactFlow>
@@ -198,11 +243,15 @@ function AlgorithmCanvasInner({ algorithmId }: { algorithmId: string }) {
                 canvas_nodes: algorithm.canvas_nodes.filter((n) => n.id !== selected.id),
                 canvas_edges: algorithm.canvas_edges.filter((e) => e.source !== selected.id && e.target !== selected.id),
               })
-              setSelectedId(null)
+              setSelectedIds([])
             }}
           >
             Удалить блок
           </button>
+        </div>
+      ) : selectedIds.length > 1 ? (
+        <div className="flow-props">
+          <p className="hint">Выбрано блоков: {selectedIds.length}. Групповое редактирование текста недоступно.</p>
         </div>
       ) : null}
     </div>

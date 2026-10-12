@@ -1,4 +1,5 @@
 import type { Component } from '../types'
+import { terminalsFor } from './terminals'
 
 export const CARD_MAX_WIDTH = 720
 export const CARD_MAX_HEIGHT = 520
@@ -58,8 +59,21 @@ export function resolvedCardSize(component: Pick<Component, 'type' | 'name' | 'c
   return clampCardSize(component, component.width, component.height)
 }
 
+export function electricalCardSize(
+  component: Pick<Component, 'type' | 'name' | 'category' | 'extra_fields'> & { width?: number; height?: number },
+) {
+  const base = resolvedCardSize(component)
+  const terms = terminalsFor(component)
+  const count = (side: string) => terms.filter((t) => String(t.position) === side).length
+  const longest = (side: string) =>
+    terms.filter((t) => String(t.position) === side).reduce((m, t) => Math.max(m, t.label.length), 0)
+  const height = Math.max(base.height, 72 + Math.max(count('left'), count('right')) * 16, 72 + Math.max(count('top'), count('bottom')) * 14)
+  const width = Math.max(base.width, 108 + longest('left') * 6.4 + longest('right') * 6.4)
+  return clampCardSize(component, width, height)
+}
+
 export function clampStripeWidth(value: number | string | undefined) {
   const n = typeof value === 'number' ? value : Number.parseFloat(String(value || ''))
-  if (!Number.isFinite(n)) return 3
+  if (!Number.isFinite(n)) return 4
   return Math.min(12, Math.max(2, Math.round(n)))
 }

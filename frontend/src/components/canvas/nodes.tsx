@@ -20,7 +20,7 @@ import { useProjectStore } from '../../store/useProjectStore'
 import { CATEGORY_LABELS } from '../../i18n'
 import { catalogLook, presetColor } from '../../model/library'
 import { clampStripeWidth, typeDefaultSize } from '../../model/cardSize'
-import { handleOffsetStyle, rfTerminalHandleIds, terminalClass, terminalTooltip, terminalsFor } from '../../model/terminals'
+import { handleOffsetStyle, labelOffsetStyle, matchTerminal, rfTerminalHandleIds, terminalClass, terminalTooltip, terminalsFor } from '../../model/terminals'
 import type { Component, LibraryPreset } from '../../types'
 
 const ARCH_SIDES = [Position.Top, Position.Right, Position.Bottom, Position.Left] as const
@@ -62,24 +62,28 @@ function NodePorts({ sides }: { sides: readonly Position[] }) {
   )
 }
 
+function extraText(c: Component, key: string) {
+  const value = (c.extra_fields || {})[key]
+  return typeof value === 'string' ? value.trim() : value == null ? '' : String(value)
+}
+
 function signalBadge(c: Component) {
   const extra = c.extra_fields || {}
-  const signal = extra.signal_type?.trim()
-  if (signal === 'аналоговый' && extra.analog_range) return extra.analog_range
-  if (signal === 'дискретный') return extra.discrete_kind || 'DI'
+  const signal = extraText(c, 'signal_type')
+  if (signal === 'аналоговый' && extra.analog_range) return extraText(c, 'analog_range')
+  if (signal === 'дискретный') return extraText(c, 'discrete_kind') || 'DI'
   if (signal === 'ШИМ' || signal === 'PWM') return 'PWM'
   if (signal === 'DI' || signal === 'DO') return signal
   return ''
 }
 
 function powerBadge(c: Component) {
-  return (c.extra_fields || {}).power?.trim() || ''
+  return extraText(c, 'power')
 }
 
 function nodeExtra(c: Component) {
-  const extra = c.extra_fields || {}
-  const kind = extra.sensor_kind?.trim()
-  const model = extra.model?.trim()
+  const kind = extraText(c, 'sensor_kind')
+  const model = extraText(c, 'model')
   const line = [kind || model || c.technology, signalBadge(c), powerBadge(c)].filter(Boolean).join(' · ')
   if (!line || line === c.type) return ''
   return line
@@ -113,21 +117,23 @@ function stripeStyle(c: Component, presets: LibraryPreset[]) {
 
 export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
   const presets = useProjectStore((s) => s.project?.library_presets || [])
+  if (!data?.component) return null
   const c = catalogLook(data.component, presets)
   const extra = nodeExtra(c)
   const files = c.files?.length ?? 0
   const nestedId = c.nested_architecture_id
+  const category = c.category || 'OTHER'
   const hasNestedContent = useProjectStore((s) =>
     Boolean(nestedId && s.project?.components.some((item) => item.architecture_id === nestedId)),
   )
   return (
     <div
-      className={`arch-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}
+      className={`arch-node handle-hidden tone-${category} ${selected ? 'selected' : ''}`}
       style={stripeStyle(c, presets)}
     >
       <NodePorts sides={ARCH_SIDES} />
       <div className="kicker">
-        <span className={`cat-${c.category} node-class`}>
+        <span className={`cat-${category} node-class`}>
           <TypeIcon name={c.icon} size={13} />
           {c.type}
         </span>
@@ -143,7 +149,7 @@ export function ArchNode({ data, selected }: NodeProps<ArchRFNode>) {
       </div>
       <h4>{c.name}</h4>
       <div className="meta">
-        {extra || CATEGORY_LABELS[c.category] || c.category.toLowerCase()}
+        {extra || CATEGORY_LABELS[category] || category.toLowerCase()}
       </div>
     </div>
   )
@@ -153,13 +159,22 @@ export type PowerRFNode = Node<ArchNodeData, 'power'>
 
 export function PowerNode({ data, selected }: NodeProps<PowerRFNode>) {
   const presets = useProjectStore((s) => s.project?.library_presets || [])
+  const connections = useProjectStore((s) => s.project?.connections || [])
+  if (!data?.component) return null
   const c = catalogLook(data.component, presets)
+  const category = c.category || 'OTHER'
   const extra = nodeExtra(c)
   const terminals = terminalsFor(c)
   const min = typeDefaultSize(c)
+  const wired = (term: (typeof terminals)[number]) =>
+    connections.some(
+      (link) =>
+        (link.source === c.id && matchTerminal(link.source_handle, term)) ||
+        (link.target === c.id && matchTerminal(link.target_handle, term)),
+    )
   return (
     <div
-      className={`arch-node power-node handle-hidden tone-${c.category} ${selected ? 'selected' : ''}`}
+      className={`arch-node power-node handle-hidden tone-${category} ${selected ? 'selected' : ''}`}
       style={{
         ...stripeStyle(c, presets),
         width: '100%',
@@ -201,20 +216,25 @@ export function PowerNode({ data, selected }: NodeProps<PowerRFNode>) {
               isConnectableStart
               isConnectableEnd
             />
-            <span className={`term-label term-${term.position}`} style={offset} title={tip}>
+            <span
+              className={`term-label term-${term.position}${wired(term) ? ' term-wired' : ''}`}
+              style={labelOffsetStyle(term)}
+              title={tip}
+              data-side={term.position}
+            >
               {term.label}
             </span>
           </span>
         )
       })}
       <div className="kicker">
-        <span className={`cat-${c.category} node-class`}>
+        <span className={`cat-${category} node-class`}>
           <TypeIcon name={c.icon} size={13} />
           {c.type}
         </span>
       </div>
       <h4>{c.name}</h4>
-      <div className="meta">{extra || CATEGORY_LABELS[c.category] || ''}</div>
+      <div className="meta">{extra || CATEGORY_LABELS[category] || ''}</div>
     </div>
   )
 }
@@ -224,8 +244,9 @@ export function PowerNode({ data, selected }: NodeProps<PowerRFNode>) {
 export type TableRFNode = Node<{ component: Component }, 'table'>
 
 export function TableNode({ data, selected }: NodeProps<TableRFNode>) {
-  const c = data.component
-  const cols = c.table?.columns || []
+  const c = data?.component
+  if (!c) return null
+  const cols = (c.table?.columns || []).filter(Boolean)
   const files = c.files?.length ?? 0
   return (
     <div className={`table-node handle-hidden ${selected ? 'selected' : ''}`}>
@@ -274,6 +295,7 @@ export function LabeledEdge({
   markerEnd,
   markerStart,
   style,
+  selected,
 }: EdgeProps<LabeledRFEdge>) {
   const [path, labelX, labelY] = getSmoothStepPath({
     sourceX,
@@ -287,6 +309,12 @@ export function LabeledEdge({
   return (
     <>
       <BaseEdge id={id} path={path} markerEnd={markerEnd} markerStart={markerStart} style={style} />
+      {selected ? (
+        <g className="edge-ends" pointerEvents="none">
+          <circle className="edge-end-mark" cx={sourceX} cy={sourceY} r={7} />
+          <circle className="edge-end-mark" cx={targetX} cy={targetY} r={7} />
+        </g>
+      ) : null}
       {label ? (
         <EdgeLabelRenderer>
           <div

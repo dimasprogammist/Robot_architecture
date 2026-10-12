@@ -1,4 +1,5 @@
 import type { Component, MechanicalData, PrintSettings, TableDefinition } from '../types'
+import { extraMap } from './extraFields'
 import { emptyDocumentation } from '../types'
 
 export const PROTOCOL_COLORS: Record<string, string> = {
@@ -52,6 +53,31 @@ export function emptyTable(): TableDefinition {
   return { schema_name: 'public', description: '', columns: [], indexes: [], constraints: [] }
 }
 
+export function hydrateMechanical(raw: MechanicalData | null | undefined): MechanicalData {
+  const base = emptyMechanical()
+  if (!raw) return base
+  return {
+    ...base,
+    ...raw,
+    extra_fields: raw.extra_fields || {},
+    print: { ...emptyPrint(), ...(raw.print || {}) },
+  }
+}
+
+export function hydrateComponent(component: Component): Component {
+  return withComponentDefaults({
+    ...component,
+    mechanical: hydrateMechanical(component.mechanical),
+    extra_fields: extraMap(component.extra_fields),
+    requirement_ids: component.requirement_ids || [],
+    files: component.files || [],
+    docs: component.docs || [],
+    tags: component.tags || [],
+    modules: component.modules || [],
+    technologies: component.technologies || [],
+  })
+}
+
 export function withComponentDefaults(partial: Partial<Component> & { name: string; architecture_id: string; id: string }): Component {
   const cleaned = Object.fromEntries(Object.entries(partial).filter(([, v]) => v !== undefined)) as Partial<Component>
   return {
@@ -77,12 +103,20 @@ export function withComponentDefaults(partial: Partial<Component> & { name: stri
     technologies: [],
     entity_kind: 'component',
     mechanical: emptyMechanical(),
-    table: null,
     docs: [],
     files: [],
-    extra_fields: {},
     color: '',
     library_preset_id: null,
     ...cleaned,
+    extra_fields: extraMap(cleaned.extra_fields),
+    table: cleaned.table
+      ? {
+          schema_name: cleaned.table.schema_name || 'public',
+          description: cleaned.table.description || '',
+          columns: cleaned.table.columns || [],
+          indexes: cleaned.table.indexes || [],
+          constraints: cleaned.table.constraints || [],
+        }
+      : cleaned.table ?? null,
   } as Component
 }

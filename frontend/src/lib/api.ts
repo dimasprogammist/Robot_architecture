@@ -257,6 +257,8 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ label }),
     }).then((r) => json<Project>(r)),
+  deleteVersion: (projectId: string, versionId: string) =>
+    apiFetch(`/api/projects/${projectId}/versions/${versionId}`, { method: 'DELETE' }).then((r) => json<Project>(r)),
   exportJson: (id: string) => apiFetch(`/api/projects/${id}/export.json`).then(json<Record<string, unknown>>),
   exportMd: (id: string) => apiFetch(`/api/projects/${id}/export.md`).then((r) => r.text()),
   exportAi: (id: string, body: AiExportBody = {}) =>
@@ -332,6 +334,61 @@ export const api = {
     const meta = (await res.json()) as AttachedFileMeta & { component_id?: string | null }
     return { ...meta, component_id: meta.component_id ?? componentId }
   },
+  exercises: () =>
+    apiFetch('/api/exercises').then((r) =>
+      json<{
+        sections: {
+          id: string
+          title: string
+          intro: string
+          items: {
+            id: string
+            title: string
+            kind: string
+            lang?: string
+            prompt: string
+            options?: { id: string; text: string }[]
+            explain?: string
+            level: number
+            hint?: string
+            hints?: string[]
+            hint_count?: number
+            starter?: string
+            runnable?: boolean
+            run_note?: string
+          }[]
+        }[]
+        total: number
+        done: number
+        completed_ids: string[]
+        capacity_per_section: number
+        states: Record<string, { draft: string; hints: number; passed: boolean; manual: boolean; completed: boolean }>
+      }>(r),
+    ),
+  exerciseCheck: (id: string, body: { option?: string; options?: string[]; text?: string; code?: string }) =>
+    apiFetch(`/api/exercises/${id}/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then((r) =>
+      json<{ ok: boolean; available?: boolean; explain: string; hint: string; message: string; output?: string; error?: string; reason?: string }>(r),
+    ),
+  exerciseComplete: (id: string, completed: boolean) =>
+    apiFetch(`/api/exercises/${id}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed }),
+    }).then((r) => json<{ ok: boolean; completed: boolean }>(r)),
+  exerciseHint: (id: string) =>
+    apiFetch(`/api/exercises/${id}/hint`, { method: 'POST' }).then((r) =>
+      json<{ ok: boolean; hints: string[]; total: number; index: number }>(r),
+    ),
+  exerciseDraft: (id: string, draft: string) =>
+    apiFetch(`/api/exercises/${id}/draft`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ draft }),
+    }).then((r) => json<{ ok: boolean; draft: string }>(r)),
   settings: () => apiFetch('/api/settings').then((r) => json<GlobalSettings>(r)),
   saveSettings: (s: GlobalSettings) =>
     apiFetch('/api/settings', {

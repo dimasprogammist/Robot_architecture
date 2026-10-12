@@ -1,5 +1,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { SearchField } from '../components/SearchField'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { api, type LearningArticle, type LearningCategory } from '../lib/api'
@@ -144,14 +145,16 @@ export function LearningView() {
           return (
             <section key={cat.id} className="learning-cat">
               <button
-                className="learning-cat-btn"
+                className={`learning-cat-btn ${open ? 'is-open' : ''}`}
                 type="button"
+                aria-expanded={open}
                 onClick={() =>
                   setOpenCat(
                     open && !q ? null : cat.id,
                   )
                 }
               >
+                <ChevronDown className={open ? '' : 'collapsed-chevron'} size={15} />
                 <span>{cat.name}</span>
                 <span className="hint">{cat.articles.length}</span>
               </button>

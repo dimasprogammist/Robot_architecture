@@ -81,6 +81,7 @@ export function createElement(kind: MechKind, x: number, y: number): MechElement
   if (kind === 'gearbox') {
     params.ratio = 10
     params.efficiency = 0.9
+    params.pitch = null
     params.torque_out_max = null
     params.rpm_max = null
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Component as ReactComponent, useEffect, useState, type ErrorInfo, type ReactNode } from 'react'
 import { ColorSwatches, PROTOCOL_PALETTE } from './ColorSwatches'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
@@ -16,6 +16,9 @@ import {
 import { catalogLook } from '../model/library'
 import { applyCardSize, parseCardDimension, resolvedCardSize } from '../model/cardSize'
 import { defaultMotorPhases } from '../model/terminals'
+import { canonicalComponent, relatedComponentIds } from '../model/canonical'
+import { pinFieldPatch, resolvedPins } from '../model/controllerPins'
+import { extraMap, extraValue } from '../model/extraFields'
 import { PROGRAM_LANGUAGES, RELIABILITY_OPTIONS, protocolLabel, protocolSelectOptions } from '../model/protocols'
 
 const STATUSES = ['planned', 'in-progress', 'ready', 'deprecated']
@@ -123,6 +126,37 @@ function EditableName({
   )
 }
 
+export class InspectorGate extends ReactComponent<{ resetKey: string; children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null }
+
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Inspector failed', error, info.componentStack)
+  }
+
+  componentDidUpdate(prev: { resetKey: string }) {
+    if (prev.resetKey !== this.props.resetKey && this.state.error) this.setState({ error: null })
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <aside className="inspector">
+          <div className="inspector-heading">
+            <h2>Свойства</h2>
+          </div>
+          <p className="sub">Не удалось показать свойства выбранного элемента.</p>
+          <p className="hint">{this.state.error.message}</p>
+        </aside>
+      )
+    }
+    return this.props.children
+  }
+}
+
 export function Inspector() {
   const project = useProjectStore((s) => s.project)
   const selectedIds = useProjectStore((s) => s.selectedIds)
@@ -136,9 +170,20 @@ export function Inspector() {
   const updateRequirement = useProjectStore((s) => s.updateRequirement)
   const tabRaw = useUiStore((s) => s.inspectorTab)
   const setTab = useUiStore((s) => s.setInspectorTab)
-  const tab = tabRaw === 'docs' || tabRaw === 'nested' ? 'overview' : tabRaw
 
   if (!project) return null
+
+  if (selectedIds.length > 1) {
+    return (
+      <aside className="inspector">
+        <div className="inspector-heading">
+          <h2>Свойства</h2>
+        </div>
+        <p className="sub">Выбрано элементов: {selectedIds.length}.</p>
+        <p className="hint">Групповое редактирование свойств недоступно. Перемещение и удаление действуют на всю группу. Кликните один блок, чтобы открыть его свойства.</p>
+      </aside>
+    )
+  }
 
   const component = project.components.find((c) => c.id === selectedIds[0])
   const connection = project.connections.find((c) => c.id === selectedConnectionId)
@@ -175,18 +220,18 @@ export function Inspector() {
             onSave={(name) => updateComponent(component.id, { name })}
           />
         </div>
-        <p className="sub">Таблица</p>
-
         <TablePanel component={component} />
       </aside>
     )
   }
 
-  const alg = project.algorithms.find((a) => a.component_id === component.id)
+  const owner = canonicalComponent(project, component.id) || component
+  const relatedIds = new Set(relatedComponentIds(project, component.id))
+  const alg = project.algorithms.find((a) => a.component_id === owner.id)
   const linkedReqs = project.requirements.filter(
     (r) =>
-      r.component_ids.includes(component.id) ||
-      component.requirement_ids.includes(r.id),
+      (r.component_ids || []).some((id) => relatedIds.has(id)) ||
+      (owner.requirement_ids || []).includes(r.id),
   )
   const appearance = catalogLook(component, project.library_presets || [])
   const supportsAlgorithm = componentSupportsAlgorithm(appearance)
@@ -200,6 +245,7 @@ export function Inspector() {
       'files',
     ] as const
   )
+  const tab = (inspectorTabs as readonly string[]).includes(tabRaw) ? tabRaw : 'overview'
 
   return (
     <aside className="inspector">
@@ -211,9 +257,9 @@ export function Inspector() {
           />
           <span
             className="inspector-type"
-            title={`${component.extra_fields?.sensor_kind || appearance.type} · ${CATEGORY_LABELS[appearance.category] || appearance.category}`}
+            title={`${extraValue(component.extra_fields, 'sensor_kind') || appearance.type} · ${CATEGORY_LABELS[appearance.category || 'OTHER'] || appearance.category || 'OTHER'}`}
           >
-            {(component.extra_fields?.sensor_kind || appearance.type)} · {CATEGORY_LABELS[appearance.category] || appearance.category}
+            {extraValue(component.extra_fields, 'sensor_kind') || appearance.type} · {CATEGORY_LABELS[appearance.category || 'OTHER'] || appearance.category || 'OTHER'}
           </span>
         </div>
       </div>
@@ -258,14 +304,24 @@ export function Inspector() {
               return true
             }
             const renderExtra = (field: (typeof mainFields)[number]) => {
-              const extra = component.extra_fields || {}
+              const extra = extraMap(component.extra_fields)
+              const extraStr = (key: string) => extraValue(extra, key)
               if (field.key === 'steps_per_rev' && !/шагов/i.test(`${component.type} ${component.name}`)) return null
+              const pinsNow = resolvedPins(component)
               const raw =
-                extra[field.key] ||
-                (field.key === 'phases' ? String(defaultMotorPhases(component)) : '')
+                field.key === 'pin_di'
+                  ? String(pinsNow.di)
+                  : field.key === 'pin_do'
+                    ? String(pinsNow.do)
+                    : field.key === 'pin_ai'
+                      ? String(pinsNow.ai)
+                      : field.key === 'pin_ao'
+                        ? String(pinsNow.ao)
+                        : extraStr(field.key) ||
+                          (field.key === 'phases' ? String(defaultMotorPhases(component)) : '')
               const guessed =
                 field.auto && field.key === 'manufacturer'
-                  ? inferManufacturer(component.name, component.type, extra.model || '')
+                  ? inferManufacturer(component.name, component.type, extraStr('model'))
                   : ''
               const value = raw || guessed
               return (
@@ -279,12 +335,30 @@ export function Inspector() {
                   onChange={(v) => {
                     if (field.key === 'model') {
                       const maker = inferManufacturer(component.name, component.type, v)
+                      const nextExtra: Record<string, string> = { ...extra, model: v, ...pinFieldPatch(component, v) }
+                      if (maker) nextExtra.manufacturer = maker
+                      updateComponent(component.id, { extra_fields: nextExtra })
+                      return
+                    }
+                    if (['pin_di', 'pin_do', 'pin_ai', 'pin_ao'].includes(field.key)) {
+                      const budget = resolvedPins({ ...component, extra_fields: extra })
+                      const max =
+                        field.key === 'pin_di'
+                          ? budget.maxDi
+                          : field.key === 'pin_do'
+                            ? budget.maxDo
+                            : field.key === 'pin_ai'
+                              ? budget.maxAi
+                              : budget.maxAo
+                      const nextCount = Math.min(max, Math.max(0, Number.parseInt(v, 10) || 0))
+                      const current = Number.parseInt(extra[field.key] || '0', 10) || 0
+                      const prefix = field.key.replace('pin_', '') + '-'
+                      if (nextCount < current) {
+                        const doomed = Array.from({ length: current - nextCount }, (_, i) => `${prefix}${nextCount + i + 1}`)
+                        if (!dropHandles(doomed)) return
+                      }
                       updateComponent(component.id, {
-                        extra_fields: {
-                          ...extra,
-                          model: v,
-                          ...(maker ? { manufacturer: maker } : {}),
-                        },
+                        extra_fields: { ...extra, [field.key]: String(nextCount) },
                       })
                       return
                     }
@@ -349,7 +423,8 @@ export function Inspector() {
                   <div className="field">
                     <label>Цвет</label>
                     <ColorSwatches
-                      layout="row"
+                      layout="grid"
+                      colors={PROTOCOL_PALETTE}
                       value={component.color || appearance.color || ''}
                       onChange={(color) => updateComponent(component.id, { color })}
                     />
@@ -367,6 +442,7 @@ export function Inspector() {
                     {group.fields.map(renderExtra)}
                   </div>
                 ))}
+                {resolvedPins(component).note ? <p className="hint">{resolvedPins(component).note}</p> : null}
               </>
             )
           })()}
@@ -409,16 +485,15 @@ export function Inspector() {
 
       {tab === 'algorithm' && supportsAlgorithm && (
         <AlgorithmEditor
-          component={component}
+          component={owner}
           algorithmId={alg?.id}
-          onOpen={() => ensureAlgorithm(component.id)}
+          onOpen={() => ensureAlgorithm(owner.id)}
           onChange={(id, patch) => updateAlgorithm(id, patch)}
         />
       )}
 
-      {tab === 'mechanics' && <MechPanel component={component} />}
-      {tab === 'table' && <TablePanel component={component} />}
-      {tab === 'files' && <FilesPanel component={component} />}
+      {tab === 'mechanics' && component.category === 'MECHANICS' ? <MechPanel component={component} /> : null}
+      {tab === 'files' && <FilesPanel component={owner} />}
 
       {tab === 'requirements' && (
         <>
@@ -682,7 +757,7 @@ function ConnectionInspector({
 
 function Field({
   label,
-  value,
+  value: raw,
   onChange,
   multiline,
   options,
@@ -690,13 +765,14 @@ function Field({
   readOnly,
 }: {
   label: string
-  value: string
+  value: string | null | undefined
   onChange: (v: string) => void
   multiline?: boolean
   options?: string[]
   allowOther?: boolean
   readOnly?: boolean
 }) {
+  const value = raw == null ? '' : String(raw)
   const selectOptions = options?.length
     ? allowOther && !options.includes(OTHER_VALUE)
       ? [...options, OTHER_VALUE]
@@ -847,7 +923,7 @@ function AlgorithmEditor({
         {stepsOpen ? (
         <div className="algo-steps-body">
 
-        {algorithm.steps.map((step, i) => (
+        {(algorithm.steps || []).map((step, i) => (
           <div className="step-row" key={step.id}>
             <span className="step-num">{i + 1}</span>
             <select
@@ -948,12 +1024,6 @@ function AlgorithmEditor({
               />
             )}
 
-            <span
-              className="hint"
-              style={{ gridColumn: '1 / -1' }}
-            >
-              {i + 1}
-            </span>
           </div>
         ))}
 

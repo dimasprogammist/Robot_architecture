@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { SearchField } from '../components/SearchField'
 import { Star } from 'lucide-react'
 import { MarkdownField } from '../components/MarkdownField'
 import { AttachedFileRow } from '../components/InspectorExtras'
@@ -16,14 +17,33 @@ export function DocumentsView() {
   const setTab = useUiStore((s) => s.setDocTab)
   const settings = useUiStore((s) => s.settings)
   const [preview, setPreview] = useState<string | null>(null)
+  const [noteQuery, setNoteQuery] = useState('')
+  const [fileQuery, setFileQuery] = useState('')
   const attached = project.components.flatMap((c) =>
     (c.files || []).map((file) => ({ file, component: c })),
   )
+  const files = useMemo(() => {
+    const needle = fileQuery.trim().toLowerCase()
+    if (!needle) return attached
+    return attached.filter(
+      ({ file, component }) =>
+        file.filename.toLowerCase().includes(needle) ||
+        (file.description || '').toLowerCase().includes(needle) ||
+        component.name.toLowerCase().includes(needle),
+    )
+  }, [attached, fileQuery])
   const notes = useMemo(() => {
-    const items = [...project.documents]
+    const needle = noteQuery.trim().toLowerCase()
+    const items = project.documents.filter(
+      (d) =>
+        !needle ||
+        d.title.toLowerCase().includes(needle) ||
+        d.body.toLowerCase().includes(needle) ||
+        (d.description || '').toLowerCase().includes(needle),
+    )
     items.sort((a, b) => Number(Boolean(b.starred)) - Number(Boolean(a.starred)))
     return items
-  }, [project.documents])
+  }, [project.documents, noteQuery])
   return (
     <div className="page">
       <h1>Документы</h1>
@@ -46,8 +66,15 @@ export function DocumentsView() {
       {tab === 'bom' ? <BomView embedded /> : null}
       {tab === 'files' ? (
         <div className="attached-files-page">
-          {attached.length ? (
-            attached.map(({ file, component }) => (
+          <div className="req-toolbar">
+            <SearchField placeholder="Поиск файлов" value={fileQuery} onChange={setFileQuery} />
+          </div>
+          {attached.length === 0 ? (
+            <p className="hint">К компонентам пока не прикреплены файлы.</p>
+          ) : files.length === 0 ? (
+            <p className="hint">Нет файлов по запросу.</p>
+          ) : (
+            files.map(({ file, component }) => (
               <AttachedFileRow
                 key={file.id}
                 file={file}
@@ -56,36 +83,40 @@ export function DocumentsView() {
                 onPreview={setPreview}
               />
             ))
-          ) : (
-            <p className="hint">К компонентам пока не прикреплены файлы.</p>
           )}
           {preview ? <StlPreview url={preview} /> : null}
         </div>
       ) : null}
       {tab === 'notes' ? (
         <>
-      <button
-        className="btn primary"
-        type="button"
-        onClick={() =>
-          mutate((p) => {
-            p.documents.push({
-              id: uid(),
-              title: 'Без названия',
-              body: '',
-              component_id: null,
-              protocol_id: null,
-              kind: 'markdown',
-              url: '',
-              description: '',
-              starred: false,
+      <div className="notes-toolbar">
+        <SearchField placeholder="Поиск заметок" value={noteQuery} onChange={setNoteQuery} />
+        <button
+          className="btn primary"
+          type="button"
+          onClick={() =>
+            mutate((p) => {
+              p.documents.push({
+                id: uid(),
+                title: 'Без названия',
+                body: '',
+                component_id: null,
+                protocol_id: null,
+                kind: 'markdown',
+                url: '',
+                description: '',
+                starred: false,
+              })
             })
-          })
-        }
-      >
-        Новая заметка
-      </button>
+          }
+        >
+          Новая заметка
+        </button>
+      </div>
       <div className="notes-grid">
+        {notes.length === 0 ? (
+          <p className="hint">{noteQuery.trim() ? 'Нет заметок по запросу.' : 'Пока нет заметок.'}</p>
+        ) : null}
         {notes.map((d) => (
           <article className="card" key={d.id}>
             <div className="note-card-head">

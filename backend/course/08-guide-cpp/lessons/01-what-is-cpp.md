@@ -6,7 +6,7 @@ module_title: C++
 module_order: 8
 order: 1
 ---
-
+![График](../pictures/___.svg)
 # Что такое C++
 
 ## Цель

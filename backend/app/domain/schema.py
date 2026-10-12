@@ -50,7 +50,7 @@ class LibraryPreset(BaseModel):
     entity_kind: str = "component"
     color: str = ""
     built_in: bool = True
-    stripe_width: float = 3
+    stripe_width: float = 4
 
 
 class Protocol(BaseModel):
@@ -314,6 +314,7 @@ class Requirement(BaseModel):
     connection_ids: list[str] = Field(default_factory=list)
     notes: str = ""
     priority: str = "should"
+    starred: bool = False
 
 
 class Document(BaseModel):
@@ -382,6 +383,15 @@ class MechanicsModel(BaseModel):
     load_lever: float | None = None
     show_axes: bool = True
     show_dims: bool = True
+    task: str = "custom"
+    workspace: dict[str, Any] | None = None
+    obstacles: list[dict[str, Any]] = Field(default_factory=list)
+    waypoints: list[dict[str, Any]] = Field(default_factory=list)
+    path: dict[str, Any] | None = None
+    motion: dict[str, Any] | None = None
+    encoder_left: float | None = None
+    encoder_right: float | None = None
+    included_component_ids: list[str] = Field(default_factory=list)
 
 
 class UserSettings(BaseModel):

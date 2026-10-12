@@ -95,7 +95,7 @@ export function protocolSelectOptions(projectNames: string[]) {
 
 export function inferSensorKind(name: string) {
   const text = name.toLowerCase()
-  if (text.includes('камер')) return 'Камера'
+  if (text.includes('камера')) return 'Камера'
   if (text.includes('lidar')) return 'LiDAR'
   if (text.includes('imu')) return 'IMU'
   if (text.includes('энкодер')) return 'Энкодер'

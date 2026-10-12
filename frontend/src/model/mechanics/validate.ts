@@ -79,6 +79,22 @@ export function validateMechanics(model: MechanicsModel, catalogIds?: Set<string
     issues.push({ level: 'warning', code: 'drive', message: plat.motion.reason || 'Недостаточно данных для расчёта платформы.' })
   }
 
+  if (model.path?.collision_obstacle_id) {
+    const name = model.obstacles.find((o) => o.id === model.path?.collision_obstacle_id)?.name || 'препятствие'
+    issues.push({
+      level: 'error',
+      code: 'collision',
+      message: `Маршрут пересекает «${name}». Учитывается окружность по диагонали корпуса, не точный многоугольник.`,
+    })
+  } else if (model.path?.stale) {
+    issues.push({ level: 'warning', code: 'stale-path', message: 'Траектория устарела после изменения карты или робота.' })
+  }
+
+  const starts = model.waypoints.filter((w) => w.role === 'start')
+  const goals = model.waypoints.filter((w) => w.role === 'goal')
+  if (starts.length > 1) issues.push({ level: 'error', code: 'multi-start', message: 'В задаче больше одной начальной точки.' })
+  if (goals.length > 1) issues.push({ level: 'error', code: 'multi-goal', message: 'В задаче больше одной целевой точки.' })
+
   return issues
 }
 

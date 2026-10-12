@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import {
   Background,
   BackgroundVariant,
   ConnectionMode,
   Controls,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
+  SelectionMode,
   addEdge,
   useReactFlow,
   type Connection,
@@ -21,11 +21,13 @@ import { useProjectStore } from '../../store/useProjectStore'
 import { useUiStore } from '../../store/useUiStore'
 import { emptyTable, protocolColor } from '../../model/defaults'
 import { clampStrokeWidth, protocolLabel } from '../../model/protocols'
-import { clampCardSize, resolvedCardSize } from '../../model/cardSize'
+import { clampCardSize, electricalCardSize } from '../../model/cardSize'
+import { SchemeMiniMap } from './SchemeMiniMap'
+import { FitViewOnCanvas } from './FitViewOnCanvas'
+import { cancelCanvasFit } from '../../model/canvasMotion'
 import { restoreConnectionHandles } from '../../model/connections'
-import { catalogLook, presetColor } from '../../model/library'
 import { uid } from '../../lib/ids'
-import type { Component, LibraryPreset } from '../../types'
+import type { LibraryPreset } from '../../types'
 
 const nodeTypes = { arch: ArchNode, table: TableNode, power: PowerNode }
 const edgeTypes = { labeled: LabeledEdge }
@@ -36,18 +38,6 @@ export function ArchitectureCanvas() {
       <ArchitectureCanvasInner />
     </ReactFlowProvider>
   )
-}
-
-function FitViewOnData({ count }: { count: number }) {
-  const { fitView } = useReactFlow()
-  useEffect(() => {
-    const t = window.setTimeout(
-      () => fitView({ padding: 0.18, duration: useUiStore.getState().settings.reduce_motion ? 0 : 200 }),
-      40,
-    )
-    return () => window.clearTimeout(t)
-  }, [fitView, count])
-  return null
 }
 
 function ArchitectureCanvasInner() {
@@ -69,8 +59,22 @@ function ArchitectureCanvasInner() {
   const [menu, setMenu] = useState<{ x: number; y: number; id: string; kind: 'table' | 'arch' } | null>(null)
   const [linkFrom, setLinkFrom] = useState<string | null>(null)
   const connectingRef = useRef(false)
+  const clickSelectRef = useRef(false)
 
   const canvasKind = project?.architectures.find((a) => a.id === architectureId)?.kind || 'system'
+
+  const neighborIds = useMemo(() => {
+    const ids = new Set<string>()
+    if (!project || !architectureId || !selectedIds.length) return ids
+    const picked = new Set(selectedIds)
+    for (const link of project.connections) {
+      if (link.architecture_id !== architectureId) continue
+      if (picked.has(link.source)) ids.add(link.target)
+      if (picked.has(link.target)) ids.add(link.source)
+    }
+    selectedIds.forEach((id) => ids.delete(id))
+    return ids
+  }, [project, architectureId, selectedIds])
 
   const nodes = useMemo(() => {
     if (!project || !architectureId) return []
@@ -86,38 +90,43 @@ function ArchitectureCanvasInner() {
               : ('arch' as const),
         position: c.position,
         selected: selectedIds.includes(c.id),
+        className: neighborIds.has(c.id) ? 'is-linked' : undefined,
         data: { component: c },
         ...(canvasKind === 'power'
           ? (() => {
-              const size = resolvedCardSize(c)
-              return { style: { width: size.width, height: size.height }, width: size.width, height: size.height }
+              const size = electricalCardSize(c)
+              return { style: { width: size.width, height: size.height, overflow: 'visible' }, width: size.width, height: size.height }
             })()
           : c.width && c.height
             ? { style: { width: c.width, height: c.height }, width: c.width, height: c.height }
             : {}),
       }))
-  }, [project, architectureId, selectedIds, canvasKind])
+  }, [project, architectureId, selectedIds, canvasKind, neighborIds])
 
   const edges = useMemo(() => {
     if (!project || !architectureId) return []
     return project.connections
       .filter((c) => c.architecture_id === architectureId)
-      .map((c) => ({
+      .map((c) => {
+        const neighborEdge =
+          selectedIds.includes(c.source) || selectedIds.includes(c.target) || selectedConnectionId === c.id
+        const baseWidth = clampStrokeWidth(project.protocols.find((p) => p.name === c.protocol_name)?.stroke_width)
+        return {
         id: c.id,
         source: c.source,
         target: c.target,
         ...restoreConnectionHandles(c),
         type: 'labeled' as const,
         selected: selectedConnectionId === c.id,
-        markerEnd: { type: 'arrowclosed' as const },
-        markerStart: c.direction === 'bidirectional' ? { type: 'arrowclosed' as const } : undefined,
+        markerEnd: { type: 'arrowclosed' as const, width: 18, height: 18, strokeWidth: 1.4 },
+        markerStart: c.direction === 'bidirectional' ? { type: 'arrowclosed' as const, width: 18, height: 18, strokeWidth: 1.4 } : undefined,
         style: {
           stroke: protocolColor(
             c.protocol_name,
             c.color || project.protocols.find((p) => p.name === c.protocol_name)?.color,
             settings.theme,
           ),
-          strokeWidth: clampStrokeWidth(project.protocols.find((p) => p.name === c.protocol_name)?.stroke_width),
+          strokeWidth: neighborEdge ? baseWidth + 1.25 : baseWidth,
           strokeDasharray: c.kind === 'data_flow' ? '6 4' : undefined,
         },
         data: {
@@ -129,8 +138,9 @@ function ArchitectureCanvasInner() {
           kind: c.kind,
           bidirectional: c.direction === 'bidirectional',
         },
-      }))
-  }, [project, architectureId, selectedConnectionId, settings.theme, settings.show_edge_labels])
+      }
+      })
+  }, [project, architectureId, selectedConnectionId, selectedIds, settings.theme, settings.show_edge_labels])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -213,11 +223,22 @@ function ArchitectureCanvasInner() {
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
+      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY })
+      const sourceId = e.dataTransfer.getData('application/architecture-source')
+      if (sourceId) {
+        useProjectStore.getState().placeArchitectureOnPower(sourceId, position)
+        return
+      }
       const raw = e.dataTransfer.getData('application/architecture-preset')
       if (!raw) return
-      const preset = JSON.parse(raw) as LibraryPreset
-      if (preset.category === 'PROTOCOL') return
-      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY })
+      let preset: LibraryPreset
+      try {
+        preset = JSON.parse(raw) as LibraryPreset
+      } catch (error) {
+        console.error(error)
+        return
+      }
+      if (!preset || preset.category === 'PROTOCOL') return
       addFromPreset(preset, position)
     },
     [addFromPreset, screenToFlowPosition],
@@ -253,7 +274,27 @@ function ArchitectureCanvasInner() {
             setLinkFrom(null)
             return
           }
-          select([node.id])
+          const additive = event.ctrlKey || event.metaKey
+          const current = useProjectStore.getState().selectedIds
+          clickSelectRef.current = true
+          window.requestAnimationFrame(() => {
+            clickSelectRef.current = false
+          })
+          if (additive) {
+            select(current.includes(node.id) ? current.filter((id) => id !== node.id) : [...current, node.id])
+          } else {
+            select([node.id])
+          }
+        }}
+        onSelectionChange={({ nodes: selectedNodes }) => {
+          if (connectingRef.current || linkFrom) return
+          const ids = selectedNodes.map((n) => n.id)
+          if (!ids.length) return
+          if (clickSelectRef.current) {
+            const stored = useProjectStore.getState().selectedIds
+            if (stored.length > ids.length && ids.every((id) => stored.includes(id))) return
+          }
+          select(ids)
         }}
         onNodeContextMenu={(event, node) => {
           const comp = project?.components.find((c) => c.id === node.id)
@@ -285,17 +326,20 @@ function ArchitectureCanvasInner() {
         selectNodesOnDrag={false}
         snapToGrid={settings.snap_to_grid}
         snapGrid={[settings.grid_size, settings.grid_size]}
-        fitView
         style={{ width: '100%', height: '100%' }}
         deleteKeyCode={null}
-        multiSelectionKeyCode="Shift"
+        multiSelectionKeyCode={['Control', 'Meta']}
+        selectionMode={SelectionMode.Partial}
         panOnScroll
         selectionOnDrag
         panOnDrag={[1, 2]}
         noPanClassName="nopan"
         noDragClassName="nodrag"
+        onMoveStart={(event) => {
+          if (event) cancelCanvasFit()
+        }}
       >
-        <FitViewOnData count={nodes.length} />
+        <FitViewOnCanvas canvasKey={`${project?.id || ''}:${architectureId || canvasKind}`} />
         {settings.show_grid ? (
           <Background
             variant={BackgroundVariant.Dots}
@@ -306,23 +350,7 @@ function ArchitectureCanvasInner() {
           />
         ) : null}
         <Controls showInteractive={false} />
-        {settings.show_minimap ? (
-          <MiniMap
-            pannable
-            zoomable
-            nodeStrokeWidth={2}
-            nodeColor={(node) => {
-              const component = (node.data as { component?: Component } | undefined)?.component
-              if (component) {
-                const looked = catalogLook(component, project?.library_presets || [])
-                return looked.color || presetColor({ category: looked.category, color: looked.color })
-              }
-              if (node.type === 'table') return '#2a7aa8'
-              if (node.type === 'power') return '#c47a2e'
-              return '#2f8a6a'
-            }}
-          />
-        ) : null}
+        {settings.show_minimap ? <SchemeMiniMap /> : null}
       </ReactFlow>
       {linkFrom ? <p className="hint" style={{ position: 'absolute', top: 56, left: 56 }}>Выберите вторую таблицу, чтобы создать связь.</p> : null}
       {menu?.kind === 'table' ? (
@@ -348,7 +376,7 @@ function ArchitectureCanvasInner() {
               table: {
                 ...table,
                 columns: [
-                  ...table.columns,
+                  ...(table.columns || []),
                   { id: uid(), name: 'column', type: 'TEXT', nullable: true, default: '', primary_key: false, unique: false, foreign_key: '', description: '' },
                 ],
               },

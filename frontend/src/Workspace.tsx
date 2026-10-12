@@ -6,7 +6,7 @@ import { ArchitectureCanvas } from './components/canvas/ArchitectureCanvas'
 import { LibraryRail } from './components/canvas/LibraryRail'
 import { CommandPalette } from './components/CommandPalette'
 import { ExportModal } from './components/ExportModal'
-import { Inspector } from './components/Inspector'
+import { Inspector, InspectorGate } from './components/Inspector'
 import { LeftSidebar, TopBar } from './components/layout/Layout'
 import { SqlToolbar } from './components/SqlToolbar'
 import { useProjectStore } from './store/useProjectStore'
@@ -25,6 +25,8 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
   const { id } = useParams()
   const load = useProjectStore((s) => s.load)
   const project = useProjectStore((s) => s.project)
+  const selectedIds = useProjectStore((s) => s.selectedIds)
+  const selectedConnectionId = useProjectStore((s) => s.selectedConnectionId)
   const nav = useUiStore((s) => s.nav)
   const settings = useUiStore((s) => s.settings)
   const deleteSelected = useProjectStore((s) => s.deleteSelected)
@@ -243,7 +245,9 @@ export function Workspace({ presets }: { presets: LibraryPreset[] }) {
                   aria-orientation="vertical"
                 />
 
-                <Inspector />
+                <InspectorGate resetKey={`${selectedIds.join('|')}|${selectedConnectionId || ''}`}>
+                  <Inspector />
+                </InspectorGate>
               </div>
             ) : null}
           </>

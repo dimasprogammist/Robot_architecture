@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronLeft, ChevronRight, PanelRightClose, PanelRightOpen } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, ListChecks, PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { SearchField } from '../components/SearchField'
+import { Toggle } from '../components/Toggle'
 import { RichMarkdown } from '../components/RichMarkdown'
 import { Tip } from '../components/Tip'
 import { api, type CourseLesson, type CourseLessonSummary, type CourseOverview } from '../lib/api'
 import { useUiStore } from '../store/useUiStore'
+import { exerciseSectionForCourse } from '../model/courseExercises'
 
 type CourseGroup = {
   title: string
@@ -176,14 +178,20 @@ function writeStorageState(
 
 export function TutorialView() {
   const settings = useUiStore((s) => s.settings)
+  const storedLessonId = useUiStore((s) => s.tutorialLessonId)
+  const setTutorialLessonId = useUiStore((s) => s.setTutorialLessonId)
+  const setExercisesSectionId = useUiStore((s) => s.setExercisesSectionId)
+  const setNav = useUiStore((s) => s.setNav)
   const [overview, setOverview] = useState<CourseOverview | null>(null)
-  const [activeLessonId, setActiveLessonId] = useState<string | null>(null)
+  const [activeLessonId, setActiveLessonId] = useState<string | null>(storedLessonId)
   const [emptyModule, setEmptyModule] = useState<{ id: string; title: string } | null>(null)
   const [lesson, setLesson] = useState<CourseLesson | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [progressDone, setProgressDone] = useState(0)
   const [completedIds, setCompletedIds] = useState<string[]>([])
   const [notesOpen, setNotesOpen] = useState(false)
+  const notesDrawerRef = useRef<HTMLDivElement>(null)
+  const notesBtnRef = useRef<HTMLButtonElement>(null)
 
   const [openModules, setOpenModules] = useState<Record<string, boolean>>(
     () => readStorageState(STORAGE_KEYS.openModules),
@@ -207,8 +215,8 @@ export function TutorialView() {
         setError(null)
 
         const first = data.modules.find((mod) => mod.lessons.length)?.lessons[0]
-
-        if (first && !activeLessonId) {
+        const ids = new Set(data.modules.flatMap((mod) => mod.lessons.map((item) => item.id)))
+        if (first && (!activeLessonId || !ids.has(activeLessonId))) {
           setActiveLessonId(first.id)
         }
 
@@ -270,6 +278,7 @@ export function TutorialView() {
       .courseLesson(activeLessonId)
       .then((data) => {
         setLesson(data)
+        setTutorialLessonId(data.id)
         setEmptyModule(null)
         setError(null)
         setNotesOpen(false)
@@ -286,6 +295,25 @@ export function TutorialView() {
       if (p.completed_ids) setCompletedIds(p.completed_ids)
     }).catch(() => undefined)
   }, [settings.show_course_progress])
+
+  useEffect(() => {
+    if (!notesOpen) return
+    const onPointer = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (notesDrawerRef.current?.contains(target)) return
+      if (notesBtnRef.current?.contains(target)) return
+      setNotesOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setNotesOpen(false)
+    }
+    document.addEventListener('mousedown', onPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [notesOpen])
 
   useEffect(() => {
     writeStorageState(STORAGE_KEYS.openGroups, openGroups)
@@ -382,12 +410,14 @@ export function TutorialView() {
     }))
   }
 
+  const lessonDone = (id: string) => completedIds.includes(id)
+
   const renderLesson = (item: CourseLessonSummary) => (
     <button
       key={item.id}
       className={`nav-item ${
         activeLessonId === item.id ? 'active' : ''
-      } ${completedIds.includes(item.id) ? 'done' : ''}`}
+      } ${lessonDone(item.id) ? 'done' : ''}`}
       type="button"
       onClick={() => {
         setEmptyModule(null)
@@ -418,7 +448,9 @@ export function TutorialView() {
               className="tutorial-cpp-block"
             >
               <button
-                className="learning-cat-btn tutorial-block-title"
+                className={`learning-cat-btn tutorial-block-title ${
+                  blockLessons.length && blockLessons.every((item) => lessonDone(item.id)) ? 'done' : ''
+                }`}
                 type="button"
                 onClick={() => toggleBlock(block.title)}
                 aria-expanded={open}
@@ -481,7 +513,12 @@ export function TutorialView() {
               className="learning-group"
             >
               <button
-                className="learning-group-title"
+                className={`learning-group-title ${
+                  group.modules.length &&
+                  group.modules.every((mod) => mod && mod.lessons.length && mod.lessons.every((item) => lessonDone(item.id)))
+                    ? 'done'
+                    : ''
+                }`}
                 type="button"
                 onClick={() => toggleGroup(group.title)}
                 aria-expanded={groupOpen}
@@ -510,7 +547,9 @@ export function TutorialView() {
                         className="learning-cat"
                       >
                         <button
-                          className="learning-cat-btn tutorial-module-title"
+                          className={`learning-cat-btn tutorial-module-title ${
+                            mod.lessons.length && mod.lessons.every((item) => lessonDone(item.id)) ? 'done' : ''
+                          }`}
                           type="button"
                           onClick={() => {
                             toggleModule(mod.id)
@@ -583,30 +622,34 @@ export function TutorialView() {
               {lesson.content}
             </RichMarkdown>
 
-            <button
-              className="btn primary tutorial-complete-btn"
-              type="button"
-              onClick={() => {
+            <Toggle
+              label={
+                lesson.completed || completedIds.includes(lesson.id)
+                  ? 'Урок пройден'
+                  : 'Отметить урок как пройденный'
+              }
+              checked={Boolean(lesson.completed || completedIds.includes(lesson.id))}
+              onChange={(next) => {
                 const done = Boolean(lesson.completed || completedIds.includes(lesson.id))
+                if (next === done) return
                 const req = done ? api.courseUnseen(lesson.id) : api.courseSeen(lesson.id)
                 req
                   .then(() => {
-                    setLesson({ ...lesson, completed: !done })
+                    setLesson({ ...lesson, completed: next })
                     setCompletedIds((ids) =>
-                      done ? ids.filter((id) => id !== lesson.id) : ids.includes(lesson.id) ? ids : [...ids, lesson.id],
+                      next ? (ids.includes(lesson.id) ? ids : [...ids, lesson.id]) : ids.filter((id) => id !== lesson.id),
                     )
-                    api.courseProgress().then((p) => {
-                      setProgressDone(p.course_done)
-                      if (p.completed_ids) setCompletedIds(p.completed_ids)
-                    }).catch(() => undefined)
+                    api
+                      .courseProgress()
+                      .then((p) => {
+                        setProgressDone(p.course_done)
+                        if (p.completed_ids) setCompletedIds(p.completed_ids)
+                      })
+                      .catch(() => undefined)
                   })
                   .catch(() => undefined)
               }}
-            >
-              {lesson.completed || completedIds.includes(lesson.id)
-                ? 'Снять отметку'
-                : 'Отметить урок как пройденный'}
-            </button>
+            />
           </>
         ) : (
           <p className="lede">Загрузка курса…</p>
@@ -638,9 +681,30 @@ export function TutorialView() {
           </div>
         ) : null}
 
+        {lesson && exerciseSectionForCourse(lesson.module_id) ? (
+          <Tip label="Открыть задачник по этому разделу">
+            <button
+              className="panel-toggle exercises-toggle"
+              type="button"
+              title="Открыть задачник"
+              aria-label="Открыть задачник по этому разделу"
+              onClick={() => {
+                const sectionId = exerciseSectionForCourse(lesson.module_id)
+                if (!sectionId) return
+                setTutorialLessonId(lesson.id)
+                setExercisesSectionId(sectionId)
+                setNav('exercises')
+              }}
+            >
+              <ListChecks size={17} />
+            </button>
+          </Tip>
+        ) : null}
+
         {lesson?.notes_url ? (
           <Tip label={notesOpen ? 'Закрыть конспект' : 'Открыть краткий конспект урока'}>
             <button
+              ref={notesBtnRef}
               className="panel-toggle notes-toggle"
               type="button"
               title={notesOpen ? 'Закрыть конспект' : 'Открыть конспект'}
@@ -653,10 +717,7 @@ export function TutorialView() {
         ) : null}
 
         {notesOpen && lesson ? (
-          <div className="notes-drawer" role="dialog" aria-label="Конспект урока">
-            <div className="inspector-heading">
-              <h2>Конспект</h2>
-            </div>
+          <div ref={notesDrawerRef} className="notes-drawer" role="dialog" aria-label="Конспект урока">
             {lesson.notes_url ? (
               <img className="notes-img" src={lesson.notes_url} alt="Конспект урока" />
             ) : (

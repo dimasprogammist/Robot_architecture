@@ -5,7 +5,9 @@ import { StlPreview } from './StlPreview'
 import { Toggle } from './Toggle'
 import { useProjectStore } from '../store/useProjectStore'
 import { api } from '../lib/api'
-import { emptyMechanical, emptyPrint, emptyTable } from '../model/defaults'
+import { emptyPrint, emptyTable, hydrateMechanical } from '../model/defaults'
+import { parseMassKg } from '../model/mechanics/mass'
+import { ParamField } from '../views/mechanics/ParamField'
 import type { AttachedFile, Component, DocumentationItem, TableColumn } from '../types'
 
 export function fileExt(filename: string) {
@@ -94,16 +96,42 @@ export function DocsPanel({ component }: { component: Component }) {
 
 export function MechPanel({ component }: { component: Component }) {
   const updateComponent = useProjectStore((s) => s.updateComponent)
-  const m = component.mechanical || emptyMechanical()
-  const set = (patch: Partial<typeof m>) => updateComponent(component.id, { mechanical: { ...m, ...patch } })
+  const project = useProjectStore((s) => s.project)
+  const sourceId = component.extra_fields?.source_component_id
+  const source = sourceId ? project?.components.find((c) => c.id === sourceId) : null
+  const target = source || component
+  const m = hydrateMechanical(target.mechanical)
+  const qty = m.quantity && m.quantity > 0 ? m.quantity : 1
+  const unit = parseMassKg(m.weight)
+  const set = (patch: Partial<typeof m>) => updateComponent(target.id, { mechanical: { ...m, ...patch } })
   const setPrint = (patch: Partial<typeof m.print>) =>
     updateComponent(component.id, { mechanical: { ...m, print: { ...(m.print || emptyPrint()), ...patch } } })
   return (
     <div>
       <div className="field"><label>Материал</label><input value={m.material} onChange={(e) => set({ material: e.target.value })} /></div>
       <div className="field"><label>Размеры</label><input value={m.dimensions} onChange={(e) => set({ dimensions: e.target.value })} /></div>
-      <div className="field"><label>Масса</label><input value={m.weight} onChange={(e) => set({ weight: e.target.value })} /></div>
-      <div className="field"><label>Количество</label><input type="number" value={m.quantity} onChange={(e) => set({ quantity: Number(e.target.value) || 1 })} /></div>
+      <ParamField
+        label="Масса, кг"
+        unit="кг"
+        value={unit}
+        optional
+        min={0}
+        max={500}
+        step={0.01}
+        slider
+        hint={
+          source
+            ? 'Представление на электрической канве. Масса хранится у компонента архитектуры.'
+            : unit == null
+              ? 'Не задана. Итоговая масса конструкции будет неполной.'
+              : qty > 1
+                ? `Экземпляр: ${unit} кг, всего ${qty} шт. = ${(unit * qty).toFixed(3)} кг.`
+                : 'Масса одного экземпляра. Сохраняется в проекте.'
+        }
+        onChange={(v) => set({ weight: v == null ? '' : String(v) })}
+      />
+      {unit == null ? <p className="hint">Масса: не задана</p> : null}
+      <div className="field"><label>Количество</label><input type="number" min={1} value={m.quantity} onChange={(e) => set({ quantity: Number(e.target.value) || 1 })} /></div>
       <div className="field"><label>Ед.</label><input value={m.unit} onChange={(e) => set({ unit: e.target.value })} /></div>
       <div className="field"><label>Производитель</label><input value={m.manufacturer} onChange={(e) => set({ manufacturer: e.target.value })} /></div>
       <div className="field"><label>Артикул</label><input value={m.part_number} onChange={(e) => set({ part_number: e.target.value })} /></div>
@@ -136,7 +164,8 @@ export function MechPanel({ component }: { component: Component }) {
 export function TablePanel({ component }: { component: Component }) {
   const updateComponent = useProjectStore((s) => s.updateComponent)
   const table = component.table || emptyTable()
-  const [activeId, setActiveId] = useState<string | null>(table.columns[0]?.id ?? null)
+  const columns = table.columns || []
+  const [activeId, setActiveId] = useState<string | null>(columns[0]?.id ?? null)
   const set = (next: typeof table) => updateComponent(component.id, { table: next, entity_kind: 'table' })
   const addCol = () => {
     const col: TableColumn = {
@@ -150,12 +179,12 @@ export function TablePanel({ component }: { component: Component }) {
       foreign_key: '',
       description: '',
     }
-    set({ ...table, columns: [...table.columns, col] })
+    set({ ...table, columns: [...columns, col] })
     setActiveId(col.id)
   }
-  const active = table.columns.find((c) => c.id === activeId) || null
+  const active = columns.find((c) => c.id === activeId) || null
   const patchCol = (id: string, patch: Partial<TableColumn>) =>
-    set({ ...table, columns: table.columns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
+    set({ ...table, columns: columns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
   const types = [
     'INT',
     'INTEGER',
@@ -189,7 +218,7 @@ export function TablePanel({ component }: { component: Component }) {
         <textarea value={component.description} onChange={(e) => updateComponent(component.id, { description: e.target.value })} />
       </div>
       <div className="col-list">
-        {table.columns.map((col) => (
+        {columns.map((col) => (
           <button
             key={col.id}
             type="button"
@@ -207,7 +236,7 @@ export function TablePanel({ component }: { component: Component }) {
           <p className="prop-kicker">Колонка</p>
           <div className="field">
             <label>Имя</label>
-            <input value={active.name} onChange={(e) => patchCol(active.id, { name: e.target.value })} />
+            <input value={active.name || ''} onChange={(e) => patchCol(active.id, { name: e.target.value })} />
           </div>
           <div className="field">
             <label>Тип</label>
@@ -220,15 +249,15 @@ export function TablePanel({ component }: { component: Component }) {
           </div>
           <div className="field">
             <label>По умолчанию</label>
-            <input value={active.default} onChange={(e) => patchCol(active.id, { default: e.target.value })} />
+            <input value={active.default || ''} onChange={(e) => patchCol(active.id, { default: e.target.value })} />
           </div>
           <div className="field">
             <label>Связь</label>
-            <input value={active.foreign_key} placeholder="таблица.колонка" onChange={(e) => patchCol(active.id, { foreign_key: e.target.value })} />
+            <input value={active.foreign_key || ''} placeholder="таблица.колонка" onChange={(e) => patchCol(active.id, { foreign_key: e.target.value })} />
           </div>
           <div className="field">
             <label>Комментарий</label>
-            <input value={active.description} onChange={(e) => patchCol(active.id, { description: e.target.value })} />
+            <input value={active.description || ''} onChange={(e) => patchCol(active.id, { description: e.target.value })} />
           </div>
           <div className="table-toggles">
           <Toggle
@@ -251,8 +280,8 @@ export function TablePanel({ component }: { component: Component }) {
             className="btn danger"
             type="button"
             onClick={() => {
-              set({ ...table, columns: table.columns.filter((c) => c.id !== active.id) })
-              setActiveId(table.columns.find((c) => c.id !== active.id)?.id ?? null)
+              set({ ...table, columns: columns.filter((c) => c.id !== active.id) })
+              setActiveId(columns.find((c) => c.id !== active.id)?.id ?? null)
             }}
           >
             Удалить колонку

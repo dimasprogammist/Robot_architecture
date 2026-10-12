@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ColorSwatches } from '../components/ColorSwatches'
+import { DraftNumberField } from '../components/DraftNumberField'
 import { IconPicker, TypeIcon } from '../components/TypeIcon'
 import { CATEGORY_LABELS } from '../i18n'
 import { applyPresetToInstances, emptyLibraryPreset, presetColor } from '../model/library'
@@ -258,16 +259,14 @@ function CatalogEditor({
             <option value="table">Таблица БД</option>
           </select>
         </div>
-        <div className="field">
-          <label>Толщина цветной линии</label>
-          <input
-            type="number"
-            min={2}
-            max={12}
-            value={clampStripeWidth(preset.stripe_width)}
-            onChange={(e) => onChange({ stripe_width: clampStripeWidth(e.target.value) })}
-          />
-        </div>
+        <DraftNumberField
+          label="Толщина цветной линии"
+          min={2}
+          max={12}
+          step={1}
+          value={clampStripeWidth(preset.stripe_width)}
+          onCommit={(n) => onChange({ stripe_width: clampStripeWidth(n) })}
+        />
         <div className="field catalog-editor-color">
           <label>Цвет боковой линии</label>
           <ColorSwatches

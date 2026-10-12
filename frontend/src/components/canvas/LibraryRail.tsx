@@ -3,7 +3,10 @@ import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react'
 import { SearchField } from '../SearchField'
 import { useUiStore } from '../../store/useUiStore'
 import { useProjectStore as useP } from '../../store/useProjectStore'
+import { canListOnPowerLibrary } from '../../model/canvasSync'
 import { PRESET_GROUPS } from '../../model/presetGroups'
+import { clampStripeWidth } from '../../model/cardSize'
+import { DEFAULT_STRIPE_WIDTH } from '../../model/library'
 import type { LibraryPreset } from '../../types'
 
 export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; filter?: string }) {
@@ -24,6 +27,7 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
     elec: true,
   })
   const addFromPreset = useP((s) => s.addFromPreset)
+  const placeArchitectureOnPower = useP((s) => s.placeArchitectureOnPower)
   const project = useP((s) => s.project)
   const architectureId = useP((s) => s.architectureId)
   const goToArchitecture = useP((s) => s.goToArchitecture)
@@ -42,9 +46,10 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
         : filter === 'power'
           ? presets.filter(
               (p) =>
-                p.category === 'ELECTRICAL' ||
-                (p.category === 'HARDWARE' &&
-                  /датчик|двигател|дпт|ад|сд|шагов|серво|плк|mcu|аккумулятор|реле|hmi|gnss/i.test(`${p.name} ${p.type}`)),
+                p.category !== 'SOFTWARE' &&
+                (p.category === 'ELECTRICAL' ||
+                  (p.category === 'HARDWARE' &&
+                    /датчик|двигател|дпт|ад|сд|шагов|серво|плк|mcu|аккумулятор|реле|hmi|gnss/i.test(`${p.name} ${p.type}`))),
             )
           : presets.filter((p) => p.category === filter && p.category !== 'PROTOCOL')
     return byCat.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()) || p.type.toLowerCase().includes(q.toLowerCase()))
@@ -77,6 +82,46 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
         <aside className="library-rail">
           <h3>Компоненты</h3>
           <SearchField placeholder="Поиск компонентов" value={q} onChange={setQ} />
+          {filter === 'power' && project ? (
+            <section className="lib-group">
+              <button className="lib-group-btn" type="button">
+                <span>С архитектуры</span>
+              </button>
+              {(() => {
+                const available = project.components.filter((c) => {
+                  if (!canListOnPowerLibrary(c, project)) return false
+                  if (!c.name.toLowerCase().includes(q.toLowerCase())) return false
+                  return !project.components.some(
+                    (x) => x.architecture_id === architectureId && x.extra_fields?.source_component_id === c.id,
+                  )
+                })
+                if (!available.length) {
+                  return (
+                    <p className="hint">
+                      Нет компонентов архитектуры с электрическими контактами, которые ещё не перенесены на схему питания.
+                    </p>
+                  )
+                }
+                return available.map((c) => (
+                  <div
+                    key={c.id}
+                    className="lib-item"
+                    title="Перетащите на схему или дважды щёлкните"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/architecture-source', c.id)
+                      e.dataTransfer.effectAllowed = 'copy'
+                    }}
+                    onDoubleClick={() => placeArchitectureOnPower(c.id)}
+                  >
+                    <span className="lib-item-mark" style={{ background: c.color || 'var(--line-strong)', width: clampStripeWidth(DEFAULT_STRIPE_WIDTH) }} />
+                    {c.name}
+                  </div>
+                ))
+              })()}
+              <p className="hint">Перетащите компонент на схему или дважды щёлкните. Соединения не перезаписываются, повторно тот же узел не дублируется.</p>
+            </section>
+          ) : null}
           {grouped.map((group) => {
             const expanded = q ? true : open[group.id] !== false
             return (
@@ -84,7 +129,10 @@ export function LibraryRail({ presets, filter }: { presets: LibraryPreset[]; fil
                 <button
                   className="lib-group-btn"
                   type="button"
-                  onClick={() => setOpen((prev) => ({ ...prev, [group.id]: !expanded }))}
+                  onClick={() => {
+                    if (q) return
+                    setOpen((prev) => ({ ...prev, [group.id]: !expanded }))
+                  }}
                 >
                   {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                   <span>{group.title}</span>
@@ -128,7 +176,10 @@ function PresetRow({ preset, onAdd }: { preset: LibraryPreset; onAdd: () => void
       onDragStart={(e) => e.dataTransfer.setData('application/architecture-preset', JSON.stringify(preset))}
       onDoubleClick={onAdd}
     >
-      <span className="lib-item-mark" style={{ background: preset.color || 'var(--line-strong)' }} />
+      <span
+        className="lib-item-mark"
+        style={{ background: preset.color || 'var(--line-strong)', width: clampStripeWidth(preset.stripe_width) }}
+      />
       {preset.name}
     </div>
   )

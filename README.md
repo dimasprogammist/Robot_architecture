@@ -30,6 +30,22 @@ npm run dev
 
 Vite проксирует `/api` на бэкенд.
 
+## Почта и сброс пароля
+
+Скопируйте `.env.example` в `.env` или `backend/.env`.
+
+Локальный приёмник без SMTP (письма в `backend/data/mail/*.eml`, ссылка с токеном внутри файла):
+
+```
+MAIL_BACKEND=file
+APP_BASE_URL=http://localhost:5173
+SMTP_FROM=noreply@localhost
+```
+
+Страница нового пароля: `/reset?token=...`. Если задан `SMTP_HOST`, отправка идёт через SMTP даже при `MAIL_BACKEND=file`.
+
+Для реальной доставки укажите `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM` и при необходимости `SMTP_USER` / `SMTP_PASSWORD`, `SMTP_SSL` или `SMTP_STARTTLS`. Без SMTP и без `MAIL_BACKEND=file` API отвечает 503 и не раскрывает, есть ли аккаунт.
+
 ## Типичный сценарий
 
 1. Создайте проект (шаблон «Робот» — хороший старт).

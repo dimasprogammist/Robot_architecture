@@ -82,6 +82,8 @@ def test_library_has_required_presets():
 def test_password_reset_without_smtp_is_503(monkeypatch):
     monkeypatch.delenv("SMTP_HOST", raising=False)
     monkeypatch.delenv("APP_BASE_URL", raising=False)
+    monkeypatch.delenv("MAIL_BACKEND", raising=False)
+    monkeypatch.delenv("MAIL_DIR", raising=False)
     db = SessionLocal()
     try:
         try:
@@ -132,6 +134,87 @@ def test_password_reset_link_uses_public_base_url(monkeypatch):
         assert "localhost" not in captured["body"]
         assert "SMTP_PASSWORD" not in captured["body"]
         assert captured["to"] == email
+    finally:
+        db.close()
+
+
+def test_password_reset_file_backend_one_time_token(monkeypatch, tmp_path):
+    import re
+
+    from app.db import PasswordResetRow
+    from app.services.auth import verify_password
+
+    monkeypatch.setenv("MAIL_BACKEND", "file")
+    monkeypatch.setenv("MAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("APP_BASE_URL", "http://localhost:5173")
+    monkeypatch.setenv("SMTP_FROM", "noreply@localhost")
+    monkeypatch.delenv("SMTP_HOST", raising=False)
+    db = SessionLocal()
+    try:
+        email = "tz-file-mail@example.com"
+        user = db.query(UserRow).filter(UserRow.email == email).first()
+        if user is None:
+            user = register_user(db, email, "oldpass1", "FileMail")
+        result = request_password_reset(db, email, "203.0.113.12")
+        assert result["ok"] is True
+        assert "reset_url" not in result
+        files = list(tmp_path.glob("*.eml"))
+        assert len(files) == 1
+        raw = files[0].read_text(encoding="utf-8")
+        from email import message_from_string
+
+        parsed = message_from_string(raw)
+        payload = parsed.get_payload(decode=True)
+        body = payload.decode("utf-8") if isinstance(payload, bytes) else str(parsed.get_payload())
+        match = re.search(r"/reset\?token=([A-Za-z0-9_\-]+)", body)
+        assert match, body
+        token = match.group(1)
+        reset_password(db, token, "newpass9", "newpass9")
+        db.refresh(user)
+        assert verify_password("newpass9", user.password_hash)
+        try:
+            reset_password(db, token, "another1", "another1")
+            raise AssertionError("expected HTTPException")
+        except HTTPException as exc:
+            assert exc.status_code == 400
+        row = db.query(PasswordResetRow).filter(PasswordResetRow.user_id == user.id).order_by(PasswordResetRow.expires_at.desc()).first()
+        assert row is not None and row.used_at is not None
+    finally:
+        db.close()
+
+
+def test_mail_backend_prefers_smtp_host_over_file(monkeypatch):
+    from app.services import mail as mail_mod
+
+    monkeypatch.setenv("MAIL_BACKEND", "file")
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+    assert mail_mod.mail_backend() == "smtp"
+    monkeypatch.delenv("SMTP_HOST", raising=False)
+    assert mail_mod.mail_backend() == "file"
+
+
+def test_password_reset_delivery_error_is_503(monkeypatch):
+    from app.services.mail import MailDeliveryError
+
+    monkeypatch.setenv("SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("SMTP_FROM", "noreply@example.com")
+    monkeypatch.setenv("APP_BASE_URL", "https://app.example.com")
+
+    def boom(_to: str, _subject: str, _body: str) -> str:
+        raise MailDeliveryError("Не удалось отправить письмо. Проверьте настройки SMTP.")
+
+    monkeypatch.setattr("app.services.auth.send_mail", boom)
+    db = SessionLocal()
+    try:
+        email = "tz-smtp-fail@example.com"
+        if db.query(UserRow).filter(UserRow.email == email).first() is None:
+            register_user(db, email, "secret12", "FailMail")
+        try:
+            request_password_reset(db, email, "203.0.113.13")
+            raise AssertionError("expected HTTPException")
+        except HTTPException as exc:
+            assert exc.status_code == 503
+            assert "reset_url" not in str(exc.detail).lower()
     finally:
         db.close()
 

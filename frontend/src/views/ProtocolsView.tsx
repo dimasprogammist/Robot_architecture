@@ -1,4 +1,5 @@
 import { ColorSwatches, PROTOCOL_PALETTE } from '../components/ColorSwatches'
+import { DraftNumberField } from '../components/DraftNumberField'
 import { useProjectStore } from '../store/useProjectStore'
 import { uid } from '../lib/ids'
 import { clampStrokeWidth, protocolLabel } from '../model/protocols'
@@ -87,23 +88,24 @@ export function ProtocolsView() {
                 })
               }
             />
-            <label className="protocol-card-stroke hint">
-              Толщина
-              <input
-                type="number"
+            <div className="protocol-card-stroke">
+              <DraftNumberField
+                label="Толщина"
+                hideLabel
+                title="Толщина линии"
+                ariaLabel="Толщина линии"
                 min={1}
                 max={8}
                 step={0.5}
                 value={clampStrokeWidth(proto.stroke_width)}
-                aria-label="Толщина линии"
-                onChange={(e) =>
+                onCommit={(n) =>
                   mutate((p) => {
                     const x = p.protocols.find((i) => i.id === proto.id)
-                    if (x) x.stroke_width = clampStrokeWidth(e.target.value)
+                    if (x) x.stroke_width = clampStrokeWidth(n)
                   })
                 }
               />
-            </label>
+            </div>
             <ColorSwatches
               compact
               layout={PROTOCOL_CARD_CONFIG.paletteLayout}

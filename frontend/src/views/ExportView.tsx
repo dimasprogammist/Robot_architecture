@@ -13,6 +13,8 @@ export function ExportView() {
   const previewVersion = useProjectStore((s) => s.previewVersion)
   const exitVersionPreview = useProjectStore((s) => s.exitVersionPreview)
   const restoreVersion = useProjectStore((s) => s.restoreVersion)
+  const deleteVersion = useProjectStore((s) => s.deleteVersion)
+  const settings = useUiStore((s) => s.settings)
   const setExportOpen = useUiStore((s) => s.setExportOpen)
   const navigate = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
@@ -132,6 +134,18 @@ export function ExportView() {
               </button>
               <button className="btn" type="button" onClick={() => void restoreVersion(v.id)}>
                 Сделать текущей
+              </button>
+              <button
+                className="btn danger"
+                type="button"
+                disabled={versionPreviewId === v.id}
+                title={versionPreviewId === v.id ? 'Сначала закройте просмотр этой версии' : 'Удалить снимок'}
+                onClick={() => {
+                  if (settings.confirm_delete && !window.confirm(`Удалить версию «${v.label}»?`)) return
+                  void deleteVersion(v.id)
+                }}
+              >
+                Удалить
               </button>
             </span>
           </li>

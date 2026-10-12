@@ -5,7 +5,7 @@ import { componentSupportsAlgorithm } from '../model/componentCatalog'
 import type { Component, Project } from '../types'
 
 function componentTree(project: Project) {
-  const components = project.components.filter((c) => c.entity_kind !== 'table')
+  const components = project.components.filter((c) => c.entity_kind !== 'table' && !c.extra_fields?.source_component_id)
   const byId = new Map(components.map((c) => [c.id, c]))
   const parentOf = new Map<string, string | null>()
   for (const c of components) {

@@ -34,7 +34,7 @@ const NAV_ITEMS: { id: NavId; label: string; icon: typeof Layers3 }[] = [
   { id: 'architecture', label: 'Архитектура', icon: Layers3 },
   { id: 'database', label: 'База данных', icon: Database },
   { id: 'power', label: 'Схема питания', icon: Zap },
-  { id: 'mechanics', label: 'Механика и кинематика', icon: DraftingCompass },
+  { id: 'mechanics', label: 'Кинематика', icon: DraftingCompass },
   { id: 'algorithms', label: 'Алгоритмы', icon: Workflow },
   { id: 'documents', label: 'Документы', icon: FileText },
   { id: 'tutorial', label: 'Учебник', icon: GraduationCap },

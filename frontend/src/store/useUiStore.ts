@@ -10,6 +10,8 @@ interface UiState {
   libraryCollapsed: boolean
   docTab: 'requirements' | 'notes' | 'bom' | 'files'
   inspectorTab: 'overview' | 'docs' | 'algorithm' | 'nested' | 'requirements' | 'mechanics' | 'table' | 'files'
+  exercisesSectionId: string | null
+  tutorialLessonId: string | null
   setNav: (nav: NavId) => void
   setTheme: (theme: 'light' | 'dark') => void
   setSettings: (s: GlobalSettings) => void
@@ -19,6 +21,8 @@ interface UiState {
   setLibraryCollapsed: (v: boolean) => void
   setDocTab: (t: UiState['docTab']) => void
   setInspectorTab: (t: UiState['inspectorTab']) => void
+  setExercisesSectionId: (id: string | null) => void
+  setTutorialLessonId: (id: string | null) => void
 }
 
 function applyChrome(s: GlobalSettings) {
@@ -36,7 +40,11 @@ export const useUiStore = create<UiState>((set) => ({
   libraryCollapsed: true,
   docTab: 'requirements',
   inspectorTab: 'overview',
+  exercisesSectionId: null,
+  tutorialLessonId: null,
   setNav: (nav) => set({ nav }),
+  setExercisesSectionId: (exercisesSectionId) => set({ exercisesSectionId }),
+  setTutorialLessonId: (tutorialLessonId) => set({ tutorialLessonId }),
   setTheme: (theme) => set({ theme }),
   setSettings: (s) => {
     const settings = { ...DEFAULT_SETTINGS, ...s }

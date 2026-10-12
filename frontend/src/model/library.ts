@@ -14,6 +14,9 @@ export const CATEGORY_COLORS: Record<string, string> = {
 
 export const CANVAS_CATEGORIES = ['HARDWARE', 'SOFTWARE', 'DATA', 'NETWORK', 'MECHANICS', 'ELECTRICAL', 'OTHER'] as const
 
+export const DEFAULT_STRIPE_WIDTH = 4
+const LEGACY_STRIPE_DEFAULT = 3
+
 export function presetColor(preset: Pick<LibraryPreset, 'category' | 'color'>) {
   return preset.color || CATEGORY_COLORS[preset.category] || CATEGORY_COLORS.OTHER
 }
@@ -27,7 +30,8 @@ export function normalizePreset(preset: LibraryPreset): LibraryPreset {
     entity_kind: preset.entity_kind || (preset.type === 'Таблица' ? 'table' : 'component'),
     color: presetColor(preset),
     built_in: preset.built_in !== false,
-    stripe_width: preset.stripe_width && preset.stripe_width > 0 ? preset.stripe_width : 3,
+    stripe_width:
+      preset.stripe_width && preset.stripe_width > 0 ? preset.stripe_width : DEFAULT_STRIPE_WIDTH,
     hardware_id: preset.hardware_id,
     protocol_id: preset.protocol_id,
   }
@@ -53,11 +57,21 @@ export function matchPreset(
 }
 
 export function catalogLook(component: Component, presets: LibraryPreset[]): Component {
+  if (!component) {
+    return {
+      id: '',
+      name: '',
+      type: '',
+      category: 'OTHER',
+      architecture_id: '',
+      position: { x: 0, y: 0 },
+    } as Component
+  }
   const preset = matchPreset(presets, component)
   if (!preset) {
     return {
       ...component,
-      color: component.color || CATEGORY_COLORS[component.category] || CATEGORY_COLORS.OTHER,
+      color: component.color || CATEGORY_COLORS[component.category || 'OTHER'] || CATEGORY_COLORS.OTHER,
     }
   }
   return {
@@ -121,6 +135,13 @@ export function seedLibraryPresets(project: Project, builtins: LibraryPreset[]) 
           next.icon = fresh.icon
           changed = true
         }
+        if (next.stripe_width === LEGACY_STRIPE_DEFAULT) {
+          next.stripe_width = DEFAULT_STRIPE_WIDTH
+          changed = true
+        }
+      } else if (!item.stripe_width) {
+        next.stripe_width = DEFAULT_STRIPE_WIDTH
+        changed = true
       }
       if (!item.id || !item.color || !item.stripe_width) changed = true
       return next
@@ -149,6 +170,6 @@ export function emptyLibraryPreset(): LibraryPreset {
     color: CATEGORY_COLORS.HARDWARE,
     built_in: false,
     entity_kind: 'component',
-    stripe_width: 3,
+    stripe_width: DEFAULT_STRIPE_WIDTH,
   }
 }

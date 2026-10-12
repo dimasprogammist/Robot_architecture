@@ -100,12 +100,14 @@ def robot(name: str, description: str = "") -> Project:
     ctrl = _comp(aid, "Контроллер", "SBC", "HARDWARE", 420, 40, technology="Raspberry Pi", icon="board", hardware_id="hw-rpi")
     sensors = _comp(aid, "Датчики", "Датчик", "HARDWARE", 80, 220, icon="sensor")
     actuators = _comp(aid, "Исполнители", "Исполнитель", "HARDWARE", 760, 220, icon="motor")
+    comms = _comp(aid, "Связь", "Сервис", "SOFTWARE", 80, 400, technology="MQTT", icon="server")
     backend = _comp(aid, "Бэкенд", "Бэкенд", "SOFTWARE", 420, 400, technology="Python", icon="server")
-    p.components = [ctrl, sensors, actuators, backend]
+    p.components = [ctrl, sensors, actuators, comms, backend]
     p.connections = [
         _conn(aid, sensors.id, ctrl.id, "UART", data_format="Float32"),
         _conn(aid, ctrl.id, actuators.id, "CAN", data_format="Frames"),
-        _conn(aid, ctrl.id, backend.id, "MQTT", data_format="JSON"),
+        _conn(aid, ctrl.id, comms.id, "MQTT", data_format="JSON"),
+        _conn(aid, comms.id, backend.id, "MQTT", data_format="JSON"),
     ]
     return p
 

@@ -10,28 +10,33 @@ log = logging.getLogger("architecture.mail")
 
 
 def _load_env_files() -> None:
+    here = Path(__file__).resolve()
     roots = [
         Path.cwd(),
-        Path(__file__).resolve().parents[2],
-        Path(__file__).resolve().parents[3],
-        Path(__file__).resolve().parents[2] / "data",
+        here.parents[2],
+        here.parents[3] if len(here.parents) > 3 else here.parents[2],
+        here.parents[2] / "data",
+        Path.cwd() / "data",
     ]
+    seen: set[Path] = set()
     for root in roots:
-        path = root / ".env"
-        if not path.is_file():
-            continue
-        try:
-            for raw in path.read_text(encoding="utf-8").splitlines():
-                line = raw.strip()
-                if not line or line.startswith("#") or "=" not in line:
-                    continue
-                key, _, value = line.partition("=")
-                key = key.strip()
-                value = value.strip().strip('"').strip("'")
-                if key and key not in os.environ:
-                    os.environ[key] = value
-        except OSError:
-            continue
+        for name in (".env", ".env.local"):
+            path = (root / name).resolve()
+            if path in seen or not path.is_file():
+                continue
+            seen.add(path)
+            try:
+                for raw in path.read_text(encoding="utf-8").splitlines():
+                    line = raw.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+            except OSError:
+                continue
 
 
 _load_env_files()
@@ -45,17 +50,74 @@ class MailDeliveryError(RuntimeError):
     pass
 
 
+def mail_backend() -> str:
+    raw = (os.environ.get("MAIL_BACKEND") or "").strip().lower()
+    host = smtp_host()
+    if raw == "smtp":
+        return "smtp" if host else ""
+    if host:
+        return "smtp"
+    if raw == "file":
+        return "file"
+    return ""
+
+
+def smtp_host() -> str:
+    return (os.environ.get("SMTP_HOST") or "").strip()
+
+
 def smtp_configured() -> bool:
-    return bool((os.environ.get("SMTP_HOST") or "").strip())
+    backend = mail_backend()
+    if backend == "file":
+        return True
+    return backend == "smtp" and bool(smtp_host())
 
 
 def public_app_url() -> str:
     base = (os.environ.get("APP_BASE_URL") or os.environ.get("APP_PUBLIC_URL") or "").strip()
+    if not base:
+        base = "http://localhost:5173"
     return base.rstrip("/")
 
 
+def _mail_dir() -> Path:
+    configured = (os.environ.get("MAIL_DIR") or "").strip()
+    if configured:
+        path = Path(configured)
+    else:
+        path = Path(__file__).resolve().parents[2] / "data" / "mail"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def send_mail(to: str, subject: str, body: str) -> str:
-    host = (os.environ.get("SMTP_HOST") or "").strip()
+    backend = mail_backend()
+    if backend == "file":
+        return _send_file(to, subject, body)
+    if backend != "smtp":
+        raise MailConfigError(
+            "Почтовый сервер не настроен: задайте SMTP_HOST и SMTP_FROM или MAIL_BACKEND=file."
+        )
+    return _send_smtp(to, subject, body)
+
+
+def _send_file(to: str, subject: str, body: str) -> str:
+    sender = (os.environ.get("SMTP_FROM") or "noreply@localhost").strip()
+    message = EmailMessage()
+    message["From"] = sender
+    message["To"] = to
+    message["Subject"] = subject
+    message.set_content(body)
+    folder = _mail_dir()
+    safe = "".join(ch if ch.isalnum() or ch in "._-+@" else "_" for ch in to)[:80]
+    path = folder / f"{os.getpid()}-{safe}.eml"
+    path.write_text(message.as_string(), encoding="utf-8")
+    log.info("Password reset mail written to file backend")
+    return "file"
+
+
+def _send_smtp(to: str, subject: str, body: str) -> str:
+    host = smtp_host()
     if not host:
         raise MailConfigError(
             "Почтовый сервер не настроен: задайте SMTP_HOST, SMTP_PORT, SMTP_FROM и APP_BASE_URL."

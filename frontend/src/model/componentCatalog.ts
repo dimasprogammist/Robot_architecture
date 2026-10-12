@@ -1,4 +1,5 @@
 import type { Component } from '../types'
+import { extraMap } from './extraFields'
 import {
   CONTROL_OPTIONS,
   INTERFACE_OPTIONS,
@@ -82,7 +83,7 @@ const signalFields: ComponentField[] = [
   },
   {
     key: 'pwm_duty',
-    label: 'Коэффициент заполнения',
+    label: 'Скважность',
     section: 'io',
     visibleWhen: { key: 'signal_type', values: ['ШИМ', 'PWM'] },
   },
@@ -227,6 +228,10 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
       { key: 'manufacturer', label: 'Производитель', options: PLC_MAKERS, allowOther: true, section: 'main' },
       { key: 'model', label: 'Модель', section: 'main' },
       { key: 'io_count', label: 'Количество I/O', section: 'tech' },
+      { key: 'pin_di', label: 'DI', section: 'io' },
+      { key: 'pin_do', label: 'DO', section: 'io' },
+      { key: 'pin_ai', label: 'AI', section: 'io' },
+      { key: 'pin_ao', label: 'AO', section: 'io' },
       { key: 'protocols', label: 'Протоколы', options: protoOpts, allowOther: true, section: 'io' },
       powerField,
     ),
@@ -346,6 +351,10 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
     fields: f(
       ...hwModel(MCU_MODELS),
       { key: 'interfaces', label: 'Интерфейсы', section: 'io' },
+      { key: 'pin_di', label: 'DI', section: 'io' },
+      { key: 'pin_do', label: 'DO', section: 'io' },
+      { key: 'pin_ai', label: 'AI', section: 'io' },
+      { key: 'pin_ao', label: 'AO', section: 'io' },
       powerField,
     ),
     algorithm: algoCtrl,
@@ -558,7 +567,7 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
     fields: f(
       { key: 'material', label: 'Материал' },
       { key: 'dimensions', label: 'Габариты' },
-      { key: 'weight', label: 'Масса' },
+      { key: 'weight', label: 'Масса, кг' },
       { key: 'qty', label: 'Количество' },
     ),
     algorithm: algoAct,
@@ -701,16 +710,27 @@ export const COMPONENT_CATALOG: ComponentDefinition[] = [
   },
 ]
 
+function catalogNameMatch(entryName: string, value: string) {
+  if (!value) return false
+  return value === entryName || value.startsWith(`${entryName} `) || value.startsWith(`${entryName}-`)
+}
+
 export function definitionFor(component: Pick<Component, 'type' | 'name' | 'category'>) {
-  const byName = COMPONENT_CATALOG.find((entry) => entry.names.includes(component.name))
+  const name = component.name || ''
+  const type = component.type || ''
+  const byName = COMPONENT_CATALOG.find((entry) => entry.names.some((item) => catalogNameMatch(item, name)))
   if (byName) return byName
-  const byType = COMPONENT_CATALOG.find((entry) => entry.names.includes(component.type))
+  const byType = COMPONENT_CATALOG.find((entry) => entry.names.some((item) => catalogNameMatch(item, type)))
   if (byType) return byType
+  const key = `${type} ${name}`.toLowerCase()
   if (component.category === 'SOFTWARE') return COMPONENT_CATALOG.find((entry) => entry.id === 'soft-generic')
   if (component.category === 'DATA') return COMPONENT_CATALOG.find((entry) => entry.id === 'db')
   if (component.category === 'NETWORK') return COMPONENT_CATALOG.find((entry) => entry.id === 'network-box')
   if (component.category === 'ELECTRICAL') return COMPONENT_CATALOG.find((entry) => entry.id === 'psu')
   if (component.category === 'MECHANICS') return COMPONENT_CATALOG.find((entry) => entry.id === 'mech')
+  if (/raspberry|jetson|orange pi|sbc/.test(key)) return COMPONENT_CATALOG.find((entry) => entry.id === 'sbc')
+  if (/плк/.test(key) || type === 'ПЛК') return COMPONENT_CATALOG.find((entry) => entry.id === 'plc')
+  if (/arduino|stm32|esp32|mcu/.test(key) || type === 'MCU') return COMPONENT_CATALOG.find((entry) => entry.id === 'mcu')
   if (component.category === 'HARDWARE') return COMPONENT_CATALOG.find((entry) => entry.id === 'mcu')
   return undefined
 }
@@ -727,7 +747,7 @@ export function inspectorChrome(component: Pick<Component, 'type' | 'name' | 'ca
       extra: Boolean(definition.inspector.extra),
     }
   }
-  if (['SOFTWARE', 'NETWORK', 'DATA'].includes(component.category)) {
+  if (['SOFTWARE', 'NETWORK', 'DATA'].includes(component.category || '')) {
     return { connection: true, extra: false }
   }
   return { connection: false, extra: false }
@@ -740,7 +760,7 @@ export function groupedComponentFields(component: Component) {
     { id: 'tech', title: 'Характеристики' },
     { id: 'io', title: 'Подключение' },
   ]
-  const extra = component.extra_fields || {}
+  const extra = extraMap(component.extra_fields)
   return order
     .map((group) => ({
       ...group,

@@ -10,12 +10,28 @@ import type {
   Project,
   Requirement,
 } from '../types'
-import { emptyMechanical, emptyTable, withComponentDefaults } from '../model/defaults'
+import { emptyMechanical, emptyTable, hydrateComponent, withComponentDefaults } from '../model/defaults'
 import { presetColor, seedLibraryPresets } from '../model/library'
 import { typeDefaultSize } from '../model/cardSize'
 import { storedConnectionHandles } from '../model/connections'
 import { definitionFor, componentSupportsAlgorithm, inferManufacturer } from '../model/componentCatalog'
 import { inferSensorKind } from '../model/protocols'
+import { canonicalComponentId } from '../model/canonical'
+import { pinFieldPatch } from '../model/controllerPins'
+import {
+  canListOnPowerLibrary,
+  clearOmitPowerView,
+  ensureArchitectureSource,
+  ensurePowerView,
+  freshCopyFields,
+  markOmitPowerView,
+  pruneDanglingGraph,
+  pruneOrphanAlgorithms,
+  removeComponentsAndDependents,
+  syncArchitectureFromPower,
+  syncLinkedComponent,
+  syncPowerViewsFromArchitecture,
+} from '../model/canvasSync'
 
 const MAX_HISTORY = 80
 let saveTimer: ReturnType<typeof setTimeout> | null = null
@@ -57,6 +73,8 @@ export interface ProjectState {
   select: (ids: string[], connectionId?: string | null) => void
   addComponent: (partial: Partial<Component> & { name: string }, position?: { x: number; y: number }) => string
   addFromPreset: (preset: LibraryPreset, position: { x: number; y: number }) => string
+  placeArchitectureOnPower: (sourceId: string, position?: { x: number; y: number }) => string
+  deleteVersion: (id: string) => Promise<void>
   updateComponent: (id: string, patch: Partial<Component>) => void
   deleteSelected: () => void
   connect: (
@@ -110,6 +128,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   load: async (id, builtins = []) => {
     const project = await api.project(id)
+    project.components = project.components.map((c) => hydrateComponent(c))
     let seeded = seedLibraryPresets(project, builtins)
     if (!project.protocols.some((p) => p.name === 'Электрическое подключение')) {
       seeded = true
@@ -134,6 +153,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         stroke_width: 2,
       })
     }
+    const before = project.components.length
+    const dangling = pruneDanglingGraph(project)
+    syncArchitectureFromPower(project)
+    syncPowerViewsFromArchitecture(project)
+    const prunedAlgs = pruneOrphanAlgorithms(project)
+    const migrated =
+      seeded || prunedAlgs || dangling.removedComps > 0 || dangling.removedAlgs > 0 || project.components.length !== before
     set({
       project,
       architectureId: project.root_architecture_id,
@@ -141,12 +167,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       selectedConnectionId: null,
       past: [],
       future: [],
-      dirty: seeded,
+      dirty: migrated,
       error: null,
       versionPreviewId: null,
       liveBackup: null,
     })
-    if (seeded) get().scheduleSave()
+    if (migrated) get().scheduleSave()
   },
 
   setProject: (p, history = false) => {
@@ -287,6 +313,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           height: partial.height,
         }),
       )
+      const arch = p.architectures.find((a) => a.id === architectureId)
+      if (arch?.kind === 'power') ensureArchitectureSource(p, id)
+      else ensurePowerView(p, id)
     })
     set({ selectedIds: [id], selectedConnectionId: null })
     return id
@@ -315,6 +344,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
             }),
           )
         : {}
+      Object.assign(extra_fields, pinFieldPatch({ name: preset.name, type: preset.type, extra_fields }, extra_fields.model || preset.name))
       const size = typeDefaultSize({ name: preset.name, type: preset.type, category: preset.category })
       return get().addComponent(
       {
@@ -336,12 +366,27 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       )
     })(),
 
+  placeArchitectureOnPower: (sourceId, position) => {
+    let viewId = ''
+    get().mutate((p) => {
+      const src = p.components.find((c) => c.id === sourceId)
+      if (!src || !canListOnPowerLibrary(src, p)) return
+      clearOmitPowerView(p, sourceId)
+      viewId = ensurePowerView(p, sourceId, position) || ''
+    })
+    const live = get().project
+    const view = live?.components.find((c) => c.id === viewId)
+    if (view) set({ architectureId: view.architecture_id, selectedIds: [view.id], selectedConnectionId: null })
+    return viewId
+  },
+
   updateComponent: (id, patch) => {
     get().mutate((p) => {
       const c = p.components.find((x) => x.id === id)
       if (!c) return
       Object.assign(c, patch)
       if (patch.documentation) c.documentation = { ...c.documentation, ...patch.documentation }
+      syncLinkedComponent(p, id)
     }, { history: false })
   },
 
@@ -353,15 +398,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
       if (selectedIds.length) {
         const drop = new Set(selectedIds)
-        p.components = p.components.filter((c) => !drop.has(c.id) || c.architecture_id !== architectureId)
-        p.connections = p.connections.filter((c) => !drop.has(c.source) && !drop.has(c.target))
-        if (p.mechanics) {
-          p.mechanics.elements = p.mechanics.elements.filter((e) => !drop.has(e.id))
-          p.mechanics.joints = p.mechanics.joints.filter(
-            (j) => !drop.has(j.id) && !drop.has(j.parent_id) && !drop.has(j.child_id),
-          )
-          if (p.mechanics.ee_id && drop.has(p.mechanics.ee_id)) p.mechanics.ee_id = null
+        const arch = p.architectures.find((a) => a.id === architectureId)
+        if (arch?.kind === 'power') {
+          for (const c of p.components) {
+            if (drop.has(c.id) && c.extra_fields?.source_component_id) {
+              markOmitPowerView(p, c.extra_fields.source_component_id)
+            }
+          }
         }
+        removeComponentsAndDependents(p, drop)
       }
     })
     set({ selectedIds: [], selectedConnectionId: null })
@@ -475,8 +520,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           id,
           architecture_id: architectureId || p.root_architecture_id,
           nested_architecture_id: null,
+          extra_fields: freshCopyFields(n.extra_fields),
           position: { x: n.position.x + 40, y: n.position.y + 40 },
         })
+        const arch = p.architectures.find((a) => a.id === (architectureId || p.root_architecture_id))
+        if (arch?.kind === 'power') ensureArchitectureSource(p, id)
+        else ensurePowerView(p, id)
       }
     })
     set({ selectedIds: ids, selectedConnectionId: null })
@@ -495,8 +544,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         name: `${source.name} (копия)`,
         architecture_id: architectureId || p.root_architecture_id,
         nested_architecture_id: null,
+        extra_fields: freshCopyFields(source.extra_fields),
         position: { x: source.position.x + 40, y: source.position.y + 40 },
       })
+      const arch = p.architectures.find((a) => a.id === (architectureId || p.root_architecture_id))
+      if (arch?.kind === 'power') ensureArchitectureSource(p, nextId)
+      else ensurePowerView(p, nextId)
     })
     set({ selectedIds: [nextId], selectedConnectionId: null })
   },
@@ -540,6 +593,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     })
   },
 
+  deleteVersion: async (id) => {
+    const { project, versionPreviewId } = get()
+    if (!project) return
+    if (versionPreviewId === id) {
+      window.alert('Сначала закройте просмотр этой версии.')
+      return
+    }
+    const next = await api.deleteVersion(project.id, id)
+    set({
+      project: next,
+      dirty: false,
+      liveBackup: get().liveBackup,
+      versionPreviewId: get().versionPreviewId,
+    })
+  },
+
   restoreVersion: async (id) => {
     const live = get().liveBackup ?? get().project
     if (!live) return
@@ -560,16 +629,17 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   ensureAlgorithm: (componentId) => {
     const project = get().project!
-    let alg = project.algorithms.find((a) => a.component_id === componentId)
+    const ownerId = canonicalComponentId(project, componentId)
+    let alg = project.algorithms.find((a) => a.component_id === ownerId)
     if (alg) return alg
-    const component = project.components.find((c) => c.id === componentId)
+    const component = project.components.find((c) => c.id === ownerId)
     if (!component || !componentSupportsAlgorithm(component)) {
       throw new Error('Алгоритм недоступен для этого компонента')
     }
     const template = definitionFor(component)?.algorithm
     const created: Algorithm = {
       id: uid(),
-      component_id: componentId,
+      component_id: ownerId,
       name: `${component.name}: алгоритм`,
       description: template?.purpose || '',
       program_name: component.name.replace(/\s+/g, ''),
@@ -616,10 +686,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       id: uid(),
       code: nextReqCode(get().project!),
       text,
-      component_ids: [...get().selectedIds],
+      component_ids: [...new Set(get().selectedIds.map((id) => canonicalComponentId(get().project!, id)))],
       connection_ids: get().selectedConnectionId ? [get().selectedConnectionId as string] : [],
       notes: '',
       priority: 'should',
+      starred: false,
     }
     get().mutate((p) => {
       p.requirements.push(req)
@@ -637,7 +708,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   deleteRequirement: (id) => {
     get().mutate((p) => {
       p.requirements = p.requirements.filter((r) => r.id !== id)
-      for (const c of p.components) c.requirement_ids = c.requirement_ids.filter((x) => x !== id)
+      for (const c of p.components) c.requirement_ids = (c.requirement_ids || []).filter((x) => x !== id)
     })
   },
 

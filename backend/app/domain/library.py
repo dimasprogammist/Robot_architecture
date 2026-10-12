@@ -323,6 +323,7 @@ def _with_preset_meta(items: list[dict]) -> list[dict]:
         row.setdefault("built_in", True)
         row.setdefault("technology", row.get("technology") or "")
         row.setdefault("entity_kind", row.get("entity_kind") or "component")
+        row.setdefault("stripe_width", 4)
         out.append(row)
     return out
 

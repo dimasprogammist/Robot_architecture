@@ -27,6 +27,7 @@ from app.services.export import to_ai_prompt, to_markdown, to_semantic_export
 from app.services.templates import TEMPLATES, create_from_template
 from app.services.learning import categories as learning_categories, get_article
 from app.services.course import course_lesson, course_overview, mark_lesson_seen
+from app.services import exercises as exercises_service
 from app.domain.curriculum_schema import CodeCheckRequest, QuizCheckRequest
 from app.services import curriculum as curriculum_service
 from app.services.sqlgen import generate_sql
@@ -286,6 +287,18 @@ def save_version(project_id: str, body: VersionCreate, user: UserRow = Depends(r
     return _save(db, project, row, user_id=user.id)
 
 
+@router.delete("/projects/{project_id}/versions/{version_id}", response_model=Project)
+def delete_version(project_id: str, version_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    row = _accessible_row(db, project_id, user)
+    project = _row_to_project(row)
+    if not any(v.id == version_id for v in project.versions):
+        raise HTTPException(status_code=404, detail="Версия не найдена")
+    project.versions = [v for v in project.versions if v.id != version_id]
+    if project.current_version_label and not any(v.label == project.current_version_label for v in project.versions):
+        project.current_version_label = project.versions[-1].label if project.versions else "черновик"
+    return _save(db, project, row, user_id=user.id)
+
+
 @router.get("/projects/{project_id}/export.json")
 def export_json(project_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
     return to_semantic_export(_row_to_project(_accessible_row(db, project_id, user)))
@@ -393,11 +406,12 @@ def read_course_progress(user: UserRow = Depends(require_user), db: Session = De
         .all()
     )
     done = sum(1 for row in rows if row.lesson_id in lesson_ids and row.theory_done)
+    ex = exercises_service.progress(db, user.id)
     return {
         "course_total": overview["total_lessons"],
         "course_done": done,
-        "exercises_total": 0,
-        "exercises_done": 0,
+        "exercises_total": ex["total"],
+        "exercises_done": ex["done"],
         "completed_ids": [
             row.lesson_id for row in rows if row.lesson_id in lesson_ids and row.theory_done
         ],
@@ -433,6 +447,76 @@ def read_course_lesson(
         raise HTTPException(404, "Урок не найден")
     row = db.get(UserLessonProgressRow, (user.id, lesson_id))
     return {**lesson, "completed": bool(row and row.theory_done)}
+
+
+class ExerciseCheckBody(BaseModel):
+    option: str | None = None
+    options: list[str] | None = None
+    text: str | None = None
+    code: str | None = None
+
+
+class ExerciseStateBody(BaseModel):
+    draft: str | None = None
+    completed: bool | None = None
+
+
+@router.get("/exercises")
+def read_exercises(user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    data = exercises_service.overview()
+    prog = exercises_service.progress(db, user.id)
+    return {**data, **prog}
+
+
+@router.post("/exercises/{exercise_id}/check")
+def check_exercise(
+    exercise_id: str,
+    body: ExerciseCheckBody,
+    user: UserRow = Depends(require_user),
+    db: Session = Depends(get_db),
+):
+    return exercises_service.check_answer(db, user.id, exercise_id, body.model_dump())
+
+
+@router.post("/exercises/{exercise_id}/uncheck")
+def uncheck_exercise(exercise_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    if exercise_id not in exercises_service.catalog_ids():
+        raise HTTPException(404, "Задание не найдено")
+    exercises_service.uncheck(db, user.id, exercise_id)
+    return {"ok": True}
+
+
+@router.post("/exercises/{exercise_id}/complete")
+def complete_exercise(
+    exercise_id: str,
+    body: ExerciseStateBody,
+    user: UserRow = Depends(require_user),
+    db: Session = Depends(get_db),
+):
+    if exercise_id not in exercises_service.catalog_ids():
+        raise HTTPException(404, "Задание не найдено")
+    return exercises_service.set_completed(db, user.id, exercise_id, bool(body.completed))
+
+
+@router.post("/exercises/{exercise_id}/hint")
+def hint_exercise(exercise_id: str, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    if exercise_id not in exercises_service.catalog_ids():
+        raise HTTPException(404, "Задание не найдено")
+    return exercises_service.reveal_hint(db, user.id, exercise_id)
+
+
+@router.post("/exercises/{exercise_id}/draft")
+def draft_exercise(exercise_id: str, body: ExerciseStateBody, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    if exercise_id not in exercises_service.catalog_ids():
+        raise HTTPException(404, "Задание не найдено")
+    return exercises_service.save_draft(db, user.id, exercise_id, body.draft or "")
+
+
+@router.post("/exercises/{exercise_id}/run")
+def run_exercise(exercise_id: str, body: ExerciseCheckBody, user: UserRow = Depends(require_user), db: Session = Depends(get_db)):
+    if exercise_id not in exercises_service.catalog_ids():
+        raise HTTPException(404, "Задание не найдено")
+    return exercises_service.check_answer(db, user.id, exercise_id, body.model_dump())
 
 
 @router.get("/learning")

@@ -1,6 +1,15 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { Star } from 'lucide-react'
+import { MarkdownField } from '../components/MarkdownField'
+import { SearchField } from '../components/SearchField'
 import { useProjectStore } from '../store/useProjectStore'
 import { useUiStore } from '../store/useUiStore'
+
+const PRIORITY: Record<string, string> = {
+  must: 'обязательно',
+  should: 'желательно',
+  could: 'можно',
+}
 
 export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
   const project = useProjectStore((s) => s.project)!
@@ -10,7 +19,37 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
   const select = useProjectStore((s) => s.select)
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const setNav = useUiStore((s) => s.setNav)
+  const settings = useUiStore((s) => s.settings)
   const [text, setText] = useState('Робот должен работать офлайн.')
+  const [q, setQ] = useState('')
+  const [sort, setSort] = useState<'starred' | 'code' | 'priority'>('starred')
+
+  const items = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    const list = project.requirements.filter(
+      (r) =>
+        !needle ||
+        r.code.toLowerCase().includes(needle) ||
+        r.text.toLowerCase().includes(needle) ||
+        r.notes.toLowerCase().includes(needle),
+    )
+    const rank = { must: 0, should: 1, could: 2 } as Record<string, number>
+    return list.slice().sort((a, b) => {
+      if (sort === 'starred' || sort === 'code') {
+        const star = Number(Boolean(b.starred)) - Number(Boolean(a.starred))
+        if (star) return star
+        if (sort === 'starred') return a.code.localeCompare(b.code, 'ru')
+      }
+      if (sort === 'priority') return (rank[a.priority] ?? 9) - (rank[b.priority] ?? 9) || a.code.localeCompare(b.code, 'ru')
+      return a.code.localeCompare(b.code, 'ru')
+    })
+  }, [project.requirements, q, sort])
+
+  const submit = () => {
+    if (!text.trim()) return
+    addRequirement(text.trim())
+    setText('')
+  }
 
   return (
     <div className={embedded ? 'embedded-section' : 'page'}>
@@ -24,105 +63,105 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault()
-              if (!text.trim()) return
-              addRequirement(text.trim())
-              setText('')
+              submit()
             }
           }}
         />
-        <button
-          className="btn primary"
-          type="button"
-          onClick={() => {
-            if (!text.trim()) return
-            addRequirement(text.trim())
-            setText('')
-          }}
-        >
+        <button className="btn primary" type="button" onClick={submit}>
           Добавить
         </button>
       </div>
-      <table className="table req-table">
-        <colgroup>
-          <col className="req-col-code" />
-          <col className="req-col-text" />
-          <col className="req-col-pri" />
-          <col className="req-col-links" />
-          <col className="req-col-act" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Код</th>
-            <th>Текст</th>
-            <th>Приоритет</th>
-            <th>Связи</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {project.requirements.map((r) => (
-            <tr key={r.id}>
-              <td>{r.code}</td>
-              <td>
-                <input
-                  className="req-text-input"
-                  value={r.text}
-                  onChange={(e) => updateRequirement(r.id, { text: e.target.value })}
-                />
-              </td>
-              <td>
-                <select value={r.priority} onChange={(e) => updateRequirement(r.id, { priority: e.target.value })}>
-                  <option value="must">обязательно</option>
-                  <option value="should">желательно</option>
-                  <option value="could">можно</option>
-                </select>
-              </td>
-              <td>
-                <div className="req-links-cell">
-                {r.component_ids.map((id) => {
-                  const c = project.components.find((x) => x.id === id)
-                  return (
-                    <button
-                      key={id}
-                      className="tag"
-                      type="button"
-                      onClick={() => {
-                        if (!c) return
-                        goToArchitecture(c.architecture_id)
-                        select([c.id])
-                        setNav('architecture')
-                      }}
-                    >
-                      {c?.name || id}
-                    </button>
-                  )
-                })}
-                <select
-                  value=""
-                  onChange={(e) => {
-                    const id = e.target.value
-                    if (!id) return
-                    updateRequirement(r.id, { component_ids: Array.from(new Set([...r.component_ids, id])) })
+      <div className="req-toolbar">
+        <SearchField placeholder="Поиск требований" value={q} onChange={setQ} />
+        <select value={sort} aria-label="Сортировка" onChange={(e) => setSort(e.target.value as typeof sort)}>
+          <option value="starred">Избранные сверху</option>
+          <option value="code">По коду</option>
+          <option value="priority">По приоритету</option>
+        </select>
+      </div>
+      <div className="notes-grid">
+        {items.map((r) => (
+          <article className="card" key={r.id}>
+            <div className="note-card-head">
+              <input
+                value={r.code}
+                aria-label={`${r.code} код`}
+                onChange={(e) => updateRequirement(r.id, { code: e.target.value })}
+                style={{ fontWeight: 600, fontSize: 16, border: 'none', background: 'transparent', width: '100%' }}
+              />
+              <select value={r.priority} aria-label={`${r.code} приоритет`} onChange={(e) => updateRequirement(r.id, { priority: e.target.value })}>
+                {Object.entries(PRIORITY).map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <button
+                className={`icon-btn note-star ${r.starred ? 'on' : ''}`}
+                type="button"
+                title={r.starred ? 'Убрать из избранного' : 'Добавить в избранное'}
+                aria-label={r.starred ? 'Убрать из избранного' : 'Добавить в избранное'}
+                onClick={() => updateRequirement(r.id, { starred: !r.starred })}
+              >
+                <Star size={16} fill={r.starred ? 'currentColor' : 'none'} />
+              </button>
+            </div>
+            <MarkdownField label="Текст" value={r.text} onChange={(v) => updateRequirement(r.id, { text: v })} />
+            <MarkdownField
+              label="Заметки"
+              value={r.notes}
+              onChange={(v) => updateRequirement(r.id, { notes: v })}
+              extraActions={
+                <button
+                  className="tab tab-danger"
+                  type="button"
+                  onClick={() => {
+                    if (settings.confirm_delete && !window.confirm(`Удалить требование «${r.code}»?`)) return
+                    deleteRequirement(r.id)
                   }}
                 >
-                  <option value="">Связать компонент…</option>
-                  {project.components.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                </div>
-              </td>
-              <td>
-                <button className="btn danger" type="button" onClick={() => deleteRequirement(r.id)}>
                   Удалить
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              }
+            />
+            <div className="req-links-cell">
+              {r.component_ids.map((id) => {
+                const c = project.components.find((x) => x.id === id)
+                return (
+                  <button
+                    key={id}
+                    className="tag"
+                    type="button"
+                    onClick={() => {
+                      if (!c) return
+                      goToArchitecture(c.architecture_id)
+                      select([c.id])
+                      setNav('architecture')
+                    }}
+                  >
+                    {c?.name || id}
+                  </button>
+                )
+              })}
+              <select
+                value=""
+                onChange={(e) => {
+                  const id = e.target.value
+                  if (!id) return
+                  updateRequirement(r.id, { component_ids: Array.from(new Set([...r.component_ids, id])) })
+                }}
+              >
+                <option value="">Связать компонент…</option>
+                {project.components.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   )
 }
