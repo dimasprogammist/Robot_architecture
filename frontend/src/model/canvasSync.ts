@@ -17,11 +17,25 @@ export function hasElectricalPorts(
   return terminalsFor(c).length > 0
 }
 
+export function isElectricalPart(
+  c: Pick<Component, 'category'> & { entity_kind?: Component['entity_kind'] },
+) {
+  return c.category === 'ELECTRICAL' && c.entity_kind !== 'table'
+}
+
+/** MCU, sensors, motors and similar devices — not PSU/terminal blocks. */
+export function shouldLinkArchitectureAndPower(
+  c: Pick<Component, 'category' | 'type' | 'name' | 'extra_fields'> & { entity_kind?: Component['entity_kind'] },
+) {
+  if (isElectricalPart(c)) return false
+  return hasElectricalPorts(c)
+}
+
 export function canListOnPowerLibrary(c: Component, p: Project) {
   if (c.extra_fields?.source_component_id) return false
   const arch = p.architectures.find((a) => a.id === c.architecture_id)
   if (!arch || arch.kind === 'power' || arch.kind === 'database') return false
-  return hasElectricalPorts(c)
+  return shouldLinkArchitectureAndPower(c)
 }
 
 export function hasElectricalAspect(
@@ -29,7 +43,7 @@ export function hasElectricalAspect(
 ) {
   if (c.extra_fields?.source_component_id) return false
   if (c.extra_fields?.omit_power_view === '1') return false
-  return hasElectricalPorts(c)
+  return shouldLinkArchitectureAndPower(c)
 }
 
 export function powerArchitectureId(p: Project) {
@@ -74,7 +88,7 @@ export function ensureArchitectureSource(p: Project, viewId: string) {
   if (view.extra_fields?.source_component_id) return view.extra_fields.source_component_id
   const arch = p.architectures.find((a) => a.id === view.architecture_id)
   if (arch?.kind !== 'power') return null
-  if (!hasElectricalPorts(view)) return null
+  if (!shouldLinkArchitectureAndPower(view)) return null
   const sourceId = uid()
   const size = resolvedCardSize(view)
   const extra = freshCopyFields(view.extra_fields)
@@ -112,7 +126,7 @@ export function syncArchitectureFromPower(p: Project) {
 
 export function ensurePowerView(p: Project, sourceId: string, position?: { x: number; y: number }) {
   const src = p.components.find((c) => c.id === sourceId)
-  if (!src || !hasElectricalAspect(src)) return null
+  if (!src || !shouldLinkArchitectureAndPower(src)) return null
   const existing = findPowerView(p, sourceId)
   if (existing) {
     if (position) existing.position = position

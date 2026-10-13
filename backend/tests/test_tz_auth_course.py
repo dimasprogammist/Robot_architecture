@@ -74,6 +74,7 @@ def test_library_has_required_presets():
         assert name in names, name
     types = {item["type"] for item in LIBRARY_PRESETS}
     assert "ДПТ" in types
+    assert any(item["name"] == "ДПТ" and item["type"] == "ДПТ" for item in LIBRARY_PRESETS)
     assert any(item["name"] == "Электрическое подключение" for item in LIBRARY_PRESETS)
     cats = {item["name"]: item["category"] for item in LIBRARY_PRESETS}
     assert cats["Аккумулятор"] == "ELECTRICAL"

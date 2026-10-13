@@ -20,7 +20,6 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
   const goToArchitecture = useProjectStore((s) => s.goToArchitecture)
   const setNav = useUiStore((s) => s.setNav)
   const settings = useUiStore((s) => s.settings)
-  const [text, setText] = useState('Робот должен работать офлайн.')
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<'starred' | 'code' | 'priority'>('starred')
 
@@ -45,29 +44,12 @@ export function RequirementsView({ embedded = false }: { embedded?: boolean }) {
     })
   }, [project.requirements, q, sort])
 
-  const submit = () => {
-    if (!text.trim()) return
-    addRequirement(text.trim())
-    setText('')
-  }
-
   return (
     <div className={embedded ? 'embedded-section' : 'page'}>
       {embedded ? null : <h1>Требования</h1>}
       <p className="lede">Ограничения, которые можно связать с компонентами и соединениями.</p>
       <div className="create-bar">
-        <input
-          value={text}
-          placeholder="Робот должен работать офлайн."
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              submit()
-            }
-          }}
-        />
-        <button className="btn primary" type="button" onClick={submit}>
+        <button className="btn primary" type="button" onClick={() => addRequirement('Новое требование')}>
           Добавить
         </button>
       </div>

@@ -1176,11 +1176,12 @@ select:focus {
   justify-content: space-between;
   gap: 8px;
   padding-right: 52px;
+  margin-bottom: 9px;
 }
 
 .inspector-title-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   min-width: 0;
   flex: 1;
@@ -1191,12 +1192,17 @@ select:focus {
   flex: 1;
   min-width: 0;
   margin: 0;
+  height: 34px;
+  box-sizing: border-box;
 }
 
 .inspector-type {
   flex-shrink: 1;
   min-width: 0;
   max-width: 46%;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1216,23 +1222,29 @@ select:focus {
 .inspector h2,
 .editable-title {
   font-size: 15px;
-  margin: 0 0 4px;
+  margin: 0;
   letter-spacing: -0.03em;
   font-weight: 600;
   cursor: text;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .editable-title-input {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.03em;
-  margin: 0 0 4px;
+  margin: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--bg);
-  padding: 4px 8px;
+  padding: 0 8px;
   width: 100%;
-  min-height: 32px;
+  height: 34px;
+  min-height: 34px;
+  box-sizing: border-box;
   color: var(--ink);
 }
 
@@ -1619,6 +1631,13 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
   gap: 8px;
   margin: 18px 0 24px;
   max-width: 640px;
+  align-items: center;
+}
+
+.create-bar .btn {
+  min-width: 115px;
+  min-height: 32px;
+  box-sizing: border-box;
 }
 
 .create-bar input,
@@ -2142,7 +2161,7 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
 
 .page.algo-layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 0;
   height: 100%;
   min-height: 0;
@@ -2152,10 +2171,11 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
 
 .algo-tree {
   height: 100%;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
   border-right: 1px solid var(--line);
-  padding: 24px 12px 28px;
+  padding: 24px 12px 28px 12px;
   box-sizing: border-box;
 }
 
@@ -3388,12 +3408,27 @@ html[data-theme='dark'] .handle-hidden .react-flow__handle {
   display: inline-flex;
 }
 
+.color-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.color-card-title {
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .color-picker-current {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -3910,7 +3945,13 @@ html[data-theme='dark'] .react-flow__background {
     overflow: auto;
   }
 
-  .learning-nav {
+  .page.algo-layout {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .learning-nav,
+  .algo-tree {
     max-height: 42vh;
   }
 
@@ -4013,8 +4054,9 @@ html[data-motion='reduce'] *::after {
 }
 
 .version-select {
-  min-width: 240px;
-  max-width: 280px;
+  min-width: 180px;
+  width: 220px;
+  max-width: 220px;
   margin-left: 8px;
   font-size: 12px;
   min-height: 28px;
@@ -4705,7 +4747,9 @@ html[data-motion='reduce'] {
 }
 
 .notes-toolbar .search-field {
-  flex: 1;
+  flex: 1 1 auto;
+  width: min(520px, 100%);
+  max-width: 520px;
   min-width: 180px;
   margin-bottom: 0;
 }
@@ -4716,13 +4760,15 @@ html[data-motion='reduce'] {
 }
 
 .req-toolbar .search-field {
-  flex: 1;
+  flex: 1 1 auto;
+  width: min(520px, 100%);
+  max-width: 520px;
   min-width: 200px;
-  max-width: 420px;
 }
 
 .req-toolbar select {
-  max-width: 240px;
+  width: min(300px, 100%);
+  max-width: 300px;
   box-shadow: none;
 }
 

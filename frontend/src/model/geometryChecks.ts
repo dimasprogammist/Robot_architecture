@@ -19,6 +19,7 @@ import {
   ensurePowerView,
   hasElectricalAspect,
   pruneDanglingGraph,
+  shouldLinkArchitectureAndPower,
   pruneOrphanAlgorithms,
   removeComponentsAndDependents,
   syncArchitectureFromPower,
@@ -126,6 +127,33 @@ export function runGeometryChecks() {
   assert(
     !hasElectricalAspect({ type: 'Язык', name: 'Python', category: 'SOFTWARE', extra_fields: {} }),
     'python has no fake pins',
+  )
+  assert(
+    !shouldLinkArchitectureAndPower({
+      type: 'Блок питания',
+      name: 'Блок питания',
+      category: 'ELECTRICAL',
+      extra_fields: {},
+    }),
+    'PSU stays on electrical canvas',
+  )
+  assert(
+    !shouldLinkArchitectureAndPower({
+      type: 'Клеммник',
+      name: 'Клеммник',
+      category: 'ELECTRICAL',
+      extra_fields: { terminal_inputs: '4', terminal_outputs: '4' },
+    }),
+    'terminal block is not cloned to architecture',
+  )
+  assert(
+    shouldLinkArchitectureAndPower({
+      type: 'MCU',
+      name: 'Arduino Uno',
+      category: 'HARDWARE',
+      extra_fields: {},
+    }),
+    'mcu still links architecture and power',
   )
   const sized = electricalCardSize({ name: 'Arduino', type: 'MCU', category: 'HARDWARE', extra_fields: {} })
   assert(sized.height >= 156, 'arduino card grows with pins')

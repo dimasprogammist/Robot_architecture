@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { Agentation } from 'agentation'
 import { Home } from './Home'
 import { Workspace } from './Workspace'
 import { AuthGate } from './AuthGate'
@@ -25,17 +26,22 @@ export default function App() {
       setTheme(s.theme)
       useUiStore.getState().setLibraryCollapsed(!s.library_open)
     }).catch(() => undefined)
+
     api.library().then((l) => setPresets(l.presets)).catch(() => undefined)
   }, [setSettings, setTheme])
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AuthGate><Home /></AuthGate>} />
-        <Route path="/reset" element={<ResetPassword />} />
-        <Route path="/p/:id" element={<AuthGate><Workspace presets={presets} /></AuthGate>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AuthGate><Home /></AuthGate>} />
+          <Route path="/reset" element={<ResetPassword />} />
+          <Route path="/p/:id" element={<AuthGate><Workspace presets={presets} /></AuthGate>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+
+      {import.meta.env.DEV && <Agentation appName="Robot_architecture" />}
+    </>
   )
 }

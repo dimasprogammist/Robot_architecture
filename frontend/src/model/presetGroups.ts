@@ -12,6 +12,7 @@ export function isMotorPreset(p: LibraryPreset) {
   return (
     ['ДПТ', 'АД', 'СД', 'Шаговый', 'Сервопривод'].includes(p.type) ||
     p.name === 'Двигатель' ||
+    p.name === 'ДПТ' ||
     p.name === 'Шаговый двигатель' ||
     p.name === 'Сервопривод' ||
     /шагов/i.test(text)

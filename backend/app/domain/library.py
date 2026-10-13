@@ -252,7 +252,7 @@ LIBRARY_PRESETS = [
     {"name": "Энкодер", "type": "Энкодер", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-encoder"},
     {"name": "Контроллер двигателя", "type": "Контроллер двигателя", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-motor-ctrl"},
     {"name": "Сервопривод", "type": "Сервопривод", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-servo"},
-    {"name": "Двигатель", "type": "ДПТ", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-motor"},
+    {"name": "ДПТ", "type": "ДПТ", "category": "HARDWARE", "icon": "motor", "hardware_id": "hw-motor"},
     {"name": "Манипулятор", "type": "Манипулятор", "category": "HARDWARE", "icon": "gear", "hardware_id": "hw-ur"},
     {"name": "Концевой выключатель", "type": "Концевой выключатель", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-limit-switch"},
     {"name": "Дальномер HC-SR04", "type": "Дальномер HC-SR04", "category": "HARDWARE", "icon": "sensor", "hardware_id": "hw-hc-sr04"},

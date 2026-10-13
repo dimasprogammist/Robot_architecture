@@ -318,6 +318,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         }),
       )
       const arch = p.architectures.find((a) => a.id === architectureId)
+      const added = p.components.find((c) => c.id === id)
+      if (added?.category === 'ELECTRICAL') return
       if (arch?.kind === 'power') ensureArchitectureSource(p, id)
       else ensurePowerView(p, id)
     })
@@ -527,6 +529,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           extra_fields: freshCopyFields(n.extra_fields),
           position: { x: n.position.x + 40, y: n.position.y + 40 },
         })
+        const added = p.components.find((c) => c.id === id)
+        if (added?.category === 'ELECTRICAL') continue
         const arch = p.architectures.find((a) => a.id === (architectureId || p.root_architecture_id))
         if (arch?.kind === 'power') ensureArchitectureSource(p, id)
         else ensurePowerView(p, id)
@@ -551,6 +555,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         extra_fields: freshCopyFields(source.extra_fields),
         position: { x: source.position.x + 40, y: source.position.y + 40 },
       })
+      const added = p.components.find((c) => c.id === nextId)
+      if (added?.category === 'ELECTRICAL') return
       const arch = p.architectures.find((a) => a.id === (architectureId || p.root_architecture_id))
       if (arch?.kind === 'power') ensureArchitectureSource(p, nextId)
       else ensurePowerView(p, nextId)

@@ -420,8 +420,8 @@ export function Inspector() {
                     </select>
                   </div>
                   {mainFields.map(renderExtra)}
-                  <div className="field">
-                    <label>Цвет</label>
+                  <div className="color-card">
+                    <span className="color-card-title">Цвет</span>
                     <ColorSwatches
                       layout="grid"
                       colors={PROTOCOL_PALETTE}
@@ -636,8 +636,8 @@ function ConnectionInspector({
         </select>
       </div>
 
-      <div className="field">
-        <label>Цвет линии</label>
+      <div className="color-card">
+        <span className="color-card-title">Цвет линии</span>
         <ColorSwatches
           layout="grid"
           colors={PROTOCOL_PALETTE}

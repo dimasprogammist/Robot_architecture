@@ -129,7 +129,11 @@ export function seedLibraryPresets(project: Project, builtins: LibraryPreset[]) 
     const builtinByKey = new Map(builtins.map((item) => [`${item.category}::${item.name}`, item]))
     project.library_presets = project.library_presets.map((item) => {
       const next = normalizePreset(item)
-      const fresh = builtinByKey.get(`${item.category}::${item.name}`)
+      if (item.built_in !== false && item.type === 'ДПТ' && item.name === 'Двигатель') {
+        next.name = 'ДПТ'
+        changed = true
+      }
+      const fresh = builtinByKey.get(`${next.category}::${next.name}`) || builtinByKey.get(`${item.category}::${item.name}`)
       if (fresh && item.built_in !== false) {
         if (fresh.icon && next.icon !== fresh.icon && (next.icon === 'flash' || next.icon === 'box')) {
           next.icon = fresh.icon

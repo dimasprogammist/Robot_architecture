@@ -23,7 +23,9 @@ def test_exercise_sections_and_ids():
         assert extra_ids <= section_ids
         assert counts[sid] >= len(items)
     assert all(len(s["items"]) >= 1 for s in SECTIONS())
-    assert CAPACITY_PER_SECTION >= 50
+    assert counts["math"] == 55
+    assert all(item["id"].startswith("math-") for item in next(s for s in SECTIONS() if s["id"] == "math")["items"])
+    assert CAPACITY_PER_SECTION >= 55
     assert len(ids) >= 30
     pub = public_sections()
     assert all(

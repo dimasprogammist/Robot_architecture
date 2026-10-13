@@ -11,7 +11,7 @@ from app.services.course import mark_lesson_seen
 from app.services.exercise_runner import run_item
 
 PREFIX = "ex:"
-CAPACITY_PER_SECTION = 50
+CAPACITY_PER_SECTION = 80
 
 
 def catalog_ids():
